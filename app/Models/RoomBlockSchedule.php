@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\RoomBlockType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+
+/**
+ * @property int $id
+ * @property int $room_id
+ * @property RoomBlockType $block_type
+ * @property string $title
+ * @property string|null $reason
+ * @property Carbon $starts_at
+ * @property Carbon $ends_at
+ * @property int $created_by_user_id
+ * @property Carbon|null $cancelled_at
+ * @property int|null $cancelled_by_user_id
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
+class RoomBlockSchedule extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'room_id', 'block_type', 'title', 'reason',
+        'starts_at', 'ends_at',
+        'created_by_user_id', 'cancelled_at', 'cancelled_by_user_id',
+        'is_active',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'block_type' => RoomBlockType::class,
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function room(): BelongsTo
+    {
+        return $this->belongsTo(Room::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by_user_id');
+    }
+}
