@@ -33,6 +33,42 @@ new class extends Component
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @hasPermission('bookings.view')
+                        <x-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*')" wire:navigate>
+                            {{ __('Bookings') }}
+                        </x-nav-link>
+                    @endhasPermission
+
+                    @hasPermission('bookings.approve')
+                        <x-nav-link :href="route('approvals.index')" :active="request()->routeIs('approvals.*')" wire:navigate>
+                            {{ __('Approvals') }}
+                        </x-nav-link>
+                    @endhasPermission
+
+                    @hasPermission('rooms.view')
+                        <x-nav-link :href="route('rooms.index')" :active="request()->routeIs('rooms.*') && !request()->routeIs('admin.rooms.*')" wire:navigate>
+                            {{ __('Rooms') }}
+                        </x-nav-link>
+                    @endhasPermission
+
+                    @hasPermission('rooms.create')
+                        <x-nav-link :href="route('admin.rooms.index')" :active="request()->routeIs('admin.rooms.*')" wire:navigate>
+                            {{ __('Manage Rooms') }}
+                        </x-nav-link>
+                    @endhasPermission
+
+                    @hasPermission('users.view')
+                        <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')" wire:navigate>
+                            {{ __('Manage Users') }}
+                        </x-nav-link>
+                    @endhasPermission
+
+                    @hasPermission('logs.view')
+                        <x-nav-link :href="route('admin.logs.index')" :active="request()->routeIs('admin.logs.*')" wire:navigate>
+                            {{ __('Activity Logs') }}
+                        </x-nav-link>
+                    @endhasPermission
                 </div>
             </div>
 
@@ -84,6 +120,42 @@ new class extends Component
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @hasPermission('bookings.view')
+                <x-responsive-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*')" wire:navigate>
+                    {{ __('Bookings') }}
+                </x-responsive-nav-link>
+            @endhasPermission
+
+            @hasPermission('bookings.approve')
+                <x-responsive-nav-link :href="route('approvals.index')" :active="request()->routeIs('approvals.*')" wire:navigate>
+                    {{ __('Approvals') }}
+                </x-responsive-nav-link>
+            @endhasPermission
+
+            @hasPermission('rooms.view')
+                <x-responsive-nav-link :href="route('rooms.index')" :active="request()->routeIs('rooms.*') && !request()->routeIs('admin.rooms.*')" wire:navigate>
+                    {{ __('Rooms') }}
+                </x-responsive-nav-link>
+            @endhasPermission
+
+            @hasPermission('rooms.create')
+                <x-responsive-nav-link :href="route('admin.rooms.index')" :active="request()->routeIs('admin.rooms.*')" wire:navigate>
+                    {{ __('Manage Rooms') }}
+                </x-responsive-nav-link>
+            @endhasPermission
+
+            @hasPermission('users.view')
+                <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')" wire:navigate>
+                    {{ __('Manage Users') }}
+                </x-responsive-nav-link>
+            @endhasPermission
+
+            @hasPermission('logs.view')
+                <x-responsive-nav-link :href="route('admin.logs.index')" :active="request()->routeIs('admin.logs.*')" wire:navigate>
+                    {{ __('Activity Logs') }}
+                </x-responsive-nav-link>
+            @endhasPermission
         </div>
 
         <!-- Responsive Settings Options -->
