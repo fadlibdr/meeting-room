@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\PermissionCacheService;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -112,6 +113,6 @@ class User extends Authenticatable
     public function hasPermission(string $permission): bool
     {
         // TODO Sprint 1: replace with PermissionCacheService::userHas($this, $permission)
-        return false;
+        return app(PermissionCacheService::class)->userHas($this, $permission);
     }
 }

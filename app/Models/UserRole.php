@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\PermissionCacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,20 @@ class UserRole extends Model
     protected $fillable = [
         'user_id', 'role_id', 'is_primary', 'assigned_at', 'assigned_by_user_id',
     ];
+
+    protected static function booted(): void
+    {
+        $clearCache = function (UserRole $userRole): void {
+            $user = $userRole->user;
+            if ($user instanceof User) {
+                app(PermissionCacheService::class)->forget($user);
+            }
+        };
+
+        static::created($clearCache);
+        static::updated($clearCache);
+        static::deleted($clearCache);
+    }
 
     protected function casts(): array
     {
