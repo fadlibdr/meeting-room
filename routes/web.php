@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,7 +17,19 @@ Route::middleware(['auth', 'user.active'])->group(function () {
 
     // Placeholders for admin routes (1D replaces users)
     Route::prefix('admin')->name('admin.')->group(function () {
-        Route::view('users', 'placeholder')->name('users.index');
+        Route::get('users', [UserController::class, 'index'])
+            ->middleware('permission:users.view')
+            ->name('users.index');
+
+        Route::get('users/create', [UserController::class, 'create'])
+            ->middleware('permission:users.create')
+            ->name('users.create');
+
+        Route::get('users/{userId}/edit', [UserController::class, 'edit'])
+            ->middleware('permission:users.update')
+            ->name('users.edit');
+
+        // Placeholders for Sprint 2/3
         Route::view('rooms', 'placeholder')->name('rooms.index');
         Route::view('logs', 'placeholder')->name('logs.index');
     });
