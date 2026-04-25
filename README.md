@@ -7,6 +7,25 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Development Login Credentials
+
+After running `php artisan migrate:fresh --seed`, you can log in with these test accounts. **All passwords are `password`** — for development only, never use these in production.
+
+| Role | Email | Notes |
+|------|-------|-------|
+| Super Admin | superadmin@bpjs-kesehatan.go.id | Full system access |
+| System Admin | sysadmin@bpjs-kesehatan.go.id | RBAC + audit |
+| GA Admin | ga.admin@bpjs-kesehatan.go.id | Manages rooms + GA approval queue |
+| Unit Approver (SDM) | budi.santoso@bpjs-kesehatan.go.id | Approves bookings for SDM dan Umum unit |
+| Unit Approver (IT) | siti.rahma@bpjs-kesehatan.go.id | Approves bookings for IT direktorat |
+| Unit Approver (Kepesertaan) | ahmad.hidayat@bpjs-kesehatan.go.id | Approves bookings for Kepesertaan |
+| Requester (BIRO-UMUM) | dewi.lestari@bpjs-kesehatan.go.id | Books rooms; needs Budi Santoso's approval |
+| Requester (IT) | eko.prasetyo@bpjs-kesehatan.go.id | Books rooms; needs Siti Rahma's approval |
+| Requester (Kepesertaan) | rina.wulandari@bpjs-kesehatan.go.id | Books rooms; needs Ahmad Hidayat's approval |
+| Inactive Requester | hari.nugroho@bpjs-kesehatan.go.id | `is_active = false` — for middleware testing |
+
+The seeder also produces 50 bookings spanning every status (draft, submitted, approved, rejected, cancelled, completed), 8 rooms with mixed approval modes, and 5 organizational units.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
