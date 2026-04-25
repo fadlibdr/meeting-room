@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\PermissionCacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,18 @@ class RolePermission extends Model
     use HasFactory;
 
     protected $fillable = ['role_id', 'permission_id'];
+
+    protected static function booted(): void
+    {
+        $clearCache = function (RolePermission $rolePermission) {
+            app(PermissionCacheService::class)
+                ->forgetByRole($rolePermission->role_id);
+        };
+
+        static::created($clearCache);
+        static::updated($clearCache);
+        static::deleted($clearCache);
+    }
 
     public function role(): BelongsTo
     {
