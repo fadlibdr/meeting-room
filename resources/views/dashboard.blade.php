@@ -64,7 +64,7 @@
             </div>
 
             {{-- Recent Activity (System Admin / Super Admin only) --}}
-            @hasPermission('logs.view')
+            @hasPermission('activity-logs.view')
                 <livewire:activity.recent-activity-feed />
             @endhasPermission
 
