@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Admin;
 
 use App\Models\Role;
@@ -14,6 +16,8 @@ use Livewire\Component;
 class UserForm extends Component
 {
     public ?User $user = null;
+
+    public bool $isEditMode = false;
 
     public string $name = '';
 
@@ -31,6 +35,7 @@ class UserForm extends Component
     public function mount(?User $user = null): void
     {
         if ($user && $user->exists) {
+            $this->isEditMode = true;
             $this->user = $user;
             $this->name = $user->name;
             $this->email = $user->email;
@@ -86,14 +91,14 @@ class UserForm extends Component
         $validated = $this->validate();
 
         DB::transaction(function () use ($validated) {
-            if ($this->user && $this->user->exists) {
+            if ($this->isEditMode) {
                 $this->updateExistingUser($validated);
             } else {
                 $this->createNewUser($validated);
             }
         });
 
-        if ($this->user && $this->user->exists) {
+        if ($this->isEditMode) {
             session()->flash('status', 'Pengguna berhasil diperbarui.');
             $this->redirectRoute('admin.users.index', navigate: true);
         }
@@ -142,7 +147,7 @@ class UserForm extends Component
         return view('livewire.admin.user-form', [
             'units' => Unit::orderBy('name')->get(),
             'roles' => Role::where('is_active', true)->orderBy('name')->get(),
-            'isEditMode' => $this->user && $this->user->exists,
+            'isEditMode' => $this->isEditMode,
         ]);
     }
 }
