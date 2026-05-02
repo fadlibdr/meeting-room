@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Observers\UserRoleObserver;
 use App\Services\PermissionCacheService;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
+#[ObservedBy([UserRoleObserver::class])]
 class UserRole extends Model
 {
     use HasFactory;
