@@ -211,15 +211,83 @@
                     </div>
                 </div>
 
-                {{-- MOBILE: List fallback (M1-E will replace) --}}
-                <div class="md:hidden bg-white rounded-lg border border-slate-200 shadow-sm px-4 py-6 text-center">
-                    <p class="text-sm text-slate-500">
-                        Tampilan kalender mobile akan tersedia di M1-E.
-                    </p>
-                    <p class="mt-2 text-xs text-slate-400">
-                        Sementara, gunakan tampilan desktop atau buka langsung
-                        <a href="{{ route('bookings.new') }}" wire:navigate class="text-bpjs-blue-600 underline">form reservasi</a>.
-                    </p>
+                {{-- MOBILE: List view grouped by room (M1-E) --}}
+                <div class="md:hidden space-y-3">
+                    {{-- CTA: direct link to form (replaces empty-cell click that doesn't fit mobile) --}}
+                    
+                        href="{{ route('bookings.new') }}"
+                        wire:navigate
+                        class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-bpjs-blue-500 hover:bg-bpjs-blue-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Buat Reservasi Baru
+                    </a>
+
+                    {{-- Per-room sections, sorted alphabetically --}}
+                    @foreach ($rooms as $room)
+                        @php($roomBookings = $bookings->where('room_id', $room->id)->sortBy('starts_at')->values())
+                        <section class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                            <header class="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                                <h3 class="font-display text-sm font-semibold text-slate-900 truncate">
+                                    {{ $room->name }}
+                                </h3>
+                                <p class="text-[11px] text-slate-500 truncate mt-0.5">
+                                    @if ($room->floor || $room->location)
+                                        {{ trim(($room->floor ?? '').($room->floor && $room->location ? ' · ' : '').($room->location ?? '')) }} ·
+                                    @endif
+                                    Kapasitas {{ $room->capacity }}
+                                </p>
+                            </header>
+
+                            @if ($roomBookings->isEmpty())
+                                <div class="px-4 py-4">
+                                    <p class="text-xs text-slate-500 italic">
+                                        Tidak ada reservasi untuk hari ini.
+                                    </p>
+                                    
+                                        href="{{ route('bookings.new', ['room_id' => $room->id]) }}"
+                                        wire:navigate
+                                        class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-bpjs-blue-600 hover:text-bpjs-blue-700"
+                                    >
+                                        Reservasi ruangan ini
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            @else
+                                <ul class="divide-y divide-slate-100">
+                                    @foreach ($roomBookings as $booking)
+                                        <li class="px-4 py-3">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="font-mono text-xs text-slate-500">
+                                                        {{ $this->formatBookingTime($booking) }}
+                                                    </p>
+                                                    <p class="mt-1 text-sm font-medium text-slate-900 truncate">
+                                                        {{ $booking->subject }}
+                                                    </p>
+                                                    <p class="text-xs text-slate-500 truncate">
+                                                        {{ $booking->requester->name ?? '—' }}
+                                                    </p>
+                                                </div>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wide flex-shrink-0
+                                                    @if ($booking->status->value === 'approved')
+                                                        bg-bpjs-green-50 text-bpjs-green-800 border border-bpjs-green-200
+                                                    @else
+                                                        bg-amber-50 text-amber-800 border border-amber-200
+                                                    @endif">
+                                                    @if ($booking->status->value === 'approved') Disetujui @else Menunggu @endif
+                                                </span>
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </section>
+                    @endforeach
                 </div>
             @endif
         </div>
