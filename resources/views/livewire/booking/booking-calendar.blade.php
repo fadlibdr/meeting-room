@@ -184,7 +184,12 @@
                                 @endphp
                                 @if ($position !== null && $roomIndex !== false)
                                     <div
-                                        class="relative z-10 m-0.5 rounded-md border px-2 py-1 overflow-hidden flex flex-col justify-start @if ($booking->status->value === 'approved') bg-bpjs-green-50 border-bpjs-green-300 text-bpjs-green-900 @else bg-amber-50 border-amber-300 text-amber-900 @endif"
+                                        class="relative z-10 m-0.5 rounded-md border px-2 py-1 overflow-hidden flex flex-col justify-start
+                                            @if ($booking->status->value === 'approved')
+                                                bg-bpjs-green-50 border-bpjs-green-300 text-bpjs-green-900
+                                            @else
+                                                bg-amber-50 border-amber-300 text-amber-900
+                                            @endif"
                                         style="grid-column: {{ $roomIndex + 2 }}; grid-row: {{ $position['rowStart'] }} / span {{ $position['rowSpan'] }};"
                                         title="{{ $booking->subject }} — {{ $this->formatBookingTime($booking) }} — {{ $booking->requester->name ?? '?' }}"
                                     >
@@ -269,7 +274,12 @@
                                                         {{ $booking->requester->name ?? '—' }}
                                                     </p>
                                                 </div>
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wide flex-shrink-0 @if ($booking->status->value === 'approved') bg-bpjs-green-50 text-bpjs-green-800 border border-bpjs-green-200 @else bg-amber-50 text-amber-800 border border-amber-200 @endif">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wide flex-shrink-0
+                                                    @if ($booking->status->value === 'approved')
+                                                        bg-bpjs-green-50 text-bpjs-green-800 border border-bpjs-green-200
+                                                    @else
+                                                        bg-amber-50 text-amber-800 border border-amber-200
+                                                    @endif">
                                                     @if ($booking->status->value === 'approved') Disetujui @else Menunggu @endif
                                                 </span>
                                             </div>
