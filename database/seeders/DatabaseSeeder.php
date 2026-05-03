@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
             // Users (depends on units + roles)
             UsersSeeder::class,
 
+            // System settings (used by services like BookingConflictService)
+            AppSettingsSeeder::class,
+
             // Master data: facilities catalog
             FacilitiesSeeder::class,
 
