@@ -32,6 +32,11 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         // Placeholders for Sprint 2/3
         Route::view('rooms', 'placeholder')->name('rooms.index');
         Route::view('logs', 'placeholder')->name('logs.index');
+
+        // App settings - runtime configuration editor
+        Route::get('settings', \App\Livewire\Admin\SettingsManager::class)
+            ->middleware('permission:app-settings.view')
+            ->name('settings.index');
     });
 
     Route::view('profile', 'profile')->middleware(['auth'])->name('profile');

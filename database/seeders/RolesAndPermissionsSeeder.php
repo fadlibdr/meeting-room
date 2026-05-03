@@ -26,6 +26,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'permissions' => ['view'],
             'units' => ['view', 'create', 'update', 'delete'],
             'activity-logs' => ['view'],
+            'app-settings' => ['view', 'update'],
             'reports' => ['view', 'export'],
         ];
 
@@ -104,7 +105,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $systemAdmin = Role::where('code', 'system_admin')->firstOrFail();
         $systemAdmin->permissions()->sync(
             Permission::whereIn('module', [
-                'users', 'roles', 'permissions', 'units', 'activity-logs',
+                'users', 'roles', 'permissions', 'units', 'activity-logs', 'app-settings',
             ])->pluck('id')
         );
 
