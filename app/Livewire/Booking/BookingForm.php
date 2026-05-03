@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace App\Livewire\Booking;
 
 use App\Actions\SubmitBookingAction;
+use App\DataTransferObjects\ConflictItem;
 use App\Exceptions\ApprovalRoutingException;
 use App\Exceptions\BookingConflictException;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\User;
+use App\Services\BookingConflictService;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Throwable;
 
 /**
  * Booking submit form — single-page (D2), all fields visible.
@@ -25,7 +29,7 @@ use Livewire\Component;
  * Pre-fill via query string (?room_id=X&starts_at=Y) supported via
  * Livewire 3 #[Url] attributes — used by calendar empty-cell click in M1-D.
  *
- * @property-read \Illuminate\Support\Collection<int, \App\Models\Room> $rooms
+ * @property-read Collection<int, Room> $rooms
  *
  * @see docs/m1-submit-ui-spec.md
  */
@@ -53,9 +57,115 @@ class BookingForm extends Component
      */
     public ?string $submitError = null;
 
+    /**
+     * Live conflict check status.
+     *
+     * One of:
+     *  - 'unknown'  : no check has run yet, or required fields incomplete
+     *  - 'checking' : check in flight (banner shows spinner)
+     *  - 'clear'    : slot is bookable
+     *  - 'conflict' : slot overlaps existing booking or block
+     */
+    public string $conflictStatus = 'unknown';
+
+    /**
+     * Conflict details when $conflictStatus === 'conflict'.
+     * Each entry: ['type' => 'booking|block|operating_hours', 'title' => str,
+     *              'starts_at' => str (Y-m-d H:i UTC), 'ends_at' => str (UTC)].
+     *
+     * @var array<int, array<string, mixed>>
+     */
+    public array $conflictDetails = [];
+
     public function mount(): void
     {
         $this->authorize('create', Booking::class);
+    }
+
+    /**
+     * Livewire 3 lifecycle hook — fires after wire:model.live updates roomId.
+     */
+    public function updatedRoomId(): void
+    {
+        $this->checkAvailability(app(BookingConflictService::class));
+    }
+
+    /**
+     * Livewire 3 lifecycle hook — fires after wire:model.live updates startsAt.
+     */
+    public function updatedStartsAt(): void
+    {
+        $this->checkAvailability(app(BookingConflictService::class));
+    }
+
+    /**
+     * Livewire 3 lifecycle hook — fires after wire:model.live updates endsAt.
+     */
+    public function updatedEndsAt(): void
+    {
+        $this->checkAvailability(app(BookingConflictService::class));
+    }
+
+    /**
+     * Run a debounced availability check on the current form state.
+     *
+     * Gating per D3: returns early ('unknown') if any of roomId / startsAt /
+     * endsAt is missing. Treats invalid datetime input as 'unknown' rather
+     * than surfacing parse errors mid-typing.
+     */
+    public function checkAvailability(BookingConflictService $service): void
+    {
+        $this->conflictDetails = [];
+
+        // D3 gating: all three trigger fields must be set
+        if ($this->roomId === '' || $this->startsAt === '' || $this->endsAt === '') {
+            $this->conflictStatus = 'unknown';
+
+            return;
+        }
+
+        $this->conflictStatus = 'checking';
+
+        try {
+            $room = Room::query()->find((int) $this->roomId);
+            if ($room === null || ! $room->is_active) {
+                $this->conflictStatus = 'unknown';
+
+                return;
+            }
+
+            $startsAt = CarbonImmutable::parse($this->normalizeDatetime($this->startsAt))->utc();
+            $endsAt = CarbonImmutable::parse($this->normalizeDatetime($this->endsAt))->utc();
+
+            // Defensive: if user typed reversed times, don't run service
+            if ($endsAt->lessThanOrEqualTo($startsAt)) {
+                $this->conflictStatus = 'unknown';
+
+                return;
+            }
+
+            $conflicts = $service->findConflicts($room, $startsAt, $endsAt);
+
+            if ($conflicts->isEmpty()) {
+                $this->conflictStatus = 'clear';
+
+                return;
+            }
+
+            $this->conflictStatus = 'conflict';
+            /** @var array<int, array<string, mixed>> $details */
+            $details = $conflicts->map(fn (ConflictItem $item): array => [
+                'type' => $item->type,
+                'title' => $item->title,
+                'starts_at' => $item->startsAt->format('Y-m-d H:i'),
+                'ends_at' => $item->endsAt->format('Y-m-d H:i'),
+            ])->values()->all();
+            $this->conflictDetails = $details;
+        } catch (Throwable $e) {
+            // Invalid datetime mid-typing, etc. — silent fallback
+            $this->conflictStatus = 'unknown';
+            $this->conflictDetails = [];
+        }
     }
 
     /**
@@ -103,6 +213,17 @@ class BookingForm extends Component
         $this->submitError = null;
 
         $validated = $this->validate();
+
+        // Re-run live check synchronously before passing to action.
+        // Action will lockForUpdate + re-check anyway (defense in depth),
+        // but this catches the common case before transaction overhead.
+        $this->checkAvailability(app(BookingConflictService::class));
+        if ($this->conflictStatus === 'conflict') {
+            $this->submitError = 'Slot waktu yang dipilih bentrok dengan jadwal lain. '
+                .'Silakan pilih waktu lain.';
+
+            return null;
+        }
 
         /** @var User $user */
         $user = auth()->user();
