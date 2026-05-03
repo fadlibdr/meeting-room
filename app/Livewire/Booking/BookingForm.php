@@ -25,6 +25,8 @@ use Livewire\Component;
  * Pre-fill via query string (?room_id=X&starts_at=Y) supported via
  * Livewire 3 #[Url] attributes — used by calendar empty-cell click in M1-D.
  *
+ * @property-read \Illuminate\Support\Collection<int, \App\Models\Room> $rooms
+ *
  * @see docs/m1-submit-ui-spec.md
  */
 class BookingForm extends Component
