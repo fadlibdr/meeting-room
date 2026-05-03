@@ -15,6 +15,7 @@ use App\Services\BookingConflictService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Throwable;
@@ -113,6 +114,19 @@ class BookingForm extends Component
      * endsAt is missing. Treats invalid datetime input as 'unknown' rather
      * than surfacing parse errors mid-typing.
      */
+    /**
+     * Handle 'room-selected' event dispatched from RoomAvailabilityPicker child.
+     * Updates $roomId and triggers conflict re-check (mirrors live wire:model behavior).
+     *
+     * Per M1-F-Dec-2=1 (standard Livewire 3 dispatch + listener pattern).
+     */
+    #[On('room-selected')]
+    public function selectRoomFromPicker(int $roomId, BookingConflictService $service): void
+    {
+        $this->roomId = (string) $roomId;
+        $this->checkAvailability($service);
+    }
+
     public function checkAvailability(BookingConflictService $service): void
     {
         $this->conflictDetails = [];
@@ -273,24 +287,9 @@ class BookingForm extends Component
         return $normalized;
     }
 
-    /**
-     * Active rooms for the dropdown — replaced by RoomAvailabilityPicker in M1-F.
-     *
-     * @return Collection<int, Room>
-     */
-    public function getRoomsProperty(): Collection
-    {
-        return Room::query()
-            ->where('is_active', true)
-            ->where('status', 'active')
-            ->orderBy('name')
-            ->get(['id', 'code', 'name', 'capacity', 'location', 'floor', 'approval_mode']);
-    }
-
     public function render(): View
     {
-        return view('livewire.booking.booking-form', [
-            'rooms' => $this->rooms,
-        ])->layout('layouts.app');
+        return view('livewire.booking.booking-form')
+            ->layout('layouts.app');
     }
 }

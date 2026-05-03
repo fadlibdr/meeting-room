@@ -37,31 +37,14 @@
                 {{-- Section: Room --}}
                 <div class="px-6 py-5 border-b border-slate-100">
                     <h2 class="font-display text-base font-semibold text-slate-900 mb-4">
-                        Ruangan
+                        Ruangan <span class="text-red-500 text-sm" aria-hidden="true">*</span>
                     </h2>
-                    <div>
-                        <label for="roomId" class="block text-sm font-medium text-slate-700 mb-1.5">
-                            Pilih Ruangan <span class="text-red-500" aria-hidden="true">*</span>
-                        </label>
-                        <select
-                            wire:model.live="roomId"
-                            id="roomId"
-                            class="block w-full rounded-md border-slate-300 text-slate-900 shadow-sm focus:border-bpjs-blue-500 focus:ring-bpjs-blue-500 sm:text-sm"
-                        >
-                            <option value="">— Pilih Ruangan —</option>
-                            @foreach ($rooms as $room)
-                                <option value="{{ $room->id }}">
-                                    {{ $room->name }}@if ($room->floor || $room->location) ({{ trim(($room->floor ?? '').($room->floor && $room->location ? ', ' : '').($room->location ?? '')) }})@endif — Kapasitas {{ $room->capacity }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('roomId')
-                            <p class="mt-1.5 text-sm text-red-600" role="alert">{{ $message }}</p>
-                        @enderror
-                        <p class="mt-1.5 text-xs text-slate-500">
-                            Picker visual akan menggantikan dropdown ini di M1-F.
-                        </p>
-                    </div>
+
+                    <livewire:booking.room-availability-picker :starts-at="$startsAt" :ends-at="$endsAt" :attendee-count="$attendeeCount" :selected-room-id="(int) $roomId" />
+
+                    @error('roomId')
+                        <p class="mt-3 text-sm text-red-600" role="alert">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- Section: Time --}}
