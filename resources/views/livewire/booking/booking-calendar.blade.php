@@ -215,6 +215,7 @@
                 <div class="md:hidden space-y-3">
                     {{-- CTA: direct link to form (replaces empty-cell click that doesn't fit mobile) --}}
                     
+                    <a
                         href="{{ route('bookings.new') }}"
                         wire:navigate
                         class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-bpjs-blue-500 hover:bg-bpjs-blue-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors"
