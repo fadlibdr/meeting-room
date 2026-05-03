@@ -33,6 +33,7 @@ use Livewire\Component;
  *  Dec-7  Empty state message + grid still rendered
  *
  * @property-read EloquentCollection<int, Room> $rooms
+ * @property-read EloquentCollection<int, Room> $allActiveRooms
  * @property-read EloquentCollection<int, Booking> $bookings
  * @property-read array{open: ?string, close: ?string, slots: array<int, string>} $timeWindow
  *
