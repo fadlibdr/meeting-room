@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BookingController;
 use App\Livewire\Admin\SettingsManager;
+use App\Livewire\Booking\BookingCalendar;
+use App\Livewire\Booking\BookingForm;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -15,6 +17,12 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     // Placeholders for Sprint 2/3 — will be replaced
     Route::view('bookings', 'placeholder')->name('bookings.index');
     Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::get('bookings/new', BookingForm::class)
+        ->middleware('permission:bookings.create')
+        ->name('bookings.new');
+    Route::get('calendar', BookingCalendar::class)
+        ->middleware('permission:bookings.view')
+        ->name('calendar.index');
     Route::view('approvals', 'placeholder')->name('approvals.index');
     Route::view('rooms', 'placeholder')->name('rooms.index');
 
