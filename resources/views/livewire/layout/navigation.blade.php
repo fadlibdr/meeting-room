@@ -69,6 +69,12 @@ new class extends Component
                             {{ __('Activity Logs') }}
                         </x-nav-link>
                     @endhasPermission
+
+                    @hasPermission('app-settings.view')
+                        <x-nav-link :href="route('admin.settings.index')" :active="request()->routeIs('admin.settings.*')" wire:navigate>
+                            {{ __('Settings') }}
+                        </x-nav-link>
+                    @endhasPermission
                 </div>
             </div>
 
@@ -154,6 +160,12 @@ new class extends Component
             @hasPermission('activity-logs.view')
                 <x-responsive-nav-link :href="route('admin.logs.index')" :active="request()->routeIs('admin.logs.*')" wire:navigate>
                     {{ __('Activity Logs') }}
+                </x-responsive-nav-link>
+            @endhasPermission
+
+            @hasPermission('app-settings.view')
+                <x-responsive-nav-link :href="route('admin.settings.index')" :active="request()->routeIs('admin.settings.*')" wire:navigate>
+                    {{ __('Settings') }}
                 </x-responsive-nav-link>
             @endhasPermission
         </div>

@@ -33,8 +33,8 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::view('rooms', 'placeholder')->name('rooms.index');
         Route::view('logs', 'placeholder')->name('logs.index');
 
-        // App settings (Phase 2A-5 will replace placeholder with Livewire component)
-        Route::view('settings', 'placeholder')
+        // App settings - runtime configuration editor
+        Route::get('settings', \App\Livewire\Admin\SettingsManager::class)
             ->middleware('permission:app-settings.view')
             ->name('settings.index');
     });
