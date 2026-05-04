@@ -148,7 +148,9 @@ class BookingCalendar extends Component
         $start = CarbonImmutable::parse($this->selectedDate, self::DISPLAY_TIMEZONE)
             ->startOfDay()
             ->utc();
-        $end = $start->endOfDay();
+        $end = CarbonImmutable::parse($this->selectedDate, self::DISPLAY_TIMEZONE)
+            ->endOfDay()
+            ->utc();
 
         $roomIds = $this->rooms->pluck('id')->all();
         if (empty($roomIds)) {
