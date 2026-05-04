@@ -35,8 +35,8 @@ new class extends Component
                     </x-nav-link>
 
                     @hasPermission('bookings.view')
-                        <x-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*')" wire:navigate>
-                            {{ __('Bookings') }}
+                        <x-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.*') || request()->routeIs('bookings.new')" wire:navigate>
+                            {{ __('Calendar') }}
                         </x-nav-link>
                     @endhasPermission
 
@@ -128,8 +128,8 @@ new class extends Component
             </x-responsive-nav-link>
 
             @hasPermission('bookings.view')
-                <x-responsive-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*')" wire:navigate>
-                    {{ __('Bookings') }}
+                <x-responsive-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.*') || request()->routeIs('bookings.new')" wire:navigate>
+                    {{ __('Calendar') }}
                 </x-responsive-nav-link>
             @endhasPermission
 
