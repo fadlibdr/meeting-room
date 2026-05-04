@@ -123,7 +123,7 @@
                                                         </span>
                                                         <span class="flex-1">
                                                             {{ $conflict['title'] }}
-                                                            <span class="text-amber-700">— {{ $conflict['starts_at'] }} s.d. {{ $conflict['ends_at'] }} (UTC)</span>
+                                                            <span class="text-amber-700">— @displayDateTime($conflict['starts_at']) s.d. @displayDateTime($conflict['ends_at'])</span>
                                                         </span>
                                                     </li>
                                                 @endforeach

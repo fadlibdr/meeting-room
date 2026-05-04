@@ -273,7 +273,7 @@ class BookingForm extends Component
      *
      * NOTE: Treats input as APP_TIMEZONE-naive. Proper user-timezone
      * handling per Blueprint Dec-09 (@displayDateTime, user.timezone)
-     * is M1-H polish work.
+     * is tracked as future work outside M1.
      */
     private function normalizeDatetime(string $value): string
     {

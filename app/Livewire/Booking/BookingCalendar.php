@@ -41,11 +41,18 @@ use Livewire\Component;
  */
 class BookingCalendar extends Component
 {
-    public const DISPLAY_TIMEZONE = 'Asia/Jakarta';
+    /**
+     * Ultimate fallback timezone if both auth user timezone and
+     * config('app.display_timezone') are unset. Resolution order:
+     * (1) auth()->user()->timezone, (2) config('app.display_timezone'),
+     * (3) this constant. Use $this->resolveTimezone() to get the actual value.
+     */
+    public const DISPLAY_TIMEZONE_FALLBACK = 'Asia/Jakarta';
 
     /**
      * Selected date in ISO 'YYYY-MM-DD' format, interpreted as local-day
-     * in DISPLAY_TIMEZONE. M1-H polish will switch to per-user timezone.
+     * in the resolved display timezone (per-user via auth()->user()->timezone
+     * with fallback to config('app.display_timezone')).
      */
     #[Url(as: 'date')]
     public string $selectedDate = '';
@@ -62,28 +69,28 @@ class BookingCalendar extends Component
         $this->authorize('viewAny', Booking::class);
 
         if ($this->selectedDate === '') {
-            $this->selectedDate = CarbonImmutable::now(self::DISPLAY_TIMEZONE)
+            $this->selectedDate = CarbonImmutable::now($this->resolveTimezone())
                 ->format('Y-m-d');
         }
     }
 
     public function nextDay(): void
     {
-        $this->selectedDate = CarbonImmutable::parse($this->selectedDate, self::DISPLAY_TIMEZONE)
+        $this->selectedDate = CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())
             ->addDay()
             ->format('Y-m-d');
     }
 
     public function previousDay(): void
     {
-        $this->selectedDate = CarbonImmutable::parse($this->selectedDate, self::DISPLAY_TIMEZONE)
+        $this->selectedDate = CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())
             ->subDay()
             ->format('Y-m-d');
     }
 
     public function setToday(): void
     {
-        $this->selectedDate = CarbonImmutable::now(self::DISPLAY_TIMEZONE)->format('Y-m-d');
+        $this->selectedDate = CarbonImmutable::now($this->resolveTimezone())->format('Y-m-d');
     }
 
     /**
@@ -145,10 +152,10 @@ class BookingCalendar extends Component
     #[Computed]
     public function bookings(): EloquentCollection
     {
-        $start = CarbonImmutable::parse($this->selectedDate, self::DISPLAY_TIMEZONE)
+        $start = CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())
             ->startOfDay()
             ->utc();
-        $end = CarbonImmutable::parse($this->selectedDate, self::DISPLAY_TIMEZONE)
+        $end = CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())
             ->endOfDay()
             ->utc();
 
@@ -182,7 +189,7 @@ class BookingCalendar extends Component
     #[Computed]
     public function timeWindow(): array
     {
-        $dayOfWeek = (int) CarbonImmutable::parse($this->selectedDate, self::DISPLAY_TIMEZONE)
+        $dayOfWeek = (int) CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())
             ->dayOfWeek;
 
         $roomIds = $this->rooms->pluck('id')->all();
@@ -248,12 +255,12 @@ class BookingCalendar extends Component
 
         // Convert booking UTC times to display TZ for grid alignment
         $bookingStart = CarbonImmutable::parse($booking->starts_at)
-            ->setTimezone(self::DISPLAY_TIMEZONE);
+            ->setTimezone($this->resolveTimezone());
         $bookingEnd = CarbonImmutable::parse($booking->ends_at)
-            ->setTimezone(self::DISPLAY_TIMEZONE);
+            ->setTimezone($this->resolveTimezone());
 
-        $dayStart = CarbonImmutable::parse($this->selectedDate.' '.$window['open'], self::DISPLAY_TIMEZONE);
-        $dayEnd = CarbonImmutable::parse($this->selectedDate.' '.$window['close'], self::DISPLAY_TIMEZONE);
+        $dayStart = CarbonImmutable::parse($this->selectedDate.' '.$window['open'], $this->resolveTimezone());
+        $dayEnd = CarbonImmutable::parse($this->selectedDate.' '.$window['close'], $this->resolveTimezone());
 
         // Clamp booking to visible window
         $effectiveStart = $bookingStart->lt($dayStart) ? $dayStart : $bookingStart;
@@ -286,12 +293,12 @@ class BookingCalendar extends Component
     }
 
     /**
-     * Format Carbon time in DISPLAY_TIMEZONE for booking blocks.
+     * Format Carbon time in the resolved display timezone for booking blocks.
      */
     public function formatBookingTime(Booking $booking): string
     {
-        $start = CarbonImmutable::parse($booking->starts_at)->setTimezone(self::DISPLAY_TIMEZONE);
-        $end = CarbonImmutable::parse($booking->ends_at)->setTimezone(self::DISPLAY_TIMEZONE);
+        $start = CarbonImmutable::parse($booking->starts_at)->setTimezone($this->resolveTimezone());
+        $end = CarbonImmutable::parse($booking->ends_at)->setTimezone($this->resolveTimezone());
 
         return $start->format('H:i').'–'.$end->format('H:i');
     }
@@ -303,9 +310,22 @@ class BookingCalendar extends Component
             'allRooms' => $this->allActiveRooms,
             'bookings' => $this->bookings,
             'timeWindow' => $this->timeWindow,
-            'displayDate' => CarbonImmutable::parse($this->selectedDate, self::DISPLAY_TIMEZONE)
+            'displayDate' => CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())
                 ->locale('id')
                 ->isoFormat('dddd, D MMMM Y'),
         ])->layout('layouts.app');
+    }
+
+    /**
+     * Resolve the display timezone for the current request.
+     * Per Blueprint Dec-09: prefer auth user's timezone, fall back to
+     * APP_DISPLAY_TIMEZONE config, then to the class constant.
+     */
+    private function resolveTimezone(): string
+    {
+        $userTimezone = auth()->check() ? auth()->user()->timezone : null;
+
+        return $userTimezone
+            ?? config('app.display_timezone', self::DISPLAY_TIMEZONE_FALLBACK);
     }
 }
