@@ -15,7 +15,7 @@ Booking lifecycle transitions:
 | From      | Edge        | To                                  | Notes |
 |-----------|-------------|-------------------------------------|-------|
 | Draft     | edit        | Draft                               | in-place save |
-| Draft     | submit      | Submitted                           | M1 |
+| Draft     | submit      | Submitted                           | M3-C2 — `none`-mode rooms land directly in Approved |
 | Draft     | delete      | (hard-deleted)                      | M3-F, super_admin only |
 | Submitted | edit        | Draft                               | M3-Dec-1 — reverts; re-submit required |
 | Submitted | approve     | Approved                            | 2D |
@@ -115,7 +115,8 @@ identically.
 | M3-0  | This spec doc. (docs commit) |
 | M3-A  | `CancelBookingAction` + unit tests. |
 | M3-B  | Cancel UI: endpoint + route + show-page button & reason modal; `BookingCancelledNotification`; feature test. |
-| M3-C  | Edit: `BookingForm` edit mode + `BookingController::update` + route + button; M3-Dec-1 revert behavior; tests. |
+| M3-C  | Edit: `BookingForm` edit mode + `UpdateBookingAction` + route + button; M3-Dec-1 revert behavior; tests. |
+| M3-C2 | Submit-a-Draft: `SubmitDraftAction` (+ `ApprovalRoutingService`, extracted from `SubmitBookingAction`) + `BookingController::submit` + route + show-page button. Closes the gap M3-C opened — a Submitted booking reverted to Draft needs a re-submit path. Unplanned at M3-0. |
 | M3-D  | `RescheduleBookingAction` (composes Cancel + Submit) + unit tests. |
 | M3-E  | Reschedule UI: `reschedule()` policy method + `BookingForm` reschedule mode + routes + button; feature test. |
 | M3-F  | `destroy` (hard-delete Draft) + DELETE route + button + test. |
@@ -125,21 +126,27 @@ identically.
 
 **New files:**
 - `app/Actions/CancelBookingAction.php`
+- `app/Actions/UpdateBookingAction.php`
+- `app/Actions/SubmitDraftAction.php`
 - `app/Actions/RescheduleBookingAction.php`
+- `app/Actions/DeleteBookingAction.php`
+- `app/Services/ApprovalRoutingService.php`
 - `app/Notifications/BookingCancelledNotification.php`
 - `app/Http/Requests/Booking/CancelBookingRequest.php`
 - test files per phase
 
 **Modified files:**
 - `app/Policies/BookingPolicy.php` — add `reschedule()`
-- `app/Http/Controllers/BookingController.php` — add `update()`, `cancel()`, `destroy()`
+- `app/Http/Controllers/BookingController.php` — add `cancel()`, `submit()`, `destroy()` (edit/update is the `BookingForm` Livewire component, not a controller method)
 - `app/Livewire/Booking/BookingForm.php` — edit + reschedule modes
-- `routes/web.php` — edit / update / cancel / reschedule / destroy routes
+- `routes/web.php` — edit / submit / cancel / reschedule / destroy routes
 - `resources/views/bookings/show.blade.php` — action buttons
 
 ## 6. Test Plan
 
-- **Unit (Actions):** `CancelBookingActionTest`, `RescheduleBookingActionTest`
+- **Unit (Actions):** `CancelBookingActionTest`, `UpdateBookingActionTest`,
+  `SubmitDraftActionTest`, `RescheduleBookingActionTest`,
+  `DeleteBookingActionTest` (+ `ApprovalRoutingServiceTest`)
   — every status path, pointer-clearing, history rows, notification
   dispatch/suppression, transaction atomicity.
 - **Unit (Policy):** `reschedule()` cases added to `BookingPolicyTest`.
@@ -149,3 +156,32 @@ identically.
 - **Integrity:** the 2D hybrid-pointer `IntegrityTest` must stay green after
   every cancel/edit path.
 - Gate: full suite green + PHPStan level 5 + Pint before every commit.
+
+## 7. Reconciliation & Deferred (M3-G)
+
+Recorded at milestone close. M3 shipped as M3-A through M3-G.
+
+### Reconciled against the shipped code
+- **M3-C2 was unplanned.** Section 4 originally went M3-C straight to M3-D.
+  M3-C's revert-to-Draft (M3-Dec-1) created a state — a Draft that had once
+  been Submitted — with no path back to Submitted: M1 only ever *created*
+  bookings as Submitted, it never re-submitted an existing Draft. M3-C2
+  (`SubmitDraftAction`, `ApprovalRoutingService`, `BookingController::submit`)
+  closed that gap. Section 4 and the lifecycle table now record it.
+- **`BookingController` has no `update()`.** Editing runs through the
+  `BookingForm` Livewire component, not a controller action. Sections 4 and 5
+  corrected.
+- Section 5 file lists updated: `UpdateBookingAction`, `SubmitDraftAction`,
+  `DeleteBookingAction` and `ApprovalRoutingService` were all created by M3
+  but not foreseen at M3-0.
+
+### Deferred — follow-up work, not M3 scope
+- **Attachment files on hard-delete.** `DeleteBookingAction` deletes the
+  booking row; the DB cascades `booking_attachments` *rows*, but the physical
+  files on the `local_private` disk are not unlinked. No attachment-upload
+  feature exists yet, so today no Draft can hold a file and nothing leaks —
+  but when upload lands, `destroy` must also remove the stored files.
+- **Cancellation time guard.** Blueprint H.5 allows cancelling a booking only
+  while `starts_at > now()`. M3 does not enforce this — a booking can be
+  cancelled after its start time. Deferred; revisit alongside the scheduler
+  and no-show handling.
