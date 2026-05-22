@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BookingController;
 use App\Livewire\Admin\SettingsManager;
+use App\Livewire\Approval\ApprovalInbox;
 use App\Livewire\Booking\BookingCalendar;
 use App\Livewire\Booking\BookingForm;
 use Illuminate\Support\Facades\Route;
@@ -26,7 +27,9 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     Route::get('calendar', BookingCalendar::class)
         ->middleware('permission:bookings.view')
         ->name('calendar.index');
-    Route::view('approvals', 'placeholder')->name('approvals.index');
+    Route::get('approvals', ApprovalInbox::class)
+        ->middleware('permission:bookings.approve')
+        ->name('approvals.index');
     Route::view('rooms', 'placeholder')->name('rooms.index');
 
     // Placeholders for admin routes (1D replaces users)
