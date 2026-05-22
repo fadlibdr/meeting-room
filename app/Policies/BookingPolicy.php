@@ -147,6 +147,24 @@ class BookingPolicy
     }
 
     /**
+     * Determine whether the user can reschedule the booking (M3-Dec-2).
+     *
+     * Reschedule is "cancel + create new" (RescheduleBookingAction): only an
+     * Approved booking can be rescheduled, and the user must additionally be
+     * allowed to cancel it. cancel() already enforces the bookings.cancel
+     * permission and the ownership / view-all scope, so reschedule() simply
+     * layers the Approved-only status gate on top.
+     */
+    public function reschedule(User $user, Booking $booking): bool
+    {
+        if ($booking->status !== BookingStatus::Approved) {
+            return false;
+        }
+
+        return $this->cancel($user, $booking);
+    }
+
+    /**
      * Determine whether the user can approve the booking.
      *
      * Permission gate: requires bookings.approve.
