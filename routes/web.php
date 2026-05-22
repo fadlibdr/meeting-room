@@ -24,6 +24,8 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     Route::get('bookings/{booking}', [BookingController::class, 'show'])
         ->can('view', 'booking')
         ->name('bookings.show');
+    Route::post('bookings/{booking}/cancel', [BookingController::class, 'cancel'])
+        ->name('bookings.cancel');
     Route::get('calendar', BookingCalendar::class)
         ->middleware('permission:bookings.view')
         ->name('calendar.index');

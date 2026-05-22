@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\CancelBookingAction;
 use App\Actions\SubmitBookingAction;
 use App\Enums\BookingStatus;
 use App\Exceptions\ApprovalRoutingException;
 use App\Exceptions\BookingConflictException;
+use App\Http\Requests\Booking\CancelBookingRequest;
 use App\Http\Requests\Booking\StoreBookingRequest;
 use App\Models\Booking;
 use App\Models\BookingApproval;
 use App\Models\BookingStatusHistory;
 use App\Models\User;
+use DomainException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 
 /**
  * Thin HTTP entry point for booking operations.
@@ -75,6 +79,38 @@ class BookingController extends Controller
         return redirect()
             ->route('dashboard')
             ->with('success', "Booking {$booking->booking_code} berhasil dibuat.");
+    }
+
+    /**
+     * Cancel a booking (Draft / Submitted / Approved -> Cancelled).
+     *
+     * Authorization + the conditionally-required reason are enforced
+     * by CancelBookingRequest (-> BookingPolicy::cancel, Blueprint
+     * H.5). CancelBookingAction re-checks status under a row lock; a
+     * DomainException (booking no longer cancellable - a race with
+     * another transition) or InvalidArgumentException is surfaced as
+     * a non-field 'cancel' error so the show page renders gracefully.
+     */
+    public function cancel(
+        CancelBookingRequest $request,
+        Booking $booking,
+        CancelBookingAction $action,
+    ): RedirectResponse {
+        /** @var User $user */
+        $user = $request->user();
+
+        /** @var string|null $reason */
+        $reason = $request->validated('cancellation_reason');
+
+        try {
+            $action->execute($booking, $user, $reason);
+        } catch (DomainException|InvalidArgumentException $e) {
+            return back()->withErrors(['cancel' => $e->getMessage()]);
+        }
+
+        return redirect()
+            ->route('bookings.show', $booking->id)
+            ->with('success', "Reservasi {$booking->booking_code} berhasil dibatalkan.");
     }
 
     /**
