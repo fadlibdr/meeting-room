@@ -149,7 +149,7 @@
             </div>
 
             {{-- Tindakan --}}
-            @canany(['update', 'submit', 'cancel', 'reschedule'], $booking)
+            @canany(['update', 'submit', 'cancel', 'reschedule', 'delete'], $booking)
                 <div class="bg-white rounded-lg shadow-sm p-6">
                     <h2 class="font-display text-sm font-semibold text-slate-700 mb-3">Tindakan</h2>
 
@@ -219,6 +219,30 @@
                                 </button>
                             </div>
                         </form>
+                    @endcan
+
+                    @can('delete', $booking)
+                        @error('delete')
+                            <p class="mb-3 rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+                                {{ $message }}
+                            </p>
+                        @enderror
+
+                        <div class="mt-6 border-t border-slate-100 pt-4">
+                            <p class="mb-2 text-xs text-slate-500">
+                                Menghapus draf akan menghilangkannya secara permanen dan tidak dapat diurungkan.
+                            </p>
+                            <form method="POST" action="{{ route('bookings.destroy', $booking->id) }}"
+                                  onsubmit="return confirm('Hapus draf reservasi ini secara permanen? Tindakan ini tidak dapat diurungkan.');">
+                                @csrf
+                                @method('DELETE')
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2">
+                                    Hapus Permanen
+                                </button>
+                            </form>
+                        </div>
                     @endcan
                 </div>
             @endcanany

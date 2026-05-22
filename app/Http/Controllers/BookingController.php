@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\CancelBookingAction;
+use App\Actions\DeleteBookingAction;
 use App\Actions\SubmitBookingAction;
 use App\Actions\SubmitDraftAction;
 use App\Enums\BookingStatus;
@@ -146,6 +147,39 @@ class BookingController extends Controller
         return redirect()
             ->route('bookings.show', $booking->id)
             ->with('success', "Reservasi {$booking->booking_code} berhasil diajukan.");
+    }
+
+    /**
+     * Permanently delete a Draft booking (M3-F, M3-Dec-4).
+     *
+     * Authorization is handled by the route-level can:delete,booking
+     * middleware (routes/web.php) -> BookingPolicy::delete (Draft only).
+     * That gate already rejects every non-Draft booking with a 403, so
+     * the DomainException catch below only fires on the rare race where
+     * the booking left Draft between route authorization and the
+     * action's row lock.
+     *
+     * The booking row is gone afterwards, so the redirect target is the
+     * calendar, not bookings.show.
+     */
+    public function destroy(
+        Booking $booking,
+        DeleteBookingAction $action,
+    ): RedirectResponse {
+        /** @var User $user */
+        $user = auth()->user();
+
+        $bookingCode = $booking->booking_code;
+
+        try {
+            $action->execute($booking, $user);
+        } catch (DomainException $e) {
+            return back()->withErrors(['delete' => $e->getMessage()]);
+        }
+
+        return redirect()
+            ->route('calendar.index')
+            ->with('success', "Reservasi draf {$bookingCode} berhasil dihapus.");
     }
 
     /**
