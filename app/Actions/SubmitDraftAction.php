@@ -123,10 +123,21 @@ final class SubmitDraftAction
 
         // 6. Transition the booking. Re-snapshot the approval mode — the
         // room's mode may have changed since the draft was created.
+        //
+        // current_approval_step / the approval row's sequence_no is the next
+        // free per-booking ordinal, NOT a hardcoded 1. A booking reverted
+        // from Submitted (M3-Dec-1, UpdateBookingAction) keeps its prior
+        // approval row as cancelled, and booking_approvals carries a
+        // unique(booking_id, sequence_no) constraint — a re-submit reusing
+        // sequence_no 1 would collide. A fresh draft has no rows, so
+        // (int) null + 1 = 1; a reverted-then-resubmitted draft advances to 2.
+        $approvalRequired = $resolution['approver_user_id'] !== null;
+        $nextStep = (int) $locked->approvals()->max('sequence_no') + 1;
+
         $locked->update([
             'status' => $resolution['status']->value,
             'approval_mode_snapshot' => $room->approval_mode->value,
-            'current_approval_step' => $resolution['current_step'],
+            'current_approval_step' => $approvalRequired ? $nextStep : null,
             'current_approver_user_id' => $resolution['approver_user_id'],
             'submitted_at' => Carbon::now(),
             'approved_at' => $resolution['approved_at'],
@@ -134,10 +145,10 @@ final class SubmitDraftAction
         ]);
 
         // 7. Create the approval row when approval is required.
-        if ($resolution['approver_user_id'] !== null) {
+        if ($approvalRequired) {
             BookingApproval::create([
                 'booking_id' => $locked->id,
-                'sequence_no' => 1,
+                'sequence_no' => $nextStep,
                 'approver_user_id' => $resolution['approver_user_id'],
                 'status' => 'pending',
             ]);

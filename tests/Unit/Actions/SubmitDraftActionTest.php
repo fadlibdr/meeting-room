@@ -9,6 +9,7 @@ use App\Enums\BookingStatus;
 use App\Exceptions\ApprovalRoutingException;
 use App\Exceptions\BookingConflictException;
 use App\Models\Booking;
+use App\Models\BookingApproval;
 use App\Models\Role;
 use App\Models\Room;
 use App\Models\Unit;
@@ -204,6 +205,42 @@ class SubmitDraftActionTest extends TestCase
         $this->assertDatabaseMissing('booking_approvals', [
             'booking_id' => $draft->id,
         ]);
+    }
+
+    public function test_resubmitting_a_draft_with_a_prior_cancelled_approval_advances_the_sequence_no(): void
+    {
+        // A draft reverted from Submitted (M3-Dec-1) keeps its prior approval
+        // row as cancelled. Re-submitting must advance the ordinal, not
+        // collide on unique(booking_id, sequence_no).
+        $approver = $this->makeRequester();
+        $owner = $this->makeRequester($approver);
+        $draft = $this->makeDraft($owner, $this->makeRoom('unit_approver'));
+
+        BookingApproval::create([
+            'booking_id' => $draft->id,
+            'sequence_no' => 1,
+            'approver_user_id' => $approver->id,
+            'status' => 'cancelled',
+            'action_at' => Carbon::now(),
+        ]);
+
+        $result = $this->action()->execute($draft, $owner);
+
+        $this->assertSame(BookingStatus::Submitted, $result->status);
+        $this->assertSame(2, $result->current_approval_step);
+
+        $this->assertDatabaseHas('booking_approvals', [
+            'booking_id' => $draft->id,
+            'sequence_no' => 2,
+            'approver_user_id' => $approver->id,
+            'status' => 'pending',
+        ]);
+
+        $this->assertSame(2, $draft->approvals()->count());
+        $this->assertSame(
+            'cancelled',
+            $draft->approvals()->where('sequence_no', 1)->value('status'),
+        );
     }
 
     // ─── history / audit / snapshot ─────────────────────────────────
