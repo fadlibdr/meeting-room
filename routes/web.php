@@ -20,6 +20,9 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     Route::get('bookings/new', BookingForm::class)
         ->middleware('permission:bookings.create')
         ->name('bookings.new');
+    Route::get('bookings/{booking}', [BookingController::class, 'show'])
+        ->can('view', 'booking')
+        ->name('bookings.show');
     Route::get('calendar', BookingCalendar::class)
         ->middleware('permission:bookings.view')
         ->name('calendar.index');

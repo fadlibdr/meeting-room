@@ -5,11 +5,18 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\SubmitBookingAction;
+use App\Enums\BookingStatus;
 use App\Exceptions\ApprovalRoutingException;
 use App\Exceptions\BookingConflictException;
 use App\Http\Requests\Booking\StoreBookingRequest;
+use App\Models\Booking;
+use App\Models\BookingApproval;
+use App\Models\BookingStatusHistory;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 
 /**
  * Thin HTTP entry point for booking operations.
@@ -68,5 +75,107 @@ class BookingController extends Controller
         return redirect()
             ->route('dashboard')
             ->with('success', "Booking {$booking->booking_code} berhasil dibuat.");
+    }
+
+    /**
+     * Display a single booking with its approval timeline.
+     *
+     * Authorization is handled by the route-level can:view,booking
+     * middleware (routes/web.php) -> BookingPolicy::view. No
+     * authorization code is needed in this method.
+     */
+    public function show(Booking $booking): View
+    {
+        $booking->load([
+            'room',
+            'requester',
+            'requesterUnit',
+            'currentApprover',
+        ]);
+
+        return view('bookings.show', [
+            'booking' => $booking,
+            'timeline' => $this->buildTimeline($booking),
+        ]);
+    }
+
+    /**
+     * Merge status history and acted approvals into one chronological
+     * timeline (2D-D-Dec-4). Pending approvals are excluded -- they are
+     * current state, surfaced in the page header, not history.
+     *
+     * Each source is queried from its model class so element types are
+     * statically resolvable.
+     */
+    private function buildTimeline(Booking $booking): Collection
+    {
+        /** @var list<array<string, mixed>> $entries */
+        $entries = [];
+
+        $histories = BookingStatusHistory::query()
+            ->where('booking_id', $booking->id)
+            ->with('changedBy')
+            ->get();
+
+        foreach ($histories as $history) {
+            $entries[] = [
+                'at' => $history->changed_at,
+                'type' => 'status',
+                'title' => 'Status: '.(BookingStatus::tryFrom($history->to_status)?->label() ?? $history->to_status),
+                'detail' => $history->change_reason,
+                'actor' => $this->actorName($history->changedBy),
+            ];
+        }
+
+        $approvals = BookingApproval::query()
+            ->where('booking_id', $booking->id)
+            ->whereNotNull('action_at')
+            ->with(['actedBy', 'approver'])
+            ->get();
+
+        foreach ($approvals as $approval) {
+            $entries[] = [
+                'at' => $approval->action_at,
+                'type' => 'approval',
+                'title' => 'Keputusan approval: '.$this->approvalStatusLabel($approval->status),
+                'detail' => $approval->action_notes,
+                'actor' => $this->actorName($approval->actedBy) ?? $this->actorName($approval->approver),
+            ];
+        }
+
+        return collect($entries)->sortBy('at')->values();
+    }
+
+    /**
+     * Indonesian label for a booking_approvals.status value.
+     * (That column is a plain string, not an enum.)
+     */
+    private function approvalStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'pending' => 'Menunggu',
+            'approved' => 'Disetujui',
+            'rejected' => 'Ditolak',
+            'skipped' => 'Dilewati',
+            'cancelled' => 'Dibatalkan',
+            default => $status,
+        };
+    }
+
+    /**
+     * Display name of a related user model, or null if absent.
+     *
+     * Uses getAttribute() so the call is valid even when static
+     * analysis resolves the relation only to the base Model type.
+     */
+    private function actorName(?Model $user): ?string
+    {
+        if ($user === null) {
+            return null;
+        }
+
+        $name = $user->getAttribute('name');
+
+        return is_string($name) ? $name : null;
     }
 }
