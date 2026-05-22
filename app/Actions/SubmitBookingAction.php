@@ -62,7 +62,7 @@ final class SubmitBookingAction
      *     source?: string
      * }  $input
      */
-    public function execute(User $requester, array $input): Booking
+    public function execute(User $requester, array $input, bool $notify = true): Booking
     {
         /** @var Booking $booking */
         $booking = DB::transaction(function () use ($requester, $input): Booking {
@@ -72,7 +72,7 @@ final class SubmitBookingAction
         // 2D-F: notify the assigned approver — only when the booking resolved
         // to Submitted (auto-approved bookings have no approver, and the
         // requester is already present). After the transaction, by FK id.
-        if ($booking->status === BookingStatus::Submitted
+        if ($notify && $booking->status === BookingStatus::Submitted
             && $booking->current_approver_user_id !== null) {
             User::findOrFail($booking->current_approver_user_id)
                 ->notify(new BookingSubmittedNotification($booking));
