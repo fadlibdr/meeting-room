@@ -5,13 +5,22 @@
             {{-- Page Header --}}
             <div class="mb-8">
                 <h1 class="font-display text-3xl font-semibold text-slate-900 tracking-tight">
-                    {{ $bookingId ? 'Ubah Reservasi Ruangan' : 'Buat Reservasi Ruangan' }}
+                    {{ match($mode) { 'edit' => 'Ubah Reservasi Ruangan', 'reschedule' => 'Jadwalkan Ulang Reservasi', default => 'Buat Reservasi Ruangan' } }}
                 </h1>
                 <p class="mt-2 text-sm text-slate-500">
                     Pilih ruangan, waktu, dan detail rapat. Sistem akan memeriksa
                     ketersediaan secara otomatis.
                 </p>
             </div>
+
+            @if ($mode === 'reschedule')
+                <div class="mb-6 rounded-lg border border-bpjs-blue-200 bg-bpjs-blue-50 p-4">
+                    <p class="text-sm text-bpjs-blue-800">
+                        Reservasi lama akan <strong>dibatalkan</strong> dan digantikan dengan
+                        reservasi baru sesuai jadwal yang Anda tentukan di bawah.
+                    </p>
+                </div>
+            @endif
 
             {{-- Form-level error banner (M1-B-Dec-4: top placement) --}}
             @if ($submitError)
@@ -210,7 +219,7 @@
                         class="inline-flex items-center px-5 py-2 bg-bpjs-blue-500 hover:bg-bpjs-blue-600 disabled:bg-bpjs-blue-300 text-white text-sm font-medium rounded-md shadow-sm transition-colors disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bpjs-blue-500"
                     >
                         <span wire:loading.remove wire:target="submit">
-                            {{ $bookingId ? 'Simpan Perubahan' : 'Buat Reservasi' }}
+                            {{ match($mode) { 'edit' => 'Simpan Perubahan', 'reschedule' => 'Jadwalkan Ulang', default => 'Buat Reservasi' } }}
                         </span>
                         <span wire:loading wire:target="submit" class="inline-flex items-center gap-2">
                             <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24" aria-hidden="true">

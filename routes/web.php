@@ -32,6 +32,9 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     Route::get('bookings/{booking}/edit', BookingForm::class)
         ->can('update', 'booking')
         ->name('bookings.edit');
+    Route::get('bookings/{booking}/reschedule', BookingForm::class)
+        ->can('reschedule', 'booking')
+        ->name('bookings.reschedule');
     Route::get('calendar', BookingCalendar::class)
         ->middleware('permission:bookings.view')
         ->name('calendar.index');

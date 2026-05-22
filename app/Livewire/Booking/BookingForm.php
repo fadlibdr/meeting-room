@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Booking;
 
+use App\Actions\RescheduleBookingAction;
 use App\Actions\SubmitBookingAction;
 use App\Actions\UpdateBookingAction;
 use App\DataTransferObjects\ConflictItem;
@@ -43,6 +44,13 @@ class BookingForm extends Component
      * mounted on the bookings/{booking}/edit route. Null = create mode.
      */
     public ?int $bookingId = null;
+
+    /**
+     * Form mode — 'create' | 'edit' | 'reschedule' (M3-E). In reschedule
+     * mode $bookingId is the SOURCE booking; submit() cancels it and
+     * creates a replacement via RescheduleBookingAction.
+     */
+    public string $mode = 'create';
 
     /** Pre-fillable from query string (?room_id=X). Empty string = unselected. */
     #[Url(as: 'room_id', except: '')]
@@ -86,10 +94,16 @@ class BookingForm extends Component
      */
     public array $conflictDetails = [];
 
-    public function mount(?Booking $booking = null): void
+    public function mount(?Booking $booking = null, bool $reschedule = false): void
     {
         if ($booking !== null && $booking->exists) {
-            $this->authorize('update', $booking);
+            if ($reschedule || request()->routeIs('bookings.reschedule')) {
+                $this->authorize('reschedule', $booking);
+                $this->mode = 'reschedule';
+            } else {
+                $this->authorize('update', $booking);
+                $this->mode = 'edit';
+            }
 
             $this->bookingId = $booking->id;
             $this->roomId = (string) $booking->room_id;
@@ -244,7 +258,7 @@ class BookingForm extends Component
         ];
     }
 
-    public function submit(SubmitBookingAction $submitAction, UpdateBookingAction $updateAction): mixed
+    public function submit(SubmitBookingAction $submitAction, UpdateBookingAction $updateAction, RescheduleBookingAction $rescheduleAction): mixed
     {
         $this->submitError = null;
 
@@ -274,7 +288,13 @@ class BookingForm extends Component
         ];
 
         try {
-            if ($this->bookingId !== null) {
+            if ($this->mode === 'reschedule') {
+                $booking = $rescheduleAction->execute(
+                    Booking::findOrFail($this->bookingId),
+                    $user,
+                    $payload,
+                );
+            } elseif ($this->mode === 'edit') {
                 $booking = $updateAction->execute(
                     Booking::findOrFail($this->bookingId),
                     $user,
@@ -298,7 +318,13 @@ class BookingForm extends Component
             return null;
         }
 
-        if ($this->bookingId !== null) {
+        if ($this->mode === 'reschedule') {
+            session()->flash('success', "Reservasi dijadwalkan ulang. Reservasi baru {$booking->booking_code} telah dibuat.");
+
+            return $this->redirect(route('bookings.show', $booking->id), navigate: true);
+        }
+
+        if ($this->mode === 'edit') {
             session()->flash('success', "Reservasi {$booking->booking_code} berhasil diperbarui.");
 
             return $this->redirect(route('bookings.show', $booking->id), navigate: true);
