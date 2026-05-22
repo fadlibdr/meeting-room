@@ -160,6 +160,24 @@
                         </a>
                     @endcan
 
+                    @can('submit', $booking)
+                        @error('submit')
+                            <p class="mb-3 rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+                                {{ $message }}
+                            </p>
+                        @enderror
+
+                        <form method="POST" action="{{ route('bookings.submit', $booking->id) }}"
+                              onsubmit="return confirm('Ajukan reservasi ini untuk persetujuan?');">
+                            @csrf
+                            <button
+                                type="submit"
+                                class="mb-3 inline-flex items-center rounded-md bg-bpjs-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-bpjs-blue-500 focus:outline-none focus:ring-2 focus:ring-bpjs-blue-500 focus:ring-offset-2">
+                                Ajukan Reservasi
+                            </button>
+                        </form>
+                    @endcan
+
                     @error('cancel')
                         <p class="mb-3 rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-700">
                             {{ $message }}

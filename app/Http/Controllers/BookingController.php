@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\CancelBookingAction;
 use App\Actions\SubmitBookingAction;
+use App\Actions\SubmitDraftAction;
 use App\Enums\BookingStatus;
 use App\Exceptions\ApprovalRoutingException;
 use App\Exceptions\BookingConflictException;
@@ -111,6 +112,40 @@ class BookingController extends Controller
         return redirect()
             ->route('bookings.show', $booking->id)
             ->with('success', "Reservasi {$booking->booking_code} berhasil dibatalkan.");
+    }
+
+    /**
+     * Submit a Draft booking for approval (Draft -> Submitted/Approved).
+     *
+     * Authorization is handled by the route-level can:submit,booking
+     * middleware (routes/web.php) -> BookingPolicy::submit (Draft only).
+     *
+     * SubmitDraftAction re-checks the slot under a row lock: a Draft
+     * never held the slot, so it may have been taken since the draft
+     * was saved (M3-Dec-12). A BookingConflictException, a routing
+     * failure, or a DomainException (the booking is no longer Draft -
+     * a race) is surfaced as a non-field 'submit' error.
+     */
+    public function submit(
+        Booking $booking,
+        SubmitDraftAction $action,
+    ): RedirectResponse {
+        /** @var User $user */
+        $user = auth()->user();
+
+        try {
+            $action->execute($booking, $user);
+        } catch (BookingConflictException $e) {
+            return back()->withErrors([
+                'submit' => 'Slot waktu reservasi ini sudah tidak tersedia. Silakan ubah jadwal lalu ajukan kembali.',
+            ]);
+        } catch (ApprovalRoutingException|DomainException $e) {
+            return back()->withErrors(['submit' => $e->getMessage()]);
+        }
+
+        return redirect()
+            ->route('bookings.show', $booking->id)
+            ->with('success', "Reservasi {$booking->booking_code} berhasil diajukan.");
     }
 
     /**

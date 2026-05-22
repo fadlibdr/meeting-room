@@ -26,6 +26,9 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         ->name('bookings.show');
     Route::post('bookings/{booking}/cancel', [BookingController::class, 'cancel'])
         ->name('bookings.cancel');
+    Route::post('bookings/{booking}/submit', [BookingController::class, 'submit'])
+        ->can('submit', 'booking')
+        ->name('bookings.submit');
     Route::get('bookings/{booking}/edit', BookingForm::class)
         ->can('update', 'booking')
         ->name('bookings.edit');
