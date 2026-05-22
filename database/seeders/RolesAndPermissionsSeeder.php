@@ -18,7 +18,7 @@ class RolesAndPermissionsSeeder extends Seeder
     private function seedPermissions(): void
     {
         $matrix = [
-            'bookings' => ['view', 'view-all', 'create', 'update', 'delete', 'submit', 'approve', 'reject', 'cancel'],
+            'bookings' => ['view', 'view-all', 'create', 'update', 'delete', 'submit', 'approve', 'reject', 'cancel', 'override'],
             'rooms' => ['view', 'create', 'update', 'delete', 'manage-blocks'],
             'room-facilities' => ['view', 'create', 'update', 'delete'],
             'users' => ['view', 'create', 'update', 'delete'],

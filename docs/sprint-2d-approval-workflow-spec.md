@@ -48,7 +48,7 @@ A logged-in **super_admin** can:
 
 | ID | Decision | Choice | Rationale |
 |---|---|---|---|
-| 2D-Dec-1 | Super Admin override | `Gate::before` in AuthServiceProvider checks `super_admin` role; bypasses ALL Policy methods | Laravel-idiomatic, central, no Policy method changes |
+| 2D-Dec-1 (amended 2026-05-22) | Super Admin override | A `bookings.override` permission, seeded to super_admin only, checked inside `BookingPolicy::approve`/`reject` AFTER the status gate. Bypasses the assignment check only — never the status gate. | Original `Gate::before` plan invalidated during 2D-C recon: Laravel 12 ships no `AuthServiceProvider`; a blanket bypass would let super_admin approve a Draft booking (breaks the status invariant 4 existing tests protect); and `BookingPolicy` is permission-based per Q3=A, so a direct role check would violate its own documented principle. |
 | 2D-Dec-2 | Conflict re-check failure UX | Throw `BookingConflictException` from action; catch in Livewire component; render banner showing the now-blocking conflict | Clear cause, actionable for approver |
 | 2D-Dec-3 | Reject UX | Inline reveal of textarea on click; submit button disabled until textarea has content | Simpler than modal; fewer Livewire round-trips |
 | 2D-Dec-4 | Inbox auto-refresh interval | `wire:poll.30s` | Matches NotificationDropdown precedent from M1; respects Blueprint C.1's "≥30s" rule |
@@ -371,4 +371,5 @@ This spec is locked as of 2026-05-04. Changes require a new entry in this sectio
 | Date | Change | Reason |
 |---|---|---|
 | 2026-05-04 | Initial lock | Sprint 2D kickoff |
+| 2026-05-22 | 2D-Dec-1 amended | `Gate::before` plan invalidated during 2D-C recon; replaced with a `bookings.override` permission checked per-Policy-method. See the amended 2D-Dec-1 row above. |
 

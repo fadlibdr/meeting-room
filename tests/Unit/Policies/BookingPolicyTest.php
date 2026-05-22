@@ -442,4 +442,45 @@ class BookingPolicyTest extends TestCase
 
         $this->assertFalse($this->policy->reject($admin, $booking));
     }
+
+    // ─── 2D-C: Super Admin override (bookings.override permission) ───
+
+    public function test_super_admin_can_approve_a_booking_they_are_not_assigned_to(): void
+    {
+        $owner = $this->userWithRole('requester');
+        $assignedApprover = $this->userWithRole('unit_approver');
+        $superAdmin = $this->userWithRole('super_admin');
+        $booking = $this->makeBooking($owner, BookingStatus::Submitted, $assignedApprover);
+        $this->assertTrue($this->policy->approve($superAdmin, $booking));
+    }
+
+    public function test_super_admin_can_reject_a_booking_they_are_not_assigned_to(): void
+    {
+        $owner = $this->userWithRole('requester');
+        $assignedApprover = $this->userWithRole('unit_approver');
+        $superAdmin = $this->userWithRole('super_admin');
+        $booking = $this->makeBooking($owner, BookingStatus::Submitted, $assignedApprover);
+        $this->assertTrue($this->policy->reject($superAdmin, $booking));
+    }
+
+    public function test_ga_admin_cannot_approve_a_booking_not_assigned_to_them(): void
+    {
+        // Regression guard: bookings.override is super_admin-only. ga_admin
+        // has bookings.approve but NOT bookings.override, so the assignment
+        // check still applies to it.
+        $owner = $this->userWithRole('requester');
+        $assignedApprover = $this->userWithRole('unit_approver');
+        $gaAdmin = $this->userWithRole('ga_admin');
+        $booking = $this->makeBooking($owner, BookingStatus::Submitted, $assignedApprover);
+        $this->assertFalse($this->policy->approve($gaAdmin, $booking));
+    }
+
+    public function test_super_admin_still_cannot_approve_a_draft_booking(): void
+    {
+        // The override bypasses the assignment check, NOT the status gate.
+        $owner = $this->userWithRole('requester');
+        $superAdmin = $this->userWithRole('super_admin');
+        $booking = $this->makeBooking($owner, BookingStatus::Draft);
+        $this->assertFalse($this->policy->approve($superAdmin, $booking));
+    }
 }
