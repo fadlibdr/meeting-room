@@ -15,6 +15,7 @@ use App\Models\BookingApproval;
 use App\Models\BookingStatusHistory;
 use App\Models\Room;
 use App\Models\User;
+use App\Notifications\BookingSubmittedNotification;
 use App\Policies\BookingPolicy;
 use App\Services\BookingConflictService;
 use Carbon\CarbonImmutable;
@@ -66,6 +67,15 @@ final class SubmitBookingAction
         $booking = DB::transaction(function () use ($requester, $input): Booking {
             return $this->performSubmit($requester, $input);
         });
+
+        // 2D-F: notify the assigned approver — only when the booking resolved
+        // to Submitted (auto-approved bookings have no approver, and the
+        // requester is already present). After the transaction, by FK id.
+        if ($booking->status === BookingStatus::Submitted
+            && $booking->current_approver_user_id !== null) {
+            User::findOrFail($booking->current_approver_user_id)
+                ->notify(new BookingSubmittedNotification($booking));
+        }
 
         return $booking;
     }

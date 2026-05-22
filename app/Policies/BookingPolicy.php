@@ -175,6 +175,9 @@ class BookingPolicy
         if (! $user->hasPermission('bookings.approve')) {
             return false;
         }
+        if ($user->hasPermission('bookings.override')) {
+            return true;
+        }
 
         return $booking->current_approver_user_id === $user->id;
     }
@@ -192,6 +195,9 @@ class BookingPolicy
 
         if (! $user->hasPermission('bookings.reject')) {
             return false;
+        }
+        if ($user->hasPermission('bookings.override')) {
+            return true;
         }
 
         return $booking->current_approver_user_id === $user->id;
