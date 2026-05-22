@@ -12,6 +12,7 @@ use App\Models\BookingApproval;
 use App\Models\BookingStatusHistory;
 use App\Models\Room;
 use App\Models\User;
+use App\Notifications\BookingApprovedNotification;
 use App\Policies\BookingPolicy;
 use App\Services\BookingConflictService;
 use DomainException;
@@ -61,6 +62,12 @@ final class ApproveBookingAction
         $approved = DB::transaction(function () use ($booking, $actor, $notes): Booking {
             return $this->performApprove($booking, $actor, $notes);
         });
+
+        // 2D-F: notify the requester AFTER the transaction commits, so a
+        // notification never fires for a rolled-back approval. Looked up by
+        // FK id (not the relation) to stay within larastan type resolution.
+        User::findOrFail($approved->requester_user_id)
+            ->notify(new BookingApprovedNotification($approved));
 
         return $approved;
     }
@@ -145,8 +152,6 @@ final class ApproveBookingAction
                 'acted_by_user_id' => $actor->id,
             ],
         ]);
-
-        // TODO 2D-F: dispatch BookingApprovedNotification to $booking->requester
 
         return $booking->fresh(['room', 'requester', 'approvals']) ?? $booking;
     }

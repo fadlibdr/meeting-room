@@ -10,6 +10,7 @@ use App\Models\Booking;
 use App\Models\BookingApproval;
 use App\Models\BookingStatusHistory;
 use App\Models\User;
+use App\Notifications\BookingRejectedNotification;
 use App\Policies\BookingPolicy;
 use DomainException;
 use Illuminate\Support\Carbon;
@@ -68,6 +69,10 @@ final class RejectBookingAction
         $rejected = DB::transaction(function () use ($booking, $actor, $reason): Booking {
             return $this->performReject($booking, $actor, $reason);
         });
+
+        // 2D-F: notify the requester after the transaction commits (see Approve).
+        User::findOrFail($rejected->requester_user_id)
+            ->notify(new BookingRejectedNotification($rejected));
 
         return $rejected;
     }
@@ -140,8 +145,6 @@ final class RejectBookingAction
                 'rejection_reason' => $reason,
             ],
         ]);
-
-        // TODO 2D-F: dispatch BookingRejectedNotification to $booking->requester
 
         return $booking->fresh(['room', 'requester', 'approvals']) ?? $booking;
     }
