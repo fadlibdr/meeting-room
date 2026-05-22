@@ -483,4 +483,73 @@ class BookingPolicyTest extends TestCase
         $booking = $this->makeBooking($owner, BookingStatus::Draft);
         $this->assertFalse($this->policy->approve($superAdmin, $booking));
     }
+
+    // ─── reschedule (M3-E / M3-Dec-2) ────────────────────────────────
+
+    public function test_owner_can_reschedule_own_approved(): void
+    {
+        $user = $this->userWithRole('requester');
+        $booking = $this->makeBooking($user, BookingStatus::Approved);
+
+        $this->assertTrue($this->policy->reschedule($user, $booking));
+    }
+
+    public function test_owner_cannot_reschedule_own_draft(): void
+    {
+        $user = $this->userWithRole('requester');
+        $booking = $this->makeBooking($user, BookingStatus::Draft);
+
+        $this->assertFalse($this->policy->reschedule($user, $booking));
+    }
+
+    public function test_owner_cannot_reschedule_own_submitted(): void
+    {
+        $user = $this->userWithRole('requester');
+        $booking = $this->makeBooking($user, BookingStatus::Submitted);
+
+        $this->assertFalse($this->policy->reschedule($user, $booking));
+    }
+
+    public function test_owner_cannot_reschedule_own_rejected(): void
+    {
+        $user = $this->userWithRole('requester');
+        $booking = $this->makeBooking($user, BookingStatus::Rejected);
+
+        $this->assertFalse($this->policy->reschedule($user, $booking));
+    }
+
+    public function test_owner_cannot_reschedule_own_completed(): void
+    {
+        $user = $this->userWithRole('requester');
+        $booking = $this->makeBooking($user, BookingStatus::Completed);
+
+        $this->assertFalse($this->policy->reschedule($user, $booking));
+    }
+
+    public function test_ga_admin_cannot_reschedule_others_approved(): void
+    {
+        $owner = $this->userWithRole('requester');
+        $admin = $this->userWithRole('ga_admin');
+        $booking = $this->makeBooking($owner, BookingStatus::Approved);
+
+        $this->assertFalse($this->policy->reschedule($admin, $booking));
+    }
+
+    public function test_super_admin_can_reschedule_others_approved(): void
+    {
+        $owner = $this->userWithRole('requester');
+        $admin = $this->userWithRole('super_admin');
+        $booking = $this->makeBooking($owner, BookingStatus::Approved);
+
+        $this->assertTrue($this->policy->reschedule($admin, $booking));
+    }
+
+    public function test_requester_cannot_reschedule_others_approved(): void
+    {
+        $owner = $this->userWithRole('requester');
+        $other = $this->userWithRole('requester');
+        $booking = $this->makeBooking($owner, BookingStatus::Approved);
+
+        $this->assertFalse($this->policy->reschedule($other, $booking));
+    }
 }

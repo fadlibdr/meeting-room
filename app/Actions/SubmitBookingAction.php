@@ -7,7 +7,6 @@ namespace App\Actions;
 use App\Enums\BookingStatus;
 use App\Enums\RoomApprovalMode;
 use App\Enums\RoomStatus;
-use App\Exceptions\ApprovalRoutingException;
 use App\Http\Requests\Booking\StoreBookingRequest;
 use App\Models\ActivityLog;
 use App\Models\Booking;
@@ -17,6 +16,7 @@ use App\Models\Room;
 use App\Models\User;
 use App\Notifications\BookingSubmittedNotification;
 use App\Policies\BookingPolicy;
+use App\Services\ApprovalRoutingService;
 use App\Services\BookingConflictService;
 use Carbon\CarbonImmutable;
 use DomainException;
@@ -48,6 +48,7 @@ final class SubmitBookingAction
 {
     public function __construct(
         private readonly BookingConflictService $conflictService,
+        private readonly ApprovalRoutingService $routingService,
     ) {}
 
     /**
@@ -61,7 +62,7 @@ final class SubmitBookingAction
      *     source?: string
      * }  $input
      */
-    public function execute(User $requester, array $input): Booking
+    public function execute(User $requester, array $input, bool $notify = true): Booking
     {
         /** @var Booking $booking */
         $booking = DB::transaction(function () use ($requester, $input): Booking {
@@ -71,7 +72,7 @@ final class SubmitBookingAction
         // 2D-F: notify the assigned approver — only when the booking resolved
         // to Submitted (auto-approved bookings have no approver, and the
         // requester is already present). After the transaction, by FK id.
-        if ($booking->status === BookingStatus::Submitted
+        if ($notify && $booking->status === BookingStatus::Submitted
             && $booking->current_approver_user_id !== null) {
             User::findOrFail($booking->current_approver_user_id)
                 ->notify(new BookingSubmittedNotification($booking));
@@ -105,7 +106,7 @@ final class SubmitBookingAction
         $this->conflictService->assertNoConflict($room, $startsAt, $endsAt);
 
         // 4. Resolve approval routing — approval_mode is also an enum cast
-        $resolution = $this->resolveApproval($requester, $room->approval_mode);
+        $resolution = $this->routingService->resolve($requester, $room->approval_mode);
 
         // 5. Create booking row
         $booking = Booking::create([
@@ -169,81 +170,6 @@ final class SubmitBookingAction
         ]);
 
         return $booking->fresh(['room', 'requester', 'currentApprover', 'approvals']) ?? $booking;
-    }
-
-    /**
-     * Resolve booking initial state based on the room's approval mode.
-     *
-     * @return array{
-     *     status: BookingStatus,
-     *     current_step: ?int,
-     *     approver_user_id: ?int,
-     *     approved_at: ?Carbon
-     * }
-     */
-    private function resolveApproval(User $requester, RoomApprovalMode $mode): array
-    {
-        return match ($mode) {
-            RoomApprovalMode::None => [
-                'status' => BookingStatus::Approved,
-                'current_step' => null,
-                'approver_user_id' => null,
-                'approved_at' => Carbon::now(),
-            ],
-            RoomApprovalMode::UnitApprover => $this->resolveUnitApprover($requester),
-            RoomApprovalMode::GaAdmin => $this->resolveGaAdmin(),
-        };
-    }
-
-    /**
-     * @return array{
-     *     status: BookingStatus,
-     *     current_step: ?int,
-     *     approver_user_id: ?int,
-     *     approved_at: ?Carbon
-     * }
-     */
-    private function resolveUnitApprover(User $requester): array
-    {
-        if ($requester->approver_user_id === null) {
-            throw ApprovalRoutingException::noUnitApprover($requester);
-        }
-
-        return [
-            'status' => BookingStatus::Submitted,
-            'current_step' => 1,
-            'approver_user_id' => $requester->approver_user_id,
-            'approved_at' => null,
-        ];
-    }
-
-    /**
-     * @return array{
-     *     status: BookingStatus,
-     *     current_step: ?int,
-     *     approver_user_id: ?int,
-     *     approved_at: ?Carbon
-     * }
-     */
-    private function resolveGaAdmin(): array
-    {
-        /** @var User|null $gaAdmin */
-        $gaAdmin = User::query()
-            ->where('is_active', true)
-            ->whereHas('roles', fn ($q) => $q->where('code', 'ga_admin'))
-            ->inRandomOrder()
-            ->first();
-
-        if ($gaAdmin === null) {
-            throw ApprovalRoutingException::noGaAdmin();
-        }
-
-        return [
-            'status' => BookingStatus::Submitted,
-            'current_step' => 1,
-            'approver_user_id' => $gaAdmin->id,
-            'approved_at' => null,
-        ];
     }
 
     /**

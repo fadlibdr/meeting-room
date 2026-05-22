@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Booking;
 
+use App\Actions\RescheduleBookingAction;
 use App\Actions\SubmitBookingAction;
+use App\Actions\UpdateBookingAction;
 use App\DataTransferObjects\ConflictItem;
 use App\Exceptions\ApprovalRoutingException;
 use App\Exceptions\BookingConflictException;
@@ -13,6 +15,7 @@ use App\Models\Room;
 use App\Models\User;
 use App\Services\BookingConflictService;
 use Carbon\CarbonImmutable;
+use DomainException;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Livewire\Attributes\On;
@@ -36,6 +39,19 @@ use Throwable;
  */
 class BookingForm extends Component
 {
+    /**
+     * Booking being edited (M3-C). Set by mount() when the component is
+     * mounted on the bookings/{booking}/edit route. Null = create mode.
+     */
+    public ?int $bookingId = null;
+
+    /**
+     * Form mode — 'create' | 'edit' | 'reschedule' (M3-E). In reschedule
+     * mode $bookingId is the SOURCE booking; submit() cancels it and
+     * creates a replacement via RescheduleBookingAction.
+     */
+    public string $mode = 'create';
+
     /** Pre-fillable from query string (?room_id=X). Empty string = unselected. */
     #[Url(as: 'room_id', except: '')]
     public string $roomId = '';
@@ -78,8 +94,28 @@ class BookingForm extends Component
      */
     public array $conflictDetails = [];
 
-    public function mount(): void
+    public function mount(?Booking $booking = null, bool $reschedule = false): void
     {
+        if ($booking !== null && $booking->exists) {
+            if ($reschedule || request()->routeIs('bookings.reschedule')) {
+                $this->authorize('reschedule', $booking);
+                $this->mode = 'reschedule';
+            } else {
+                $this->authorize('update', $booking);
+                $this->mode = 'edit';
+            }
+
+            $this->bookingId = $booking->id;
+            $this->roomId = (string) $booking->room_id;
+            $this->startsAt = $booking->starts_at->format('Y-m-d\TH:i');
+            $this->endsAt = $booking->ends_at->format('Y-m-d\TH:i');
+            $this->subject = $booking->subject;
+            $this->agenda = $booking->agenda;
+            $this->attendeeCount = $booking->attendee_count;
+
+            return;
+        }
+
         $this->authorize('create', Booking::class);
     }
 
@@ -158,7 +194,7 @@ class BookingForm extends Component
                 return;
             }
 
-            $conflicts = $service->findConflicts($room, $startsAt, $endsAt);
+            $conflicts = $service->findConflicts($room, $startsAt, $endsAt, $this->bookingId);
 
             if ($conflicts->isEmpty()) {
                 $this->conflictStatus = 'clear';
@@ -222,15 +258,15 @@ class BookingForm extends Component
         ];
     }
 
-    public function submit(SubmitBookingAction $action): mixed
+    public function submit(SubmitBookingAction $submitAction, UpdateBookingAction $updateAction, RescheduleBookingAction $rescheduleAction): mixed
     {
         $this->submitError = null;
 
-        $validated = $this->validate();
+        $this->validate();
 
-        // Re-run live check synchronously before passing to action.
-        // Action will lockForUpdate + re-check anyway (defense in depth),
-        // but this catches the common case before transaction overhead.
+        // Re-run the live check synchronously before delegating. Both actions
+        // lockForUpdate + re-check anyway (defense in depth); this catches the
+        // common case before transaction overhead.
         $this->checkAvailability(app(BookingConflictService::class));
         if ($this->conflictStatus === 'conflict') {
             $this->submitError = 'Slot waktu yang dipilih bentrok dengan jadwal lain. '
@@ -242,15 +278,31 @@ class BookingForm extends Component
         /** @var User $user */
         $user = auth()->user();
 
+        $payload = [
+            'room_id' => (int) $this->roomId,
+            'subject' => $this->subject,
+            'agenda' => $this->agenda,
+            'attendee_count' => $this->attendeeCount,
+            'starts_at' => $this->normalizeDatetime($this->startsAt),
+            'ends_at' => $this->normalizeDatetime($this->endsAt),
+        ];
+
         try {
-            $booking = $action->execute($user, [
-                'room_id' => (int) $validated['roomId'],
-                'subject' => $validated['subject'],
-                'agenda' => $validated['agenda'] ?? null,
-                'attendee_count' => (int) $validated['attendeeCount'],
-                'starts_at' => $this->normalizeDatetime($validated['startsAt']),
-                'ends_at' => $this->normalizeDatetime($validated['endsAt']),
-            ]);
+            if ($this->mode === 'reschedule') {
+                $booking = $rescheduleAction->execute(
+                    Booking::findOrFail($this->bookingId),
+                    $user,
+                    $payload,
+                );
+            } elseif ($this->mode === 'edit') {
+                $booking = $updateAction->execute(
+                    Booking::findOrFail($this->bookingId),
+                    $user,
+                    $payload,
+                );
+            } else {
+                $booking = $submitAction->execute($user, $payload);
+            }
         } catch (BookingConflictException $e) {
             $this->submitError = 'Slot waktu yang dipilih bentrok dengan jadwal lain. '
                 .'Silakan pilih waktu lain.';
@@ -260,6 +312,22 @@ class BookingForm extends Component
             $this->submitError = $e->getMessage();
 
             return null;
+        } catch (DomainException $e) {
+            $this->submitError = $e->getMessage();
+
+            return null;
+        }
+
+        if ($this->mode === 'reschedule') {
+            session()->flash('success', "Reservasi dijadwalkan ulang. Reservasi baru {$booking->booking_code} telah dibuat.");
+
+            return $this->redirect(route('bookings.show', $booking->id), navigate: true);
+        }
+
+        if ($this->mode === 'edit') {
+            session()->flash('success', "Reservasi {$booking->booking_code} berhasil diperbarui.");
+
+            return $this->redirect(route('bookings.show', $booking->id), navigate: true);
         }
 
         session()->flash('success', "Booking {$booking->booking_code} berhasil dibuat.");

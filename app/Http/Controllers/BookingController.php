@@ -4,19 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\CancelBookingAction;
+use App\Actions\DeleteBookingAction;
 use App\Actions\SubmitBookingAction;
+use App\Actions\SubmitDraftAction;
 use App\Enums\BookingStatus;
 use App\Exceptions\ApprovalRoutingException;
 use App\Exceptions\BookingConflictException;
+use App\Http\Requests\Booking\CancelBookingRequest;
 use App\Http\Requests\Booking\StoreBookingRequest;
 use App\Models\Booking;
 use App\Models\BookingApproval;
 use App\Models\BookingStatusHistory;
 use App\Models\User;
+use DomainException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 
 /**
  * Thin HTTP entry point for booking operations.
@@ -75,6 +81,105 @@ class BookingController extends Controller
         return redirect()
             ->route('dashboard')
             ->with('success', "Booking {$booking->booking_code} berhasil dibuat.");
+    }
+
+    /**
+     * Cancel a booking (Draft / Submitted / Approved -> Cancelled).
+     *
+     * Authorization + the conditionally-required reason are enforced
+     * by CancelBookingRequest (-> BookingPolicy::cancel, Blueprint
+     * H.5). CancelBookingAction re-checks status under a row lock; a
+     * DomainException (booking no longer cancellable - a race with
+     * another transition) or InvalidArgumentException is surfaced as
+     * a non-field 'cancel' error so the show page renders gracefully.
+     */
+    public function cancel(
+        CancelBookingRequest $request,
+        Booking $booking,
+        CancelBookingAction $action,
+    ): RedirectResponse {
+        /** @var User $user */
+        $user = $request->user();
+
+        /** @var string|null $reason */
+        $reason = $request->validated('cancellation_reason');
+
+        try {
+            $action->execute($booking, $user, $reason);
+        } catch (DomainException|InvalidArgumentException $e) {
+            return back()->withErrors(['cancel' => $e->getMessage()]);
+        }
+
+        return redirect()
+            ->route('bookings.show', $booking->id)
+            ->with('success', "Reservasi {$booking->booking_code} berhasil dibatalkan.");
+    }
+
+    /**
+     * Submit a Draft booking for approval (Draft -> Submitted/Approved).
+     *
+     * Authorization is handled by the route-level can:submit,booking
+     * middleware (routes/web.php) -> BookingPolicy::submit (Draft only).
+     *
+     * SubmitDraftAction re-checks the slot under a row lock: a Draft
+     * never held the slot, so it may have been taken since the draft
+     * was saved (M3-Dec-12). A BookingConflictException, a routing
+     * failure, or a DomainException (the booking is no longer Draft -
+     * a race) is surfaced as a non-field 'submit' error.
+     */
+    public function submit(
+        Booking $booking,
+        SubmitDraftAction $action,
+    ): RedirectResponse {
+        /** @var User $user */
+        $user = auth()->user();
+
+        try {
+            $action->execute($booking, $user);
+        } catch (BookingConflictException $e) {
+            return back()->withErrors([
+                'submit' => 'Slot waktu reservasi ini sudah tidak tersedia. Silakan ubah jadwal lalu ajukan kembali.',
+            ]);
+        } catch (ApprovalRoutingException|DomainException $e) {
+            return back()->withErrors(['submit' => $e->getMessage()]);
+        }
+
+        return redirect()
+            ->route('bookings.show', $booking->id)
+            ->with('success', "Reservasi {$booking->booking_code} berhasil diajukan.");
+    }
+
+    /**
+     * Permanently delete a Draft booking (M3-F, M3-Dec-4).
+     *
+     * Authorization is handled by the route-level can:delete,booking
+     * middleware (routes/web.php) -> BookingPolicy::delete (Draft only).
+     * That gate already rejects every non-Draft booking with a 403, so
+     * the DomainException catch below only fires on the rare race where
+     * the booking left Draft between route authorization and the
+     * action's row lock.
+     *
+     * The booking row is gone afterwards, so the redirect target is the
+     * calendar, not bookings.show.
+     */
+    public function destroy(
+        Booking $booking,
+        DeleteBookingAction $action,
+    ): RedirectResponse {
+        /** @var User $user */
+        $user = auth()->user();
+
+        $bookingCode = $booking->booking_code;
+
+        try {
+            $action->execute($booking, $user);
+        } catch (DomainException $e) {
+            return back()->withErrors(['delete' => $e->getMessage()]);
+        }
+
+        return redirect()
+            ->route('calendar.index')
+            ->with('success', "Reservasi draf {$bookingCode} berhasil dihapus.");
     }
 
     /**

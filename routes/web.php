@@ -24,6 +24,20 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     Route::get('bookings/{booking}', [BookingController::class, 'show'])
         ->can('view', 'booking')
         ->name('bookings.show');
+    Route::post('bookings/{booking}/cancel', [BookingController::class, 'cancel'])
+        ->name('bookings.cancel');
+    Route::post('bookings/{booking}/submit', [BookingController::class, 'submit'])
+        ->can('submit', 'booking')
+        ->name('bookings.submit');
+    Route::get('bookings/{booking}/edit', BookingForm::class)
+        ->can('update', 'booking')
+        ->name('bookings.edit');
+    Route::get('bookings/{booking}/reschedule', BookingForm::class)
+        ->can('reschedule', 'booking')
+        ->name('bookings.reschedule');
+    Route::delete('bookings/{booking}', [BookingController::class, 'destroy'])
+        ->can('delete', 'booking')
+        ->name('bookings.destroy');
     Route::get('calendar', BookingCalendar::class)
         ->middleware('permission:bookings.view')
         ->name('calendar.index');
