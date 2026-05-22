@@ -5,7 +5,7 @@
             {{-- Page Header --}}
             <div class="mb-8">
                 <h1 class="font-display text-3xl font-semibold text-slate-900 tracking-tight">
-                    Buat Reservasi Ruangan
+                    {{ $bookingId ? 'Ubah Reservasi Ruangan' : 'Buat Reservasi Ruangan' }}
                 </h1>
                 <p class="mt-2 text-sm text-slate-500">
                     Pilih ruangan, waktu, dan detail rapat. Sistem akan memeriksa
@@ -40,7 +40,7 @@
                         Ruangan <span class="text-red-500 text-sm" aria-hidden="true">*</span>
                     </h2>
 
-                    <livewire:booking.room-availability-picker :starts-at="$startsAt" :ends-at="$endsAt" :attendee-count="$attendeeCount" :selected-room-id="(int) $roomId" />
+                    <livewire:booking.room-availability-picker :starts-at="$startsAt" :ends-at="$endsAt" :attendee-count="$attendeeCount" :selected-room-id="(int) $roomId" :exclude-booking-id="$bookingId" />
 
                     @error('roomId')
                         <p class="mt-3 text-sm text-red-600" role="alert">{{ $message }}</p>
@@ -198,7 +198,7 @@
 
                 {{-- Footer: Actions --}}
                 <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
-                    <a href="{{ route('calendar.index') }}" wire:navigate
+                    <a href="{{ $bookingId ? route('bookings.show', $bookingId) : route('calendar.index') }}" wire:navigate
                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors">
                         Batal
                     </a>
@@ -210,7 +210,7 @@
                         class="inline-flex items-center px-5 py-2 bg-bpjs-blue-500 hover:bg-bpjs-blue-600 disabled:bg-bpjs-blue-300 text-white text-sm font-medium rounded-md shadow-sm transition-colors disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bpjs-blue-500"
                     >
                         <span wire:loading.remove wire:target="submit">
-                            Buat Reservasi
+                            {{ $bookingId ? 'Simpan Perubahan' : 'Buat Reservasi' }}
                         </span>
                         <span wire:loading wire:target="submit" class="inline-flex items-center gap-2">
                             <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24" aria-hidden="true">

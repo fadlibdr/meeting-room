@@ -66,6 +66,10 @@ class RoomAvailabilityPicker extends Component
     #[Reactive]
     public int $selectedRoomId = 0;
 
+    /** Booking to exclude from conflict checks - set by BookingForm edit mode (M3-C). */
+    #[Reactive]
+    public ?int $excludeBookingId = null;
+
     /**
      * User clicked a room card. Dispatch event up to parent which handles
      * actual state mutation. Picker stays stateless re: selection.
@@ -145,7 +149,7 @@ class RoomAvailabilityPicker extends Component
         $service = app(BookingConflictService::class);
 
         foreach ($rooms as $room) {
-            $conflicts = $service->findConflicts($room, $startsAt, $endsAt);
+            $conflicts = $service->findConflicts($room, $startsAt, $endsAt, $this->excludeBookingId);
 
             if ($conflicts->isEmpty()) {
                 $result[$room->id] = [
