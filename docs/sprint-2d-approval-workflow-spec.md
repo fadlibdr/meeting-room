@@ -2,7 +2,7 @@
 
 **Arc:** Sprint 2 Closing — Booking Lifecycle
 **Milestone:** 2D of 3 (Submit UI ✓ → **Approval UI** → Lifecycle Edges)
-**Status:** Spec locked, implementation pending
+**Status:** Implementation complete (Sprint 2D) — see §9 for the 2D-H reconciliation
 **Blueprint reference:** Sprint 4 / M2 (J.5)
 
 ---
@@ -58,6 +58,8 @@ A logged-in **super_admin** can:
 | 2D-Dec-8 | Approval action atomicity | DB::transaction + `Room::lockForUpdate()` + re-check inside transaction | Per Blueprint H.4 race mitigation; matches SubmitBookingAction pattern |
 | 2D-Dec-9 | BookingSubmittedNotification retroactive wiring | Goes in 2D-F (the notifications phase), NOT 2D-A | Keeps phase-A focused on action logic; F is the holistic notification cascade |
 | 2D-Dec-10 | Notification author for override | super_admin override uses `acted_by_user_id` distinct from `current_approver_user_id` snapshot at submission | Audit clarity — original assignee preserved, override actor recorded separately |
+| 2D-Dec-11 (added 2026-05-22) | Notification dispatch point | All three booking notifications are dispatched in the action's `execute()` AFTER `DB::transaction()` returns — never inside it — so a notification never fires for a rolled-back action. Recipients are resolved by FK id (`User::findOrFail($booking->requester_user_id)`), not the relation property. Auto-approved bookings (`approval_mode = none`) dispatch nothing — the requester is already present. | An in-transaction notify couples a `notifications` insert to rollback semantics and trips larastan's relation-type resolution; after-commit dispatch with an FK-id lookup is both correct and statically clean. |
+| 2D-Dec-12 (added 2026-05-22) | 2D-G test scope | 2D-G ships end-to-end journey tests (`ApprovalJourneyTest`) plus the Dec-03 hybrid-pointer integrity test (`IntegrityTest`, written to be reusable as a nightly production check). Race-condition (parallel-submit) testing is deferred to Sprint-6 hardening. | The race mitigation itself (`lockForUpdate` + re-check-on-approve) is already covered by the action and journey tests; a `pcntl`-based concurrency test is fragile and belongs in the Sprint-6 hardening pass / production Go-No-Go gate. |
 
 ---
 
@@ -163,16 +165,19 @@ Same shape as 2D-A. Required `notes` parameter (the rejection reason).
 - `app/Actions/RejectBookingAction.php`
 - `tests/Unit/Actions/RejectBookingActionTest.php`
 
-### 2D-C — Super Admin override (Policy / Gate::before)
+### 2D-C — Super Admin override (`bookings.override` permission)
 
-**Implementation:**
-// app/Providers/AuthServiceProvider.php
-Gate::before(function (User $user, string $ability) {
-if ($user->hasRole('super_admin')) {
-return true;
-}
-});
-This is one line of code but big-effect. Existing Policies (BookingPolicy, RoomPolicy, etc.) all gain Super Admin override automatically.
+**Implementation:** See the amended 2D-Dec-1. A `bookings.override` permission,
+seeded to super_admin only, checked inside `BookingPolicy::approve()` and
+`reject()` AFTER the status gate and the permission gate, BEFORE the assignment
+check. It bypasses only the "is this approver assigned to this booking" check —
+never the status gate.
+
+The original `Gate::before` plan was invalidated during 2D-C recon: Laravel 12
+ships no `AuthServiceProvider`; a blanket `Gate::before` bypass would let
+super_admin approve a Draft booking (breaking the status invariant existing
+tests protect); and `BookingPolicy` is permission-based, so a direct role check
+would contradict its own documented principle.
 
 **Tests (2-3 minimum):**
 1. super_admin can approve a booking they aren't assigned to
@@ -372,4 +377,5 @@ This spec is locked as of 2026-05-04. Changes require a new entry in this sectio
 |---|---|---|
 | 2026-05-04 | Initial lock | Sprint 2D kickoff |
 | 2026-05-22 | 2D-Dec-1 amended | `Gate::before` plan invalidated during 2D-C recon; replaced with a `bookings.override` permission checked per-Policy-method. See the amended 2D-Dec-1 row above. |
+| 2026-05-22 | 2D-C..2D-G reconciled at 2D-H | §4 2D-C section rewritten to match the shipped `bookings.override` design (it still described the rejected `Gate::before` plan). 2D-Dec-11 (notification dispatch point) and 2D-Dec-12 (2D-G test scope, race deferred) added to §2. §4 Sub-Phase Breakdown and §5 Coverage are the 2D-0 pre-implementation plan — the authoritative record of shipped artifacts (file locations, final test names, scenario coverage) is the git history, commits 2D-A through 2D-G. Final suite: 255 passing. |
 
