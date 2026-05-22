@@ -257,4 +257,26 @@ class RescheduleBookingTest extends TestCase
             ->get(route('bookings.reschedule', $draft->id))
             ->assertForbidden();
     }
+
+    // ─── SHOW-PAGE ENTRY POINT ───────────────────────────────────────
+
+    public function test_show_page_offers_a_reschedule_link_for_an_approved_booking(): void
+    {
+        $owner = $this->makeRequester();
+        $booking = $this->makeApprovedBooking($owner);
+
+        $this->actingAs($owner)
+            ->get(route('bookings.show', $booking->id))
+            ->assertSee(route('bookings.reschedule', $booking->id));
+    }
+
+    public function test_show_page_hides_the_reschedule_link_for_a_draft_booking(): void
+    {
+        $owner = $this->makeRequester();
+        $booking = $this->makeDraftBooking($owner);
+
+        $this->actingAs($owner)
+            ->get(route('bookings.show', $booking->id))
+            ->assertDontSee(route('bookings.reschedule', $booking->id));
+    }
 }

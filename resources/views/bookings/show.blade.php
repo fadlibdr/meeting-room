@@ -149,7 +149,7 @@
             </div>
 
             {{-- Tindakan --}}
-            @can('cancel', $booking)
+            @canany(['update', 'submit', 'cancel', 'reschedule'], $booking)
                 <div class="bg-white rounded-lg shadow-sm p-6">
                     <h2 class="font-display text-sm font-semibold text-slate-700 mb-3">Tindakan</h2>
 
@@ -178,41 +178,50 @@
                         </form>
                     @endcan
 
-                    @error('cancel')
-                        <p class="mb-3 rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-700">
-                            {{ $message }}
-                        </p>
-                    @enderror
+                    @can('reschedule', $booking)
+                        <a href="{{ route('bookings.reschedule', $booking->id) }}"
+                           class="mb-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-bpjs-blue-500">
+                            Jadwalkan Ulang
+                        </a>
+                    @endcan
 
-                    <form method="POST" action="{{ route('bookings.cancel', $booking->id) }}"
-                          onsubmit="return confirm('Batalkan reservasi ini? Tindakan ini tidak dapat diurungkan.');">
-                        @csrf
-                        <label for="cancellation_reason" class="block text-sm font-medium text-slate-700">
-                            Alasan Pembatalan
-                            @if ($booking->status === \App\Enums\BookingStatus::Approved)
-                                <span class="text-red-500">*</span>
-                            @endif
-                        </label>
-                        <textarea
-                            id="cancellation_reason"
-                            name="cancellation_reason"
-                            rows="3"
-                            class="mt-1 block w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-red-400 focus:ring-red-400"
-                            placeholder="{{ $booking->status === \App\Enums\BookingStatus::Approved ? 'Wajib diisi untuk reservasi yang sudah disetujui.' : 'Opsional.' }}">{{ old('cancellation_reason') }}</textarea>
-                        @error('cancellation_reason')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @can('cancel', $booking)
+                        @error('cancel')
+                            <p class="mb-3 rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+                                {{ $message }}
+                            </p>
                         @enderror
 
-                        <div class="mt-4">
-                            <button
-                                type="submit"
-                                class="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2">
-                                Batalkan Reservasi
-                            </button>
-                        </div>
-                    </form>
+                        <form method="POST" action="{{ route('bookings.cancel', $booking->id) }}"
+                              onsubmit="return confirm('Batalkan reservasi ini? Tindakan ini tidak dapat diurungkan.');">
+                            @csrf
+                            <label for="cancellation_reason" class="block text-sm font-medium text-slate-700">
+                                Alasan Pembatalan
+                                @if ($booking->status === \App\Enums\BookingStatus::Approved)
+                                    <span class="text-red-500">*</span>
+                                @endif
+                            </label>
+                            <textarea
+                                id="cancellation_reason"
+                                name="cancellation_reason"
+                                rows="3"
+                                class="mt-1 block w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-red-400 focus:ring-red-400"
+                                placeholder="{{ $booking->status === \App\Enums\BookingStatus::Approved ? 'Wajib diisi untuk reservasi yang sudah disetujui.' : 'Opsional.' }}">{{ old('cancellation_reason') }}</textarea>
+                            @error('cancellation_reason')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+
+                            <div class="mt-4">
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2">
+                                    Batalkan Reservasi
+                                </button>
+                            </div>
+                        </form>
+                    @endcan
                 </div>
-            @endcan
+            @endcanany
 
         </div>
     </div>
