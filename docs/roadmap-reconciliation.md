@@ -40,7 +40,7 @@ decision change must go through the Blueprint Decision Log first.
 |---|---|---|---|
 | **Sprint 0** | Foundation, setup, seeders | Sprint 0 | ✅ Done |
 | **Sprint 1** | Auth, RBAC, User Management | Sprint 1 (1A–1F) | ✅ Done |
-| **Sprint 2** | Room Management (admin CRUD UI) | `docs/sprint-2-plan.md` only | ❌ **Not built — see §4 Gap A** |
+| **Sprint 2** | Room Management (admin CRUD UI) | `feat/sprint-2a-room-policies` | ✅ **Done — Gap A resolved (§4); +101 tests** |
 | **Sprint 3** | Booking Core & Conflict Validation | "Sprint 2B" + "Phase 2 Pieces 1–3" + **M1** | ✅ Done |
 | **Sprint 4** | Approval Workflow, Dashboards, Inbox | "Sprint 2D" / **M2** | 🟡 Done with structural deviations — see §4 Gaps E, F |
 | **— (not in §J)** | Booking lifecycle edges | **M3** (edit / cancel / reschedule / delete) | ✅ Done |
@@ -75,7 +75,9 @@ user-management UI (`UserList` / `UserForm` Livewire), `ActivityLogger`
 (pulled forward from Sprint 5). Merged via PRs #7/#11/#12/#13. **Open process
 item — §4 Gap D:** the Dec-02 RBAC revisit checkpoint is not recorded in `docs/`.
 
-### Sprint 2 — Room Management ❌ NOT BUILT
+### Sprint 2 — Room Management ✅ DONE
+
+> **v1.2 update (29 May 2026):** Gap A is **resolved**. The admin Room Management module shipped on `feat/sprint-2a-room-policies`: `RoomPolicy`/`FacilityPolicy`, room CRUD, facilities master + per-room assignment, the operating-hours grid, and room blocking with §H.7 conflict resolution. **+101 tests (383 → 484)**, PHPStan L5 + Pint clean. The historical assessment below is preserved as-of-reconciliation.
 **Verified absent.** Repository recon shows: no `RoomController` /
 `FacilityController` / `RoomBlockController`; no `RoomPolicy` / `FacilityPolicy`;
 no `BlockRoomAction`; no `admin/facilities` or `admin/room-blocks` routes; admin
@@ -139,7 +141,7 @@ Not started.
 
 ## 4. Open Gaps Against the Blueprint (verified)
 
-### Gap A — Room Management module (Blueprint Sprint 2) NOT BUILT
+### Gap A — Room Management module (Blueprint Sprint 2) ✅ RESOLVED (built on `feat/sprint-2a-room-policies`, +101 tests)
 **Severity: Critical.** A "Must"-priority module with zero admin UI. Confirmed by
 recon. **Top of the queue (§5 item 1).**
 
@@ -149,7 +151,7 @@ recon. **Top of the queue (§5 item 1).**
 |---|---|
 | `ActivityLogger` (audit writer) | ✅ Done (pulled into Sprint 1) |
 | `BookingStatusHistory` writes | ✅ Done (within booking actions) |
-| Database notifications | ✅ Done — but only 4 of 6 `NotificationType` values (missing `booking_reminder`, `room_block_created`) |
+| Database notifications | ✅ Done — 5 of 6 `NotificationType` values (`room_block_created` shipped in Sprint 2; still missing `booking_reminder`) |
 | `RecentActivityFeed` dashboard widget | ✅ Done |
 | Audit-log **viewer page** (`ActivityLogController` + §D.6 views) | ❌ Not built |
 | Email-queued notifications | ❌ Not built (no `Jobs/` dir) |
@@ -208,7 +210,7 @@ Production launch is **not** permitted. Verified standing:
 | §N.4 criterion | Status |
 |---|---|
 | All 22+ `BookingConflictService` tests pass | ✅ |
-| All 100+ Policy tests pass | 🟡 `BookingPolicy` (47) done; `RoomPolicy`/`FacilityPolicy` cannot exist (Gap A); full matrix incomplete |
+| All 100+ Policy tests pass | ✅ `BookingPolicy` (47) + `RoomPolicy` (24) + `FacilityPolicy` (10) shipped; matrix complete |
 | Race-condition test passes with reasonable latency | 🟡 `lockForUpdate` in place; explicit parallel-submit test (§M.4) unconfirmed |
 | Integrity test (approver pointer) passes | ✅ |
 | UAT 30 scenarios signed off | ❌ |
@@ -219,8 +221,7 @@ Production launch is **not** permitted. Verified standing:
 | Blueprint v3 signed off by architecture team | — |
 
 **Summary:** the hardest *domain-logic* bars are cleared (conflict, integrity).
-Launch is blocked by a missing "Must" module (Sprint 2), most of Sprint 5, and
-all of Sprint 6.
+Launch is blocked by most of Sprint 5 and all of Sprint 6. (Sprint 2 / Gap A — the last missing "Must" module — is now built.)
 
 ---
 

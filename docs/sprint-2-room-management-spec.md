@@ -1,7 +1,7 @@
 # Sprint 2 — Room Management — Implementation Spec
 
 **Document type:** Milestone implementation spec (decisions-first)
-**Status:** v1.1 — verified against repository recon; S2-A + S2-B shipped (432 tests)
+**Status:** v1.2 — DELIVERED. All pieces shipped on `feat/sprint-2a-room-policies` (suite 484; +101 over the 383 baseline). PHPStan L5 + Pint clean.
 **Date:** 23 May 2026
 **Blueprint sprint:** §J.3 Sprint 2 (the last unbuilt "Must" module — Gap A in the roadmap reconciliation)
 **Grounded in:** Blueprint v3 §D/§G/§H.7/§J.3; Database Schema v2 (rooms/facilities/operating-hours/blocks + §E.3/E.4/E.5 enums); Struktur Proyek v2 §D.3; and direct recon of the running codebase.
@@ -11,6 +11,7 @@
 ## Version History
 - **v1.0** — initial draft, before any recon. Assumed resourceful-Blade CRUD with Form Requests, `rooms.manage`/`facilities.*` permissions, top-level controllers. All three were wrong.
 - **v1.1** — corrected against recon and against the shipped S2-A/S2-B code. See §2 (Dec-18..21) for the corrections.
+- **v1.2** — DELIVERED: all five pieces (policies, room CRUD, facilities + assignment, operating hours, blocking) shipped and tested; suite 484.
 
 ---
 
@@ -20,12 +21,12 @@
 |---|---|---|
 | **S2-A** | `RoomPolicy` + `FacilityPolicy` + matrix tests (34) | ✅ Done, committed |
 | **S2-B** | Room CRUD — `Admin\RoomController` + `RoomList`/`RoomForm` + views (15) | ✅ Done, committed |
-| **S2-C.1** | Facilities master CRUD (`FacilityController` + `FacilityList`/`FacilityForm`) | ▶ Next |
-| **S2-C.2** | Room ↔ facility assignment (`RoomFacilityItem`: quantity, operational, notes) | ☐ Planned |
-| **S2-D** | Operating-hours editor (7-day grid on room edit) | ☐ Planned |
-| **S2-E** | Room blocking (`RoomBlockController` + `BlockRoomAction` + `RoomBlockForm`) | ☐ Planned |
+| **S2-C.1** | Facilities master CRUD (`FacilityController` + `FacilityList`/`FacilityForm`) | ✅ Done (13) |
+| **S2-C.2** | Room ↔ facility assignment (`RoomFacilityItem`: quantity, operational, notes) | ✅ Done (7) |
+| **S2-D** | Operating-hours editor (7-day grid on room edit) | ✅ Done (8) |
+| **S2-E** | Room blocking — action + notification + UI, §H.7 resolution | ✅ Done (E.1 12, E.3 12) |
 
-Suite at end of S2-B: **432 passing**.
+Suite at Sprint 2 close: **484 passing** (101 new across S2-A…E).
 
 ---
 
