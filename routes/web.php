@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\FacilityController;
 use App\Http\Controllers\Admin\RoomBlockController;
 use App\Http\Controllers\Admin\RoomController;
@@ -94,7 +95,10 @@ Route::middleware(['auth', 'user.active'])->group(function () {
             ->middleware('permission:rooms.manage-blocks')
             ->name('room-blocks.create');
 
-        Route::view('logs', 'placeholder')->name('logs.index');
+        // Sprint 5 — Audit-log viewer (read-only; gated activity-logs.view)
+        Route::get('logs', [ActivityLogController::class, 'index'])
+            ->middleware('permission:activity-logs.view')
+            ->name('logs.index');
 
         // App settings - runtime configuration editor
         Route::get('settings', SettingsManager::class)
