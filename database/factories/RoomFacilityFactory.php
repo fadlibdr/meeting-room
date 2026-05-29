@@ -16,7 +16,7 @@ class RoomFacilityFactory extends Factory
     {
         $facilities = [
             ['code' => 'PROJECTOR', 'name' => 'Proyektor', 'category' => 'av', 'icon' => 'projector'],
-            ['code' => 'WHITEBOARD', 'name' => 'Whiteboard', 'category' => 'writing', 'icon' => 'pencil'],
+            ['code' => 'WHITEBOARD', 'name' => 'Whiteboard', 'category' => 'furniture', 'icon' => 'pencil'],
             ['code' => 'AC', 'name' => 'AC', 'category' => 'comfort', 'icon' => 'wind'],
             ['code' => 'TV', 'name' => 'TV LCD', 'category' => 'av', 'icon' => 'tv'],
             ['code' => 'WIFI', 'name' => 'WiFi', 'category' => 'connectivity', 'icon' => 'wifi'],
