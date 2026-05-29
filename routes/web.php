@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BookingController;
 use App\Livewire\Admin\SettingsManager;
@@ -46,7 +47,7 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         ->name('approvals.index');
     Route::view('rooms', 'placeholder')->name('rooms.index');
 
-    // Placeholders for admin routes (1D replaces users)
+    // Admin
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('users', [UserController::class, 'index'])
             ->middleware('permission:users.view')
@@ -60,8 +61,18 @@ Route::middleware(['auth', 'user.active'])->group(function () {
             ->middleware('permission:users.update')
             ->name('users.edit');
 
-        // Placeholders for Sprint 2/3
-        Route::view('rooms', 'placeholder')->name('rooms.index');
+        // Sprint 2 — Room Management (management UI gated by rooms.update;
+        // view-only roles hold rooms.view but use the public list instead)
+        Route::get('rooms', [RoomController::class, 'index'])
+            ->middleware('permission:rooms.update')
+            ->name('rooms.index');
+        Route::get('rooms/create', [RoomController::class, 'create'])
+            ->middleware('permission:rooms.create')
+            ->name('rooms.create');
+        Route::get('rooms/{roomId}/edit', [RoomController::class, 'edit'])
+            ->middleware('permission:rooms.update')
+            ->name('rooms.edit');
+
         Route::view('logs', 'placeholder')->name('logs.index');
 
         // App settings - runtime configuration editor
