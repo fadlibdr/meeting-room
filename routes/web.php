@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\FacilityController;
+use App\Http\Controllers\Admin\RoomBlockController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BookingController;
@@ -84,6 +85,14 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::get('facilities/{facilityId}/edit', [FacilityController::class, 'edit'])
             ->middleware('permission:rooms.update')
             ->name('facilities.edit');
+
+        // Sprint 2 — Room blocking (gated rooms.manage-blocks — Dec-17 / §G)
+        Route::get('room-blocks', [RoomBlockController::class, 'index'])
+            ->middleware('permission:rooms.manage-blocks')
+            ->name('room-blocks.index');
+        Route::get('room-blocks/create', [RoomBlockController::class, 'create'])
+            ->middleware('permission:rooms.manage-blocks')
+            ->name('room-blocks.create');
 
         Route::view('logs', 'placeholder')->name('logs.index');
 
