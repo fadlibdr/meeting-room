@@ -84,6 +84,29 @@
                 @endif
             </div>
 
+            {{-- Lampiran --}}
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="font-display text-sm font-semibold text-slate-700 mb-4">Lampiran</h2>
+                @if ($booking->attachments->isEmpty())
+                    <p class="text-sm text-slate-400">Belum ada lampiran.</p>
+                @else
+                    <ul class="divide-y divide-slate-100">
+                        @foreach ($booking->attachments as $attachment)
+                            <li class="flex items-center justify-between py-3">
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-medium text-slate-800">{{ $attachment->original_name }}</p>
+                                    <p class="text-xs text-slate-400">{{ number_format($attachment->size_bytes / 1024, 1) }} KB</p>
+                                </div>
+                                <a href="{{ route('bookings.attachments.download', [$booking->id, $attachment->id]) }}"
+                                   class="ml-4 inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                                    Unduh
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+
             {{-- Status persetujuan --}}
             <div class="bg-white rounded-lg shadow-sm p-6">
                 <h2 class="font-display text-sm font-semibold text-slate-700 mb-3">Status Persetujuan</h2>

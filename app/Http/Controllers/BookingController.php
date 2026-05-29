@@ -196,6 +196,7 @@ class BookingController extends Controller
             'requester',
             'requesterUnit',
             'currentApprover',
+            'attachments',
         ]);
 
         return view('bookings.show', [

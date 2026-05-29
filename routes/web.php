@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\FacilityController;
 use App\Http\Controllers\Admin\RoomBlockController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\BookingAttachmentController;
 use App\Http\Controllers\BookingController;
 use App\Livewire\Admin\SettingsManager;
 use App\Livewire\Approval\ApprovalInbox;
@@ -32,6 +33,10 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     Route::get('bookings/{booking}', [BookingController::class, 'show'])
         ->can('view', 'booking')
         ->name('bookings.show');
+    Route::get('bookings/{booking}/attachments/{attachment}', [BookingAttachmentController::class, 'download'])
+        ->scopeBindings()
+        ->can('view', 'booking')
+        ->name('bookings.attachments.download');
     Route::post('bookings/{booking}/cancel', [BookingController::class, 'cancel'])
         ->name('bookings.cancel');
     Route::post('bookings/{booking}/submit', [BookingController::class, 'submit'])
