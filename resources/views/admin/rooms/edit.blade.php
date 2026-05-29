@@ -18,6 +18,11 @@
                 <h3 class="text-lg font-medium text-gray-800 mb-3">Fasilitas Ruang</h3>
                 <livewire:admin.room-facility-manager :room="$room" />
             </div>
+
+            <div>
+                <h3 class="text-lg font-medium text-gray-800 mb-3">Jam Operasional</h3>
+                <livewire:admin.room-operating-hours-manager :room="$room" />
+            </div>
         </div>
     </div>
 </x-app-layout>
