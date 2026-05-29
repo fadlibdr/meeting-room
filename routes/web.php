@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\FacilityController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BookingController;
@@ -72,6 +73,17 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::get('rooms/{roomId}/edit', [RoomController::class, 'edit'])
             ->middleware('permission:rooms.update')
             ->name('rooms.edit');
+
+        // Sprint 2 — Facilities (reuse rooms.* permissions — Dec-19)
+        Route::get('facilities', [FacilityController::class, 'index'])
+            ->middleware('permission:rooms.update')
+            ->name('facilities.index');
+        Route::get('facilities/create', [FacilityController::class, 'create'])
+            ->middleware('permission:rooms.create')
+            ->name('facilities.create');
+        Route::get('facilities/{facilityId}/edit', [FacilityController::class, 'edit'])
+            ->middleware('permission:rooms.update')
+            ->name('facilities.edit');
 
         Route::view('logs', 'placeholder')->name('logs.index');
 
