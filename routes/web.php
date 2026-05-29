@@ -37,6 +37,13 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         ->scopeBindings()
         ->can('view', 'booking')
         ->name('bookings.attachments.download');
+    Route::post('bookings/{booking}/attachments', [BookingAttachmentController::class, 'store'])
+        ->can('manageAttachments', 'booking')
+        ->name('bookings.attachments.store');
+    Route::delete('bookings/{booking}/attachments/{attachment}', [BookingAttachmentController::class, 'destroy'])
+        ->scopeBindings()
+        ->can('manageAttachments', 'booking')
+        ->name('bookings.attachments.destroy');
     Route::post('bookings/{booking}/cancel', [BookingController::class, 'cancel'])
         ->name('bookings.cancel');
     Route::post('bookings/{booking}/submit', [BookingController::class, 'submit'])

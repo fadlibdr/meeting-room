@@ -58,6 +58,30 @@ class BookingPolicy
     }
 
     /**
+     * Determine whether the user can add or remove attachments on the booking.
+     *
+     * Owner (with bookings.view) or a view-all admin, and only while the booking
+     * is still active (draft / submitted / approved). Terminal bookings are
+     * attachment read-only.
+     */
+    public function manageAttachments(User $user, Booking $booking): bool
+    {
+        if (! in_array($booking->status, [
+            BookingStatus::Draft,
+            BookingStatus::Submitted,
+            BookingStatus::Approved,
+        ], strict: true)) {
+            return false;
+        }
+
+        if ($booking->requester_user_id === $user->id) {
+            return $user->hasPermission('bookings.view');
+        }
+
+        return $user->hasPermission('bookings.view-all');
+    }
+
+    /**
      * Determine whether the user can create a booking.
      */
     public function create(User $user): bool
