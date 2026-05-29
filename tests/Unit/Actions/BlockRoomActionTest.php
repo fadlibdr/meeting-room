@@ -12,8 +12,10 @@ use App\Models\Booking;
 use App\Models\Room;
 use App\Models\RoomBlockSchedule;
 use App\Models\User;
+use App\Notifications\RoomBlockCreatedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Notification;
 use InvalidArgumentException;
 use Tests\TestCase;
 
@@ -78,7 +80,6 @@ class BlockRoomActionTest extends TestCase
             $this->assertCount(1, $e->conflicts);
         }
 
-        // Nothing written; the booking is untouched.
         $this->assertSame(0, RoomBlockSchedule::count());
         $this->assertSame(BookingStatus::Approved, $booking->refresh()->status);
     }
@@ -101,6 +102,34 @@ class BlockRoomActionTest extends TestCase
 
         $this->assertTrue($block->exists);
         $this->assertSame(BookingStatus::Cancelled, $booking->refresh()->status);
+    }
+
+    public function test_forced_cancellation_notifies_the_requester(): void
+    {
+        Notification::fake();
+
+        $room = Room::factory()->create();
+        $actor = User::factory()->create();
+        $requester = User::factory()->create();
+        $booking = Booking::factory()->create([
+            'room_id' => $room->id,
+            'requester_user_id' => $requester->id,
+            'status' => BookingStatus::Approved,
+            'starts_at' => Carbon::parse('2026-06-01 10:00:00'),
+            'ends_at' => Carbon::parse('2026-06-01 11:00:00'),
+        ]);
+
+        $this->action()->execute(
+            $room,
+            $actor,
+            RoomBlockType::Maintenance,
+            'Pemeliharaan',
+            Carbon::parse('2026-06-01 09:00:00'),
+            Carbon::parse('2026-06-01 12:00:00'),
+            cancelConflictingBookings: true,
+        );
+
+        Notification::assertSentTo($requester, RoomBlockCreatedNotification::class);
     }
 
     public function test_ignores_non_locking_bookings(): void

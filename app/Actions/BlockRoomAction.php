@@ -13,7 +13,9 @@ use App\Models\Booking;
 use App\Models\Room;
 use App\Models\RoomBlockSchedule;
 use App\Models\User;
+use App\Notifications\RoomBlockCreatedNotification;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -29,13 +31,15 @@ use InvalidArgumentException;
  *  - $cancelConflictingBookings = false (default): throw RoomBlockConflictException
  *    carrying the conflicts; nothing is written.
  *  - $cancelConflictingBookings = true: cancel each conflicting booking via
- *    CancelBookingAction (which notifies its approver), then create the block.
+ *    CancelBookingAction (approver gets the standard cancellation notice), then
+ *    create the block and notify each cancelled booking's REQUESTER why.
  *
  * Atomicity: one DB::transaction with the room row locked (lockForUpdate) so a
  * concurrent SubmitBookingAction — which also locks the room — cannot slip a
  * new booking into the window mid-flight. CancelBookingAction's nested
  * transaction is a savepoint and its synchronous notification write joins this
- * transaction, so force-cancel + block-create are all-or-nothing.
+ * transaction, so force-cancel + block-create are all-or-nothing. The
+ * requester notification fires only AFTER commit.
  */
 final class BlockRoomAction
 {
@@ -62,7 +66,8 @@ final class BlockRoomAction
             throw new InvalidArgumentException('Waktu selesai blokir harus setelah waktu mulai.');
         }
 
-        return DB::transaction(function () use (
+        /** @var array{block: RoomBlockSchedule, cancelled: Collection<int, Booking>} $result */
+        $result = DB::transaction(function () use (
             $room,
             $actor,
             $blockType,
@@ -71,7 +76,7 @@ final class BlockRoomAction
             $endsAt,
             $reason,
             $cancelConflictingBookings,
-        ): RoomBlockSchedule {
+        ): array {
             // Lock the room so concurrent submissions can't race the block.
             $room = Room::query()->lockForUpdate()->findOrFail($room->id);
 
@@ -96,7 +101,6 @@ final class BlockRoomAction
                 );
             }
 
-            $cancelledIds = [];
             foreach ($conflicts as $booking) {
                 $this->cancelBooking->execute(
                     $booking,
@@ -104,7 +108,6 @@ final class BlockRoomAction
                     reason: sprintf('Dibatalkan otomatis: ruang diblokir (%s).', $blockType->label()),
                     notify: true,
                 );
-                $cancelledIds[] = $booking->id;
             }
 
             $block = RoomBlockSchedule::create([
@@ -135,11 +138,21 @@ final class BlockRoomAction
                     'block_type' => $blockType->value,
                     'starts_at' => $startsAt->format('Y-m-d H:i:s'),
                     'ends_at' => $endsAt->format('Y-m-d H:i:s'),
-                    'cancelled_booking_ids' => $cancelledIds,
+                    'cancelled_booking_ids' => $conflicts->pluck('id')->all(),
                 ],
             ]);
 
-            return $block;
+            return ['block' => $block, 'cancelled' => $conflicts];
         });
+
+        $block = $result['block'];
+
+        // Post-commit: tell each force-cancelled booking's requester why it vanished.
+        foreach ($result['cancelled'] as $booking) {
+            User::findOrFail($booking->requester_user_id)
+                ->notify(new RoomBlockCreatedNotification($block, $booking));
+        }
+
+        return $block;
     }
 }
