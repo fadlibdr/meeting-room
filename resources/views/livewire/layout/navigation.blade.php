@@ -34,7 +34,19 @@ new class extends Component
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    @hasPermission('bookings.view')
+                    @if(auth()->user()->hasPermission('bookings.view') || auth()->user()->hasPermission('bookings.view-all'))
+                        <x-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*') && !request()->routeIs('bookings.new')" wire:navigate>
+                            {{ __('Bookings') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if(auth()->user()->hasPermission('bookings.view') || auth()->user()->hasPermission('bookings.view-all'))
+                <x-responsive-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*') && !request()->routeIs('bookings.new')" wire:navigate>
+                    {{ __('Bookings') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @hasPermission('bookings.view')
                         <x-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.*') || request()->routeIs('bookings.new')" wire:navigate>
                             {{ __('Calendar') }}
                         </x-nav-link>
@@ -58,7 +70,31 @@ new class extends Component
                         </x-nav-link>
                     @endhasPermission
 
-                    @hasPermission('users.view')
+                    @hasPermission('rooms.update')
+                        <x-nav-link :href="route('admin.facilities.index')" :active="request()->routeIs('admin.facilities.*')" wire:navigate>
+                            {{ __('Facilities') }}
+                        </x-nav-link>
+                    @endhasPermission
+
+                    @hasPermission('rooms.manage-blocks')
+                        <x-nav-link :href="route('admin.room-blocks.index')" :active="request()->routeIs('admin.room-blocks.*')" wire:navigate>
+                            {{ __('Room Blocks') }}
+                        </x-nav-link>
+                    @endhasPermission
+
+                    @hasPermission('rooms.update')
+                <x-responsive-nav-link :href="route('admin.facilities.index')" :active="request()->routeIs('admin.facilities.*')" wire:navigate>
+                    {{ __('Facilities') }}
+                </x-responsive-nav-link>
+            @endhasPermission
+
+            @hasPermission('rooms.manage-blocks')
+                <x-responsive-nav-link :href="route('admin.room-blocks.index')" :active="request()->routeIs('admin.room-blocks.*')" wire:navigate>
+                    {{ __('Room Blocks') }}
+                </x-responsive-nav-link>
+            @endhasPermission
+
+            @hasPermission('users.view')
                         <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')" wire:navigate>
                             {{ __('Manage Users') }}
                         </x-nav-link>
