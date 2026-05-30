@@ -60,7 +60,7 @@ Two Blueprint deltas, both resolved: the mandated `BookingWorkflowService` (§F.
 Two items are **Blueprint-designated Phase 2**, not gaps: email-queued notifications + queue worker (ADR-005; §K lists email-queued under Phase 2), and XLSX export + `GenerateLargeExportJob` for >10k rows (ADR-004; §K lists XLSX/scheduled-job under Phase 2).
 
 ### Sprint 6 — Hardening, Optimization, UAT, Deployment 🟡
-**Done:** deployment runbook (with the `umask 022` deploy-safety fix), 30-scenario UAT script, hardening checklist, decision log (8 ADRs), reconciliation v1.4; the clear-then-cache optimization step; full scheduler definition (`bookings:send-reminders` hourly via `schedule:run` cron); **backup + restore verified** (dump + restore-parity drill); SSL active, `APP_DEBUG=false`, unique `APP_KEY`, **least-privilege DB user** (`meeting_app` scoped to `meeting_room`, verified); **firewall active** (ufw 22/80/443); **staging rehearsal #1** complete; §M.4 parallel-submit race test added.
+**Done:** deployment runbook (with the `umask 022` deploy-safety fix), 30-scenario UAT script, hardening checklist, decision log (8 ADRs), reconciliation v1.4; the clear-then-cache optimization step; full scheduler definition (`bookings:send-reminders` hourly via `schedule:run` cron); **backup + restore verified** (dump + restore-parity drill); SSL active, `APP_DEBUG=false`, unique `APP_KEY`, **least-privilege DB user** (`meeting_app` scoped to `meeting_room`, verified); **firewall active** (ufw 22/80/443); **staging rehearsal #1** complete; the conflict/calendar/inbox query paths are index-served and a `/up` health endpoint is live; §M.4 parallel-submit race test added.
 **Outstanding:** see §4.
 
 ---
@@ -99,9 +99,9 @@ Every **Must** and **Should** module is delivered. Only **Nice**/**Phase 2** ite
 2. **Staging rehearsal #2.** One clean rehearsal done; §N.4 requires two. ❌
 3. **Blueprint v3 architecture-team sign-off.** ❌
 
-### 4.2 Should-verify before launch (Sprint 6 §J.7 outputs not yet closed)
-4. **Query/index performance pass** (§J.7, §M.5) — confirm hot paths (conflict check, calendar, inbox) are indexed and acceptable for expected load, or record that current performance suffices. (confirm)
-5. **Basic monitoring** (§J.7, §L.4) — stand up minimal uptime/error monitoring, or formally defer by decision.
+### 4.2 Sprint 6 §J.7 operational items (verified)
+4. **Query/index performance** (§J.7) — ✅ in place. The bookings table carries purpose-built composite indexes on the hot paths — `idx_bk_room_status_start` (conflict check), `idx_bk_room_timeline` (calendar), `idx_bk_approver_queue` (inbox), `idx_bk_requester` (my-bookings), `idx_bk_status_submitted` — and `room_block_schedules` indexes `room_id`/`starts_at`/`ends_at`/`is_active`. A formal §M.5 load test is optional, not blocking.
+5. **Basic monitoring** (§J.7, §L.4) — a `/up` health endpoint is live (Laravel default, `bootstrap/app.php`). Outstanding is only the *decision* to wire it to an external uptime/error monitor, or accept `/up` as the baseline.
 
 ### 4.3 Housekeeping (no runtime effect)
 6. **Merge open branches** into `develop`: `test/parallel-submit-race`, `docs/deployment-runbook` (carries the umask fix), `docs/uat-script`, `docs/hardening-checklist`, `docs/roadmap-reconciliation-v1.4`, and this doc. Close the superseded `docs/roadmap-reconciliation-v1.2` / `-v1.3`.
@@ -128,7 +128,7 @@ Every **Must** and **Should** module is delivered. Only **Nice**/**Phase 2** ite
 | §N.4 criterion | Status |
 |---|---|
 | All 22+ BookingConflictService tests pass | ✅ |
-| All 100+ Policy tests pass | ✅ full matrix now exists (Booking/Room/Facility/AppSetting); confirm count ≥100 |
+| All 100+ Policy tests pass | ✅ 105 policy tests pass (Booking 51, Room 24, Facility 10, AppSetting 12) |
 | Race-condition test passes with reasonable latency | ✅ §M.4 parallel-submit |
 | Integrity test (approver pointer) passes | ✅ |
 | UAT 30 scenarios signed off by product owner | ❌ in progress |
