@@ -54,6 +54,7 @@ git checkout -- package-lock.json \
   storage/framework/cache/data/.gitignore 2>/dev/null
 
 # 1. deploy
+umask 022                      # deploy is immune to the calling shell's umask
 php artisan down \
   && git pull origin develop \
   && composer install --no-dev --optimize-autoloader \
