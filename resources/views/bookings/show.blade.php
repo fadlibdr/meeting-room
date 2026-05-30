@@ -84,6 +84,65 @@
                 @endif
             </div>
 
+            {{-- Lampiran --}}
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="font-display text-sm font-semibold text-slate-700 mb-4">Lampiran</h2>
+
+                @if (session('status'))
+                    <p class="mb-3 rounded-lg border border-green-100 bg-green-50 p-3 text-sm text-green-700">{{ session('status') }}</p>
+                @endif
+
+                @if ($booking->attachments->isEmpty())
+                    <p class="text-sm text-slate-400">Belum ada lampiran.</p>
+                @else
+                    <ul class="divide-y divide-slate-100">
+                        @foreach ($booking->attachments as $attachment)
+                            <li class="flex items-center justify-between py-3">
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-medium text-slate-800">{{ $attachment->original_name }}</p>
+                                    <p class="text-xs text-slate-400">{{ number_format($attachment->size_bytes / 1024, 1) }} KB</p>
+                                </div>
+                                <div class="ml-4 flex items-center gap-2">
+                                    <a href="{{ route('bookings.attachments.download', [$booking->id, $attachment->id]) }}"
+                                       class="inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                                        Unduh
+                                    </a>
+                                    @can('manageAttachments', $booking)
+                                        <form method="POST" action="{{ route('bookings.attachments.destroy', [$booking->id, $attachment->id]) }}"
+                                              onsubmit="return confirm('Hapus lampiran ini?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="inline-flex items-center rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    @endcan
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+
+                @can('manageAttachments', $booking)
+                    <form method="POST" action="{{ route('bookings.attachments.store', $booking->id) }}"
+                          enctype="multipart/form-data" class="mt-4 border-t border-slate-100 pt-4">
+                        @csrf
+                        <label for="attachment" class="block text-sm font-medium text-slate-700 mb-1">Unggah Lampiran</label>
+                        <input type="file" name="attachment" id="attachment"
+                               class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-slate-700 hover:file:bg-slate-200" />
+                        <p class="mt-1 text-xs text-slate-400">PDF, dokumen Office, atau gambar. Maksimal 10 MB.</p>
+                        @error('attachment')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                        <button type="submit"
+                                class="mt-3 inline-flex items-center rounded-md bg-bpjs-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-bpjs-blue-500 focus:outline-none focus:ring-2 focus:ring-bpjs-blue-500 focus:ring-offset-2">
+                            Unggah
+                        </button>
+                    </form>
+                @endcan
+            </div>
+
             {{-- Status persetujuan --}}
             <div class="bg-white rounded-lg shadow-sm p-6">
                 <h2 class="font-display text-sm font-semibold text-slate-700 mb-3">Status Persetujuan</h2>
