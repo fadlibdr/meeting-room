@@ -2,8 +2,14 @@
 
 namespace App\Models;
 
+use App\Observers\UserObserver;
+use App\Services\PermissionCacheService;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -26,6 +32,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
+#[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -69,15 +76,46 @@ class User extends Authenticatable
         ];
     }
 
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class);
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'approver_user_id');
+    }
+
+    public function subordinates(): HasMany
+    {
+        return $this->hasMany(self::class, 'approver_user_id');
+    }
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'user_roles')
+            ->withPivot(['is_primary', 'assigned_at', 'assigned_by_user_id'])
+            ->withTimestamps();
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'requester_user_id');
+    }
+
+    public function bookingApprovals(): HasMany
+    {
+        return $this->hasMany(BookingApproval::class, 'approver_user_id');
+    }
+
     /**
      * Permission check stub.
      *
      * Sprint 1 wires this to PermissionCacheService per Blueprint §C.3.
-     * For now, returns false so middleware/Blade directives compile and pass static analysis.
      */
     public function hasPermission(string $permission): bool
     {
         // TODO Sprint 1: replace with PermissionCacheService::userHas($this, $permission)
-        return false;
+        return app(PermissionCacheService::class)->userHas($this, $permission);
     }
 }

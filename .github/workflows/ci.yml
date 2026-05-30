@@ -88,7 +88,8 @@ jobs:
           php -r "file_put_contents('.env', preg_replace('/^DB_USERNAME=.*$/m', 'DB_USERNAME=root', file_get_contents('.env')));"
           php -r "file_put_contents('.env', preg_replace('/^DB_PASSWORD=.*$/m', 'DB_PASSWORD=root', file_get_contents('.env')));"
 
-      - name: Wait for MariaDB
+
+- name: Wait for MariaDB
         run: |
           for i in {1..30}; do
             if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
@@ -98,6 +99,17 @@ jobs:
             echo "Waiting for MariaDB..."
             sleep 2
           done
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci
+      - name: Build frontend assets
+        run: npm run build
+      - name: Run migrations
+        run: php artisan migrate --force
 
       - name: Run migrations
         run: php artisan migrate --force
