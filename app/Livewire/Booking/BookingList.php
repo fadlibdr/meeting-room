@@ -7,12 +7,16 @@ namespace App\Livewire\Booking;
 use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\User;
+use App\Services\ActivityLogger;
+use App\Services\BookingCsvExporter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Bookings list — the signed-in user's bookings, or all bookings for users
@@ -72,6 +76,51 @@ class BookingList extends Component
         $this->resetPage();
     }
 
+    public function export(ActivityLogger $logger, BookingCsvExporter $exporter): StreamedResponse
+    {
+        $this->authorize('viewAny', Booking::class);
+
+        /** @var User $user */
+        $user = auth()->user();
+        $canViewAll = $user->hasPermission('bookings.view-all');
+        $timezone = $this->resolveTimezone();
+
+        $rowCount = $this->baseQuery($user, $canViewAll)->count();
+
+        $logger->log('bookings', 'export', null, [
+            'description' => sprintf('%s mengekspor %d data booking ke CSV.', $user->name, $rowCount),
+            'context' => [
+                'format' => 'csv',
+                'row_count' => $rowCount,
+                'scope' => $canViewAll ? 'all' : 'own',
+                'filters' => array_filter([
+                    'status' => $this->statusFilter,
+                    'search' => $this->search,
+                    'date_from' => $this->dateFrom,
+                    'date_to' => $this->dateTo,
+                ], static fn (string $value): bool => $value !== ''),
+            ],
+        ]);
+
+        $filename = 'bookings-export-'.now()->format('Ymd-His').'.csv';
+        $bookings = $this->baseQuery($user, $canViewAll)
+            ->with('requesterUnit')
+            ->cursor();
+
+        return response()->streamDownload(
+            function () use ($exporter, $bookings, $timezone): void {
+                $handle = fopen('php://output', 'w');
+                if ($handle === false) {
+                    return;
+                }
+                $exporter->writeCsv($handle, $bookings, $timezone);
+                fclose($handle);
+            },
+            $filename,
+            ['Content-Type' => 'text/csv; charset=UTF-8'],
+        );
+    }
+
     public function render(): View
     {
         /** @var User $user */
@@ -90,6 +139,17 @@ class BookingList extends Component
      * @return LengthAwarePaginator<int, Booking>
      */
     private function buildQuery(User $user, bool $canViewAll): LengthAwarePaginator
+    {
+        return $this->baseQuery($user, $canViewAll)->paginate(15);
+    }
+
+    /**
+     * Scope + filter logic shared by the list (render) and the CSV export.
+     * Returns the query builder pre-pagination.
+     *
+     * @return Builder<Booking>
+     */
+    private function baseQuery(User $user, bool $canViewAll): Builder
     {
         $query = Booking::query()
             ->with(['room', 'requester'])
@@ -125,7 +185,7 @@ class BookingList extends Component
             }
         }
 
-        return $query->paginate(15);
+        return $query;
     }
 
     public function displayDateTime(Booking $booking): string

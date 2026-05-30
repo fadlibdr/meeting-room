@@ -2,12 +2,18 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-semibold text-gray-800">Daftar Booking</h1>
-            @if($canCreate)
-                <a href="{{ route('bookings.new') }}" wire:navigate
-                   class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
-                    + Buat Booking
-                </a>
-            @endif
+            <div class="flex items-center gap-2">
+                <button wire:click="export" type="button"
+                        class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50">
+                    Export CSV
+                </button>
+                @if($canCreate)
+                    <a href="{{ route('bookings.new') }}" wire:navigate
+                       class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                        + Buat Booking
+                    </a>
+                @endif
+            </div>
         </div>
 
         <div class="mb-6 bg-white rounded-lg shadow-sm p-4">
