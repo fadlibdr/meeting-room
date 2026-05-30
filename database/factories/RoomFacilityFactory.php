@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\FacilityCategory;
 use App\Models\RoomFacility;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -15,14 +16,14 @@ class RoomFacilityFactory extends Factory
     public function definition(): array
     {
         $facilities = [
-            ['code' => 'PROJECTOR', 'name' => 'Proyektor', 'category' => 'av', 'icon' => 'projector'],
-            ['code' => 'WHITEBOARD', 'name' => 'Whiteboard', 'category' => 'writing', 'icon' => 'pencil'],
-            ['code' => 'AC', 'name' => 'AC', 'category' => 'comfort', 'icon' => 'wind'],
-            ['code' => 'TV', 'name' => 'TV LCD', 'category' => 'av', 'icon' => 'tv'],
-            ['code' => 'WIFI', 'name' => 'WiFi', 'category' => 'connectivity', 'icon' => 'wifi'],
-            ['code' => 'MICROPHONE', 'name' => 'Mikrofon', 'category' => 'av', 'icon' => 'mic'],
-            ['code' => 'SOUND_SYSTEM', 'name' => 'Sound System', 'category' => 'av', 'icon' => 'speaker'],
-            ['code' => 'VIDEO_CONF', 'name' => 'Video Conference', 'category' => 'av', 'icon' => 'video'],
+            ['code' => 'PROJECTOR', 'name' => 'Proyektor', 'category' => FacilityCategory::Av->value, 'icon' => 'projector'],
+            ['code' => 'WHITEBOARD', 'name' => 'Whiteboard', 'category' => FacilityCategory::Furniture->value, 'icon' => 'pencil'],
+            ['code' => 'AC', 'name' => 'AC', 'category' => FacilityCategory::Comfort->value, 'icon' => 'wind'],
+            ['code' => 'TV', 'name' => 'TV LCD', 'category' => FacilityCategory::Av->value, 'icon' => 'tv'],
+            ['code' => 'WIFI', 'name' => 'WiFi', 'category' => FacilityCategory::Connectivity->value, 'icon' => 'wifi'],
+            ['code' => 'MICROPHONE', 'name' => 'Mikrofon', 'category' => FacilityCategory::Av->value, 'icon' => 'mic'],
+            ['code' => 'SOUND_SYSTEM', 'name' => 'Sound System', 'category' => FacilityCategory::Av->value, 'icon' => 'speaker'],
+            ['code' => 'VIDEO_CONF', 'name' => 'Video Conference', 'category' => FacilityCategory::Av->value, 'icon' => 'video'],
         ];
 
         $f = $this->faker->randomElement($facilities);

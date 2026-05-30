@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
+use App\Enums\FacilityCategory;
 use App\Models\RoomFacility;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -13,9 +14,6 @@ use Livewire\Component;
 
 class FacilityForm extends Component
 {
-    /** @var array<int, string> */
-    public const CATEGORIES = ['av', 'furniture', 'connectivity', 'comfort'];
-
     public ?RoomFacility $facility = null;
 
     public bool $isEditMode = false;
@@ -53,7 +51,7 @@ class FacilityForm extends Component
         return [
             'code' => ['required', 'string', 'max:50', 'unique:room_facilities,code'.($id ? ','.$id : '')],
             'name' => ['required', 'string', 'max:100'],
-            'category' => ['nullable', Rule::in(self::CATEGORIES)],
+            'category' => ['nullable', Rule::in(FacilityCategory::values())],
             'icon' => ['nullable', 'string', 'max:50'],
             'isActive' => ['boolean'],
         ];
@@ -106,7 +104,7 @@ class FacilityForm extends Component
     public function render(): View
     {
         return view('livewire.admin.facility-form', [
-            'categories' => self::CATEGORIES,
+            'categories' => FacilityCategory::values(),
             'isEditMode' => $this->isEditMode,
         ]);
     }

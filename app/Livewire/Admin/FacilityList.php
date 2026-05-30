@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
+use App\Enums\FacilityCategory;
 use App\Models\RoomFacility;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -15,9 +16,6 @@ use Livewire\WithPagination;
 class FacilityList extends Component
 {
     use WithPagination;
-
-    /** @var array<int, string> */
-    public const CATEGORIES = ['av', 'furniture', 'connectivity', 'comfort'];
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -69,7 +67,7 @@ class FacilityList extends Component
     {
         return view('livewire.admin.facility-list', [
             'facilities' => $this->buildQuery(),
-            'categories' => self::CATEGORIES,
+            'categories' => FacilityCategory::values(),
         ]);
     }
 
