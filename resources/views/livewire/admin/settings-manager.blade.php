@@ -95,7 +95,8 @@
                                                 >
                                                     Batal
                                                 </button>
-                                            </div>
+                                           </div>
+                                          <livewire:admin.backup-manager />
                                         </div>
                                     @else
                                         <div class="mt-2 text-sm">
