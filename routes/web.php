@@ -126,3 +126,8 @@ Route::middleware(['auth', 'user.active'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// --- Database backup download (app-settings.update: super_admin, system_admin) ---
+Route::post('/admin/settings/backup/download', [\App\Http\Controllers\BackupController::class, 'download'])
+    ->middleware(['auth', 'permission:app-settings.update', 'throttle:6,1'])
+    ->name('admin.backup.download');
