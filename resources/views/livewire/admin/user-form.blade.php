@@ -51,6 +51,22 @@
                     </select>
                 </x-bpjs.field>
 
+                <x-bpjs.field label="Approver" for="approverUserId"
+                    hint="Penyetuju reservasi pengguna ini (untuk ruangan mode Unit Approver)."
+                    :error="$errors->first('approverUserId')">
+                    <select wire:model="approverUserId" id="approverUserId" class="select @error('approverUserId') input--err @enderror">
+                        <option value="">— Tidak ada approver —</option>
+                        @foreach($approvers as $approver)
+                            <option value="{{ $approver->id }}">{{ $approver->name }} ({{ $approver->email }})</option>
+                        @endforeach
+                    </select>
+                    @if($approvers->isEmpty())
+                        <p class="field__hint" style="color: var(--amber-700);">
+                            Belum ada pengguna dengan peran Unit Approver / GA Admin. Buat akun tersebut dahulu untuk dapat menugaskan approver.
+                        </p>
+                    @endif
+                </x-bpjs.field>
+
                 <x-bpjs.field label="Peran" req :error="$errors->first('roleIds')">
                     <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;">
                         @foreach($roles as $role)

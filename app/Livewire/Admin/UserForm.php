@@ -10,6 +10,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\NotIn;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -24,6 +26,8 @@ class UserForm extends Component
     public string $email = '';
 
     public ?int $unitId = null;
+
+    public ?int $approverUserId = null;
 
     /** @var array<int> */
     public array $roleIds = [];
@@ -40,17 +44,24 @@ class UserForm extends Component
             $this->name = $user->name;
             $this->email = $user->email;
             $this->unitId = $user->unit_id;
+            $this->approverUserId = $user->approver_user_id;
             $this->roleIds = $user->roles->pluck('id')->toArray();
             $this->isActive = $user->is_active;
         }
     }
 
     /**
-     * @return array<string, array<string>|string>
+     * @return array<string, string|array<int, string|NotIn>>
      */
     protected function rules(): array
     {
         $userId = $this->user?->id;
+
+        // Optional approver; a user may not be their own approver.
+        $approverRule = ['nullable', 'integer', 'exists:users,id'];
+        if ($userId !== null) {
+            $approverRule[] = Rule::notIn([$userId]);
+        }
 
         return [
             'name' => ['required', 'string', 'min:3', 'max:100'],
@@ -61,6 +72,7 @@ class UserForm extends Component
                 'unique:users,email'.($userId ? ','.$userId : ''),
             ],
             'unitId' => ['required', 'integer', 'exists:units,id'],
+            'approverUserId' => $approverRule,
             'roleIds' => ['required', 'array', 'min:1'],
             'roleIds.*' => ['integer', 'exists:roles,id'],
             'isActive' => ['boolean'],
@@ -81,6 +93,8 @@ class UserForm extends Component
             'email.unique' => 'Email sudah terdaftar.',
             'unitId.required' => 'Unit wajib dipilih.',
             'unitId.exists' => 'Unit tidak ditemukan.',
+            'approverUserId.exists' => 'Approver tidak ditemukan.',
+            'approverUserId.not_in' => 'Pengguna tidak dapat menjadi approver bagi dirinya sendiri.',
             'roleIds.required' => 'Minimal pilih 1 role.',
             'roleIds.min' => 'Minimal pilih 1 role.',
         ];
@@ -117,6 +131,7 @@ class UserForm extends Component
             'email' => $validated['email'],
             'password' => Hash::make($plain),
             'unit_id' => $validated['unitId'],
+            'approver_user_id' => $validated['approverUserId'] ?? null,
             'is_active' => $validated['isActive'] ?? true,
             'failed_login_attempts' => 0,
         ]);
@@ -136,6 +151,7 @@ class UserForm extends Component
             'name' => $validated['name'],
             'email' => $validated['email'],
             'unit_id' => $validated['unitId'],
+            'approver_user_id' => $validated['approverUserId'] ?? null,
             'is_active' => $validated['isActive'] ?? true,
         ]);
 
@@ -147,6 +163,14 @@ class UserForm extends Component
         return view('livewire.admin.user-form', [
             'units' => Unit::orderBy('name')->get(),
             'roles' => Role::where('is_active', true)->orderBy('name')->get(),
+            // Eligible approvers: active users who can actually approve
+            // (unit_approver / ga_admin), excluding the user being edited.
+            'approvers' => User::query()
+                ->where('is_active', true)
+                ->when($this->user?->id, fn ($q, $id) => $q->whereKeyNot($id))
+                ->whereHas('roles', fn ($q) => $q->whereIn('code', ['unit_approver', 'ga_admin']))
+                ->orderBy('name')
+                ->get(),
             'isEditMode' => $this->isEditMode,
         ]);
     }
