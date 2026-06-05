@@ -9,6 +9,7 @@ use App\Actions\RejectBookingAction;
 use App\Actions\SubmitBookingAction;
 use App\Enums\BookingStatus;
 use App\Enums\NotificationType;
+use App\Models\AppSetting;
 use App\Models\Booking;
 use App\Models\BookingApproval;
 use App\Models\Role;
@@ -22,6 +23,7 @@ use App\Notifications\BookingRejectedNotification;
 use App\Notifications\BookingReminderNotification;
 use App\Notifications\BookingSubmittedNotification;
 use App\Notifications\RoomBlockCreatedNotification;
+use App\Services\SettingsService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -263,16 +265,23 @@ class BookingNotificationsTest extends TestCase
         $this->assertArrayHasKey('url', $payload);
     }
 
-    // ─── MAIL CHANNEL (Stage 1: real email, D-2) ─────────────────────
+    // ─── MAIL CHANNEL — gated by the notifications.send_email_default toggle ──
 
-    public function test_every_notification_is_queued_and_uses_database_and_mail(): void
+    private function setEmailDefault(bool $on): void
     {
-        $ctx = $this->makeSubmittedBooking();
-        $booking = $ctx['booking'];
-        $block = RoomBlockSchedule::factory()->create(['room_id' => $booking->room_id]);
-        $user = $ctx['requester'];
+        AppSetting::updateOrCreate(
+            ['key' => 'notifications.send_email_default'],
+            ['value' => $on ? '1' : '0', 'data_type' => 'boolean', 'label' => 'Email default', 'group' => 'notifications', 'is_editable' => true],
+        );
+        app(SettingsService::class)->forget('notifications.send_email_default');
+    }
 
-        $cases = [
+    /**
+     * @return array<int, \Illuminate\Notifications\Notification>
+     */
+    private function allNotifications(Booking $booking, RoomBlockSchedule $block): array
+    {
+        return [
             new BookingSubmittedNotification($booking),
             new BookingApprovedNotification($booking),
             new BookingRejectedNotification($booking),
@@ -280,11 +289,52 @@ class BookingNotificationsTest extends TestCase
             new BookingReminderNotification($booking),
             new RoomBlockCreatedNotification($block, $booking),
         ];
+    }
 
-        foreach ($cases as $notification) {
+    public function test_via_is_database_only_when_email_toggle_off(): void
+    {
+        $this->setEmailDefault(false);
+        $ctx = $this->makeSubmittedBooking();
+        $block = RoomBlockSchedule::factory()->create(['room_id' => $ctx['booking']->room_id]);
+
+        foreach ($this->allNotifications($ctx['booking'], $block) as $notification) {
             $this->assertInstanceOf(ShouldQueue::class, $notification);
-            $this->assertSame(['database', 'mail'], $notification->via($user));
+            $this->assertSame(['database'], $notification->via($ctx['requester']));
         }
+    }
+
+    public function test_via_includes_mail_when_email_toggle_on(): void
+    {
+        $this->setEmailDefault(true);
+        $ctx = $this->makeSubmittedBooking();
+        $block = RoomBlockSchedule::factory()->create(['room_id' => $ctx['booking']->room_id]);
+
+        foreach ($this->allNotifications($ctx['booking'], $block) as $notification) {
+            $this->assertSame(['database', 'mail'], $notification->via($ctx['requester']));
+        }
+    }
+
+    public function test_submit_routes_on_mail_channel_only_when_toggle_on(): void
+    {
+        $this->setEmailDefault(true);
+        Notification::fake();
+
+        $unit = Unit::factory()->create();
+        $approver = User::factory()->create(['unit_id' => $unit->id, 'is_active' => true]);
+        $this->attachRole($approver, 'unit_approver');
+        $requester = User::factory()->create(['unit_id' => $unit->id, 'approver_user_id' => $approver->id]);
+        $room = Room::factory()->create(['approval_mode' => 'unit_approver', 'is_active' => true, 'status' => 'active', 'capacity' => 10, 'booking_buffer_minutes' => 0]);
+
+        $this->submitAction->execute($requester, [
+            'room_id' => $room->id, 'subject' => 'Rapat', 'attendee_count' => 3,
+            'starts_at' => '2026-05-05 10:00:00', 'ends_at' => '2026-05-05 11:00:00',
+        ]);
+
+        Notification::assertSentTo(
+            $approver,
+            BookingSubmittedNotification::class,
+            fn ($notification, array $channels): bool => in_array('mail', $channels, true) && in_array('database', $channels, true),
+        );
     }
 
     public function test_submitted_mail_renders_subject_greeting_and_lines(): void

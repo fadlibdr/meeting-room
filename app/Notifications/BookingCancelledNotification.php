@@ -8,6 +8,7 @@ use App\Actions\CancelBookingAction;
 use App\Enums\NotificationType;
 use App\Models\Booking;
 use App\Models\User;
+use App\Services\SettingsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -34,7 +35,12 @@ final class BookingCancelledNotification extends Notification implements ShouldQ
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        $channels = ['database'];
+        if (app(SettingsService::class)->get('notifications.send_email_default', false)) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
     }
 
     public function toMail(object $notifiable): MailMessage

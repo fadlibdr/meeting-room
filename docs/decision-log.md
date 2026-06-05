@@ -56,6 +56,17 @@ Records architectural and scope decisions that deviate from, extend, or clarify 
 **Stage 2 (future):** per-user notification preferences will gate the `mail` channel inside `via()` (e.g. return `['database']` when a user opts out of email).
 **Status:** Accepted (6 Jun 2026, `feat/stage1-real-email`). Supersedes ADR-005.
 
+### ADR-010 · Email transport + the notification email toggle are DB-backed (managed in Settings)
+**Decision:** SMTP transport and the email-notification master switch are managed from the in-app Settings page (`app_settings`), not the `.env`:
+- An **`email` settings group** (8 keys: `mailer`, `host`, `port`, `username`, `password`, `encryption`→SMTP `scheme`, `from_address`, `from_name`) seeded with `.env` defaults at seed time.
+- The SMTP **password is stored encrypted** at rest — a new **`encrypted` `data_type`** (Laravel `Crypt`): ciphertext in the column, decrypted only in memory. `AppSetting::getCastedValue()` decrypts (null on failure); `SettingsService::serializeValue()` encrypts on write; encrypted values are never cached. *(Caveat: DB + `APP_KEY` together can decrypt it — keep `APP_KEY` out of the backups' blast radius.)*
+- A new **`MailSettingsServiceProvider`** layers any non-empty `email.*` setting over `config('mail.*')` at boot (DB → `.env` → skip; empty never blanks a working credential; guarded if `app_settings` is absent/DB down; composes with `config:cache`).
+- Notification `via()` now gates the `mail` channel on **`notifications.send_email_default`** (default `0` → **email is opt-in**); `database` is always present.
+- Settings UI: the encrypted password renders as a **write-only** field (never emits the secret; blank = unchanged), and a **"Kirim Email Uji"** test-send verifies transport before flipping the toggle.
+**Context:** Consolidates and supersedes ADR-009's standalone channel change — admins, not deployers, own email config; D-2 stays closed.
+**Consequence — seeder is now value-preserving:** the deploy re-runs `AppSettingsSeeder --force`, so the seeder was changed to **create missing keys but never overwrite an existing value** (sync metadata only) — otherwise every deploy would wipe admin-edited SMTP config. Builds on ADR-009 (jobs table + worker still mandatory).
+**Status:** Accepted (6 Jun 2026, `feat/email-in-settings`). Supersedes ADR-009 for the `via()`/transport mechanism.
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*

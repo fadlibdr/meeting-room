@@ -6,7 +6,9 @@ namespace App\Livewire\Admin;
 
 use App\Models\AppSetting;
 use App\Services\SettingsService;
+use Illuminate\Mail\Message;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -19,6 +21,9 @@ class SettingsManager extends Component
     public ?string $successMessage = null;
 
     public ?string $errorMessage = null;
+
+    /** Recipient for the "Kirim Email Uji" test-send. */
+    public string $testEmailAddress = '';
 
     public function mount(): void
     {
@@ -34,7 +39,8 @@ class SettingsManager extends Component
         $this->authorize('update', $setting);
 
         $this->editingId = $settingId;
-        $this->editValue = $setting->getCastedValue();
+        // Never load a stored secret into the form — encrypted fields start blank.
+        $this->editValue = $setting->data_type === 'encrypted' ? '' : $setting->getCastedValue();
         $this->successMessage = null;
         $this->errorMessage = null;
     }
@@ -68,6 +74,15 @@ class SettingsManager extends Component
             return;
         }
 
+        // Write-only secret: a blank encrypted field keeps the stored value.
+        if ($setting->data_type === 'encrypted' && ($this->editValue === null || $this->editValue === '')) {
+            $this->successMessage = "Pengaturan '{$setting->label}' tidak diubah.";
+            $this->editingId = null;
+            $this->editValue = null;
+
+            return;
+        }
+
         try {
             $service->set($setting->key, $this->editValue, auth()->id());
             $this->successMessage = "Pengaturan '{$setting->label}' berhasil diperbarui.";
@@ -93,8 +108,48 @@ class SettingsManager extends Component
             'string' => is_string($value) && strlen($value) <= 1000
                 ? null
                 : 'Nilai harus berupa teks (maksimal 1000 karakter).',
+            'encrypted' => $value === null || is_string($value)
+                ? null
+                : 'Nilai harus berupa teks.',
             default => null,
         };
+    }
+
+    /**
+     * Send a test email using the currently-persisted SMTP settings (already
+     * layered onto config by MailSettingsServiceProvider at boot). Lets an
+     * admin verify the transport before flipping the master email toggle on.
+     */
+    public function sendTestEmail(): void
+    {
+        $gate = AppSetting::query()->where('group', 'email')->first();
+        if ($gate === null) {
+            abort(404);
+        }
+        $this->authorize('update', $gate);
+
+        $address = trim($this->testEmailAddress);
+        if ($address === '' || ! filter_var($address, FILTER_VALIDATE_EMAIL)) {
+            $this->successMessage = null;
+            $this->errorMessage = 'Alamat email tujuan tidak valid.';
+
+            return;
+        }
+
+        try {
+            Mail::raw(
+                'Ini adalah email uji dari Sistem Pemesanan Ruang Rapat BPJS Kesehatan. '
+                .'Jika Anda menerima pesan ini, konfigurasi email sudah benar.',
+                function (Message $message) use ($address): void {
+                    $message->to($address)->subject('Email Uji — Meeting Room BPJS Kesehatan');
+                },
+            );
+            $this->errorMessage = null;
+            $this->successMessage = "Email uji berhasil dikirim ke {$address}.";
+        } catch (\Throwable $e) {
+            $this->successMessage = null;
+            $this->errorMessage = 'Gagal mengirim email uji: '.$e->getMessage();
+        }
     }
 
     /**
