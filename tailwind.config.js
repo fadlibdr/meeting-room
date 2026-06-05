@@ -9,6 +9,17 @@ export default {
         './resources/views/**/*.blade.php',
     ],
 
+    // Bespoke BPJS component classes (app.css @layer components) whose modifier
+    // is built dynamically in Blade — e.g. <x-bpjs.button> emits 'btn--'.$variant
+    // and <x-bpjs.pill>/<x-bpjs.status-pill> emit 'pill--'.$variant. Those literals
+    // never appear in source, so the production purge would strip the unused ones
+    // (btn--success, btn--solid-danger, pill--red, …). Safelist the full families.
+    safelist: [
+        'btn--primary', 'btn--success', 'btn--ghost', 'btn--danger', 'btn--solid-danger', 'btn--lg', 'btn--block',
+        'pill--green', 'pill--amber', 'pill--red', 'pill--blue', 'pill--slate',
+        'input--err',
+    ],
+
     theme: {
         extend: {
             fontFamily: {
