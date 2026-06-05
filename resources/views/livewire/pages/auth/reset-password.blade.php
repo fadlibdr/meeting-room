@@ -70,36 +70,37 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
-    <form wire:submit="resetPassword">
+    <h2 class="font-display font-bold text-slate-900" style="font-size: 24px; letter-spacing: -0.01em;">
+        {{ __('Atur Ulang Kata Sandi') }}
+    </h2>
+    <p class="mt-1.5 text-slate-500" style="font-size: 13.5px;">
+        {{ __('Buat kata sandi baru untuk akun Anda.') }}
+    </p>
+
+    <form wire:submit="resetPassword" class="mt-7 space-y-5">
         <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+        <x-bpjs.field :label="__('Email')" for="email" req :error="$errors->first('email')">
+            <input wire:model="email" id="email" name="email" type="email" required autofocus
+                   autocomplete="username" placeholder="nama@bpjs-kesehatan.go.id"
+                   class="input @error('email') input--err @enderror">
+        </x-bpjs.field>
 
         <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-            <x-text-input wire:model="password" id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+        <x-bpjs.field :label="__('Kata Sandi Baru')" for="password" req :error="$errors->first('password')">
+            <input wire:model="password" id="password" name="password" type="password" required
+                   autocomplete="new-password" placeholder="••••••••"
+                   class="input @error('password') input--err @enderror">
+        </x-bpjs.field>
 
         <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+        <x-bpjs.field :label="__('Konfirmasi Kata Sandi')" for="password_confirmation" req :error="$errors->first('password_confirmation')">
+            <input wire:model="password_confirmation" id="password_confirmation" name="password_confirmation" type="password" required
+                   autocomplete="new-password" placeholder="••••••••"
+                   class="input @error('password_confirmation') input--err @enderror">
+        </x-bpjs.field>
 
-            <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full"
-                          type="password"
-                          name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Reset Password') }}
-            </x-primary-button>
-        </div>
+        <x-bpjs.button type="submit" size="lg" block>
+            {{ __('Simpan Kata Sandi') }}
+        </x-bpjs.button>
     </form>
 </div>
