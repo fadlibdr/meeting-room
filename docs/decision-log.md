@@ -67,6 +67,21 @@ Records architectural and scope decisions that deviate from, extend, or clarify 
 **Consequence — seeder is now value-preserving:** the deploy re-runs `AppSettingsSeeder --force`, so the seeder was changed to **create missing keys but never overwrite an existing value** (sync metadata only) — otherwise every deploy would wipe admin-edited SMTP config. Builds on ADR-009 (jobs table + worker still mandatory).
 **Status:** Accepted (6 Jun 2026, `feat/email-in-settings`). Supersedes ADR-009 for the `via()`/transport mechanism.
 
+### ADR-011 · Stage-1 monitoring is a self-contained scheduled health check (no external SaaS)
+**Decision:** A `system:health-check` Artisan command (scheduled every 5 minutes, `withoutOverlapping`) checks DB connectivity, **queue-worker liveness** (oldest pending `jobs.created_at` > 5 min ⇒ worker likely dead), **failed-job backlog**, **free disk %** (< 15%), and **mail misconfig** (email toggle on while `mail.default` is still `log`). It logs, **exits non-zero** so an external cron/uptime monitor catches a hard failure, and alerts admins (`app-settings.update` holders) via a `SystemHealthNotification` — sent with **`Notification::sendNow`** (NOT queued: a dead worker is a primary failure mode, so the alert must not depend on the queue) and **throttled to once per 60 min**.
+**Context:** Stage-1 "Monitoring & alerting". Chosen over an external APM/SaaS because the health check + logs meet the Stage-1 bar with no third-party account; the public `/up` endpoint stays a shallow boot check (no DB/queue/disk disclosure). Optional `sentry/sentry-laravel` remains available for stack-trace aggregation later.
+**Status:** Accepted (6 Jun 2026, `feat/stage1-monitoring`). Builds on ADR-009 (the worker it watches).
+
+### Stage-1 load / performance check (Step 5) — *to be recorded after the run*
+Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error rate here:
+- Date / commit:
+- Scenario (VUs / duration / endpoints):
+- p95 latency: ___ ms · error rate: ___ %  → within budget? (p95 < 800ms, errors < 1%)
+
+### Stage-1 sign-offs (Step 6, D-4) — *artifacts to attach*
+- [ ] UAT 30-scenario result (link / file in `docs/`):
+- [ ] Architecture sign-off (link / file in `docs/`):
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*
