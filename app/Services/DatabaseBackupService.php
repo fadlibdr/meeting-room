@@ -37,9 +37,9 @@ class DatabaseBackupService
             '--no-tablespaces',
             '--single-transaction',
             '--default-character-set=utf8mb4',
-            '--host=' . ($db['host'] ?? '127.0.0.1'),
-            '--port=' . ($db['port'] ?? 3306),
-            '--user=' . $db['username'],
+            '--host='.($db['host'] ?? '127.0.0.1'),
+            '--port='.($db['port'] ?? 3306),
+            '--user='.$db['username'],
             $db['database'],
         ];
 
@@ -73,6 +73,6 @@ class DatabaseBackupService
         $connection = config('database.default');
         $database = config("database.connections.{$connection}.database");
 
-        return $database . '-' . now()->format('Y-m-d-His') . '.sql.gz';
+        return $database.'-'.now()->format('Y-m-d-His').'.sql.gz';
     }
 }
