@@ -35,6 +35,9 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     Route::get('bookings/{booking}', [BookingController::class, 'show'])
         ->can('view', 'booking')
         ->name('bookings.show');
+    Route::get('bookings/{booking}/calendar.ics', [BookingController::class, 'calendar'])
+        ->can('view', 'booking')
+        ->name('bookings.calendar');
     Route::get('bookings/{booking}/attachments/{attachment}', [BookingAttachmentController::class, 'download'])
         ->scopeBindings()
         ->can('view', 'booking')

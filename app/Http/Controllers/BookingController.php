@@ -18,11 +18,13 @@ use App\Models\Booking;
 use App\Models\BookingApproval;
 use App\Models\BookingStatusHistory;
 use App\Models\User;
+use App\Services\IcsGenerator;
 use DomainException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
@@ -230,6 +232,18 @@ class BookingController extends Controller
         return view('bookings.show', [
             'booking' => $booking,
             'timeline' => $this->buildTimeline($booking),
+        ]);
+    }
+
+    /**
+     * Download the booking as an RFC 5545 .ics calendar file.
+     * Route-authorized by can:view,booking.
+     */
+    public function calendar(Booking $booking, IcsGenerator $ics): Response
+    {
+        return response($ics->forBooking($booking), 200, [
+            'Content-Type' => 'text/calendar; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="'.$ics->filename($booking).'"',
         ]);
     }
 
