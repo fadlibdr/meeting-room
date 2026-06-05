@@ -41,6 +41,54 @@
                 <textarea wire:model="reason" id="reason" rows="2" class="textarea @error('reason') input--err @enderror"></textarea>
             </x-bpjs.field>
 
+            {{-- Recurrence --}}
+            <div class="pt-4" style="border-top: 1px solid var(--slate-100);">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" wire:model.live="recurring"
+                           class="rounded border-slate-300 text-bpjs-blue-600 shadow-sm focus:ring-bpjs-blue-500" />
+                    <span class="text-sm font-semibold text-slate-800 inline-flex items-center gap-1.5">
+                        <x-icon name="clock" :size="16" /> Ulangi blokir (berulang)
+                    </span>
+                </label>
+
+                @if($recurring)
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 rounded-[12px] p-4"
+                         style="background: var(--slate-50); border: 1px solid var(--slate-200);">
+                        <x-bpjs.field label="Frekuensi" for="recurrenceFrequency" :error="$errors->first('recurrenceFrequency')">
+                            <select wire:model.live="recurrenceFrequency" id="recurrenceFrequency" class="select">
+                                <option value="daily">Harian</option>
+                                <option value="weekly">Mingguan</option>
+                                <option value="monthly">Bulanan</option>
+                            </select>
+                        </x-bpjs.field>
+                        <x-bpjs.field label="Setiap" hint="mis. setiap 2 minggu" for="recurrenceInterval" :error="$errors->first('recurrenceInterval')">
+                            <input type="number" wire:model="recurrenceInterval" id="recurrenceInterval" min="1" max="12"
+                                   class="input @error('recurrenceInterval') input--err @enderror" />
+                        </x-bpjs.field>
+                        <x-bpjs.field label="Berakhir" for="recurrenceEnd" :error="$errors->first('recurrenceEnd')">
+                            <select wire:model.live="recurrenceEnd" id="recurrenceEnd" class="select">
+                                <option value="count">Setelah sejumlah kejadian</option>
+                                <option value="until">Sampai tanggal</option>
+                            </select>
+                        </x-bpjs.field>
+                        @if($recurrenceEnd === 'count')
+                            <x-bpjs.field label="Jumlah kejadian" for="recurrenceCount" :error="$errors->first('recurrenceCount')">
+                                <input type="number" wire:model="recurrenceCount" id="recurrenceCount" min="1" max="100"
+                                       class="input @error('recurrenceCount') input--err @enderror" />
+                            </x-bpjs.field>
+                        @else
+                            <x-bpjs.field label="Sampai tanggal" for="recurrenceUntil" :error="$errors->first('recurrenceUntil')">
+                                <input type="date" wire:model="recurrenceUntil" id="recurrenceUntil"
+                                       class="input @error('recurrenceUntil') input--err @enderror" />
+                            </x-bpjs.field>
+                        @endif
+                        <p class="md:col-span-2 field__hint">
+                            Tiap kemunculan dibuat sebagai blokir tersendiri. Yang bentrok dengan reservasi akan dilewati, kecuali Anda mengaktifkan "batalkan booking bentrok".
+                        </p>
+                    </div>
+                @endif
+            </div>
+
             @if($conflicts->isNotEmpty())
                 <div class="card" style="padding: 16px; border-color: var(--amber-200); background: var(--amber-50);">
                     <p class="text-sm font-semibold" style="color: var(--amber-800);">

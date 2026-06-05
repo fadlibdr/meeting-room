@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Livewire\Admin;
 
 use App\Actions\BlockRoomAction;
+use App\Actions\CreateRecurringRoomBlockAction;
 use App\Enums\BookingStatus;
+use App\Enums\RecurrenceFrequency;
 use App\Enums\RoomBlockType;
 use App\Exceptions\RoomBlockConflictException;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\User;
+use App\Services\RecurrenceExpander;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
@@ -33,12 +36,25 @@ class RoomBlockForm extends Component
 
     public bool $cancelConflicting = false;
 
+    // ── Recurrence ──────────────────────────────────────────────────
+    public bool $recurring = false;
+
+    public string $recurrenceFrequency = 'weekly';
+
+    public int $recurrenceInterval = 1;
+
+    public string $recurrenceEnd = 'count';
+
+    public int $recurrenceCount = 4;
+
+    public string $recurrenceUntil = '';
+
     /**
      * @return array<string, array<int, mixed>|string>
      */
     protected function rules(): array
     {
-        return [
+        $rules = [
             'roomId' => ['required', 'integer', Rule::exists('rooms', 'id')],
             'blockType' => ['required', Rule::enum(RoomBlockType::class)],
             'title' => ['required', 'string', 'max:150'],
@@ -46,6 +62,16 @@ class RoomBlockForm extends Component
             'startsAt' => ['required', 'date'],
             'endsAt' => ['required', 'date', 'after:startsAt'],
         ];
+
+        if ($this->recurring) {
+            $rules['recurrenceFrequency'] = ['required', 'in:daily,weekly,monthly'];
+            $rules['recurrenceInterval'] = ['required', 'integer', 'min:1', 'max:12'];
+            $rules['recurrenceEnd'] = ['required', 'in:count,until'];
+            $rules['recurrenceCount'] = ['required_if:recurrenceEnd,count', 'integer', 'min:1', 'max:'.RecurrenceExpander::MAX_OCCURRENCES];
+            $rules['recurrenceUntil'] = ['required_if:recurrenceEnd,until', 'nullable', 'date', 'after:startsAt'];
+        }
+
+        return $rules;
     }
 
     /**
@@ -72,6 +98,42 @@ class RoomBlockForm extends Component
         $this->validate();
 
         $room = Room::findOrFail((int) $this->roomId);
+
+        if ($this->recurring) {
+            $until = ($this->recurrenceEnd === 'until' && $this->recurrenceUntil !== '')
+                ? CarbonImmutable::parse($this->recurrenceUntil)->endOfDay()
+                : null;
+
+            $series = app(CreateRecurringRoomBlockAction::class)->execute(
+                $room,
+                $authUser,
+                RoomBlockType::from($this->blockType),
+                $this->title,
+                CarbonImmutable::parse($this->startsAt),
+                CarbonImmutable::parse($this->endsAt),
+                RecurrenceFrequency::from($this->recurrenceFrequency),
+                $this->recurrenceInterval,
+                $until,
+                $this->recurrenceEnd === 'count' ? $this->recurrenceCount : null,
+                reason: $this->reason !== '' ? $this->reason : null,
+                cancelConflictingBookings: $this->cancelConflicting,
+            );
+
+            if ($series['created']->isEmpty()) {
+                $this->addError('conflict', 'Tidak ada jadwal blokir yang dapat dibuat — semua bentrok dengan reservasi. Centang opsi di bawah untuk membatalkan booking, lalu simpan kembali.');
+
+                return;
+            }
+
+            $createdCount = $series['created']->count();
+            $skippedCount = count($series['skipped']);
+            $message = "Seri blokir dibuat: {$createdCount} jadwal."
+                .($skippedCount > 0 ? " {$skippedCount} dilewati karena bentrok dengan reservasi." : '');
+            session()->flash('status', $message);
+            $this->redirectRoute('admin.room-blocks.index', navigate: true);
+
+            return;
+        }
 
         try {
             app(BlockRoomAction::class)->execute(

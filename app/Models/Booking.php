@@ -131,4 +131,18 @@ class Booking extends Model
     {
         return $this->belongsTo(self::class, 'recurrence_group_id');
     }
+
+    /**
+     * All bookings in the same recurring series (including this one), keyed by
+     * the shared recurrence_group_id (the anchor occurrence's id).
+     */
+    public function recurrenceOccurrences(): HasMany
+    {
+        return $this->hasMany(self::class, 'recurrence_group_id', 'recurrence_group_id');
+    }
+
+    public function isRecurring(): bool
+    {
+        return $this->recurrence_group_id !== null;
+    }
 }
