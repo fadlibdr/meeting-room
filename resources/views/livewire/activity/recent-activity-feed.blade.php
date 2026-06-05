@@ -1,45 +1,49 @@
-<div wire:poll.30s class="bg-white rounded-lg shadow-sm overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-        <h3 class="text-base font-semibold text-gray-800">
-            {{ __('Recent Activity') }}
-        </h3>
-        <span wire:loading class="text-xs text-gray-400">
-            {{ __('Refreshing...') }}
+@php
+    // event -> [icon, bg var, fg var] (mirrors ACTIVITY_META action colors)
+    $activityMeta = [
+        'created'   => ['plus',       'var(--bpjs-blue-50)',  'var(--bpjs-blue-600)'],
+        'submitted' => ['arrowRight', 'var(--amber-50)',      'var(--amber-700)'],
+        'approved'  => ['check',      'var(--bpjs-green-50)', 'var(--bpjs-green-700)'],
+        'rejected'  => ['x',          'var(--red-50)',        'var(--red-600)'],
+        'cancelled' => ['x',          'var(--slate-100)',     'var(--slate-500)'],
+    ];
+@endphp
+<div wire:poll.30s class="card" style="overflow: hidden;">
+    <div class="flex items-center justify-between" style="padding: 18px 22px; border-bottom: 1px solid var(--slate-100);">
+        <div class="card__h" style="margin: 0;">
+            {{ __('Aktivitas Terbaru') }}
+        </div>
+        <span wire:loading class="flex items-center gap-1.5" style="font-size: 11.5px; color: var(--slate-400);">
+            <x-icon name="clock" :size="13" />
+            {{ __('Memuat...') }}
         </span>
     </div>
 
     @if($logs->isEmpty())
-        <div class="px-6 py-8 text-center text-sm text-gray-500">
-            {{ __('No activity recorded yet.') }}
+        <div class="text-center" style="padding: 32px 22px; font-size: 13.5px; color: var(--slate-500);">
+            {{ __('Belum ada aktivitas yang tercatat.') }}
         </div>
     @else
-        <ul class="divide-y divide-gray-100">
+        <ul>
             @foreach($logs as $log)
-                <li class="px-6 py-3 hover:bg-gray-50">
-                    <div class="flex items-start gap-3">
-                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-semibold">
-                            @if($log->actor)
-                                {{ strtoupper(substr($log->actor->name, 0, 1)) }}
-                            @else
-                                ?
-                            @endif
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm text-gray-900">
-                                {{ $log->description ?? ($log->module . '.' . $log->event) }}
-                            </p>
-                            <p class="text-xs text-gray-500 mt-0.5">
-                                <span class="font-medium">{{ $log->actor?->name ?? __('System') }}</span>
-                                <span class="mx-1">·</span>
-                                <time datetime="{{ $log->created_at?->toIso8601String() }}">
-                                    {{ $log->created_at?->diffForHumans() ?? '-' }}
-                                </time>
-                                <span class="mx-1">·</span>
-                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-700">
-                                    {{ $log->module }}.{{ $log->event }}
-                                </span>
-                            </p>
-                        </div>
+                @php [$icIcon, $icBg, $icFg] = $activityMeta[$log->event] ?? ['info', 'var(--slate-100)', 'var(--slate-500)']; @endphp
+                <li class="flex items-start gap-3" style="padding: 13px 22px; border-top: 1px solid var(--slate-100);">
+                    <span style="flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: {{ $icBg }}; color: {{ $icFg }};">
+                        <x-icon :name="$icIcon" :size="17" />
+                    </span>
+                    <div class="flex-1 min-w-0">
+                        <p style="font-size: 13.5px; color: var(--slate-900);">
+                            {{ $log->description ?? ($log->module . '.' . $log->event) }}
+                        </p>
+                        <p class="flex items-center gap-2 mt-1" style="font-size: 11.5px; color: var(--slate-500);">
+                            <span style="font-weight: 600; color: var(--slate-700);">{{ $log->actor?->name ?? __('Sistem') }}</span>
+                            <span style="color: var(--slate-300);">·</span>
+                            <time datetime="{{ $log->created_at?->toIso8601String() }}">
+                                {{ $log->created_at?->diffForHumans() ?? '-' }}
+                            </time>
+                            <span style="color: var(--slate-300);">·</span>
+                            <span class="font-mono" style="font-size: 10.5px; color: var(--slate-500);">{{ $log->module }}.{{ $log->event }}</span>
+                        </p>
                     </div>
                 </li>
             @endforeach

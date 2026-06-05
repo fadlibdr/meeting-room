@@ -1,18 +1,10 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Blokir Ruang') }}</h2>
-            @hasPermission('rooms.manage-blocks')
-                <a href="{{ route('admin.room-blocks.create') }}" wire:navigate class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md">+ Blokir Baru</a>
-            @endhasPermission
+<x-app-layout title="Blokir Ruangan" subtitle="Tutup ruangan untuk pemeliharaan atau acara.">
+    @if(session('status'))
+        <div class="card card--pad bpjs-rise mb-4 flex items-center gap-2.5"
+             style="border-color: var(--bpjs-green-200); background: var(--bpjs-green-50);">
+            <span style="color: var(--bpjs-green-700); display: inline-flex;"><x-icon name="checkCircle" :size="18" /></span>
+            <span class="text-sm font-medium" style="color: var(--bpjs-green-800);">{{ session('status') }}</span>
         </div>
-    </x-slot>
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @if(session('status'))
-                <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-md text-sm">{{ session('status') }}</div>
-            @endif
-            <livewire:admin.room-block-list />
-        </div>
-    </div>
+    @endif
+    <livewire:admin.room-block-list />
 </x-app-layout>

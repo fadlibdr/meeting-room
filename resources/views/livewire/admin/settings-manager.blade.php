@@ -1,149 +1,133 @@
-<div class="py-12">
-    <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+<div class="space-y-6">
 
-        {{-- Page header --}}
-        <div class="bg-white shadow-sm sm:rounded-lg p-6">
-            <h1 class="text-2xl font-semibold text-gray-900">Pengaturan Sistem</h1>
-            <p class="mt-1 text-sm text-gray-600">
-                Konfigurasi runtime aplikasi. Perubahan berlaku seketika setelah disimpan.
-            </p>
-        </div>
-
-        {{-- Flash messages --}}
-        @if($successMessage)
-            <div class="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4">
+    {{-- Flash messages --}}
+    @if($successMessage)
+        <div class="card card--pad bpjs-rise" style="border-color: var(--bpjs-green-200); background: var(--bpjs-green-50);">
+            <div class="flex items-center gap-2" style="color: var(--bpjs-green-800); font-size: 13.5px; font-weight: 600;">
+                <x-icon name="checkCircle" :size="18" />
                 {{ $successMessage }}
             </div>
-        @endif
+        </div>
+    @endif
 
-        @if($errorMessage)
-            <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+    @if($errorMessage)
+        <div class="card card--pad bpjs-rise" style="border-color: var(--red-300); background: var(--red-50);">
+            <div class="flex items-center gap-2" style="color: var(--red-800); font-size: 13.5px; font-weight: 600;">
+                <x-icon name="alert" :size="18" />
                 {{ $errorMessage }}
             </div>
-        @endif
+        </div>
+    @endif
 
-        {{-- Settings grouped by section --}}
-        @forelse($groupedSettings as $group => $settings)
-            <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
-                <div class="bg-gray-50 px-6 py-3 border-b">
-                    <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                        {{ ucfirst($group) }}
-                    </h2>
-                </div>
-
-                <div class="divide-y divide-gray-200">
-                    @foreach($settings as $setting)
-                        <div class="px-6 py-4">
-                            <div class="flex items-start justify-between gap-4">
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="text-sm font-medium text-gray-900">
-                                            {{ $setting->label }}
-                                        </h3>
-                                        @if(!$setting->is_editable)
-                                            <span class="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                                                Sistem
-                                            </span>
-                                        @endif
-                                    </div>
-
-                                    @if($setting->description)
-                                        <p class="mt-1 text-sm text-gray-500">
-                                            {{ $setting->description }}
-                                        </p>
-                                    @endif
-
-                                    {{-- Edit mode for this row --}}
-                                    @if($editingId === $setting->id)
-                                        <div class="mt-3 space-y-2">
-                                            @if($setting->data_type === 'integer')
-                                                <input
-                                                    type="number"
-                                                    wire:model="editValue"
-                                                    min="0"
-                                                    class="block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                                />
-                                            @elseif($setting->data_type === 'boolean')
-                                                <label class="inline-flex items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        wire:model="editValue"
-                                                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                                                    />
-                                                    <span class="ml-2 text-sm text-gray-600">Aktif</span>
-                                                </label>
-                                            @else
-                                                <input
-                                                    type="text"
-                                                    wire:model="editValue"
-                                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                                />
-                                            @endif
-
-                                            <div class="flex gap-2">
-                                                <button
-                                                    type="button"
-                                                    wire:click="save"
-                                                    class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                                >
-                                                    Simpan
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    wire:click="cancelEdit"
-                                                    class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                                                >
-                                                    Batal
-                                                </button>
-                                           </div>
-                                          <livewire:admin.backup-manager />
-                                        </div>
-                                    @else
-                                        <div class="mt-2 text-sm">
-                                            <span class="font-medium text-gray-700">Nilai saat ini:</span>
-                                            @if($setting->data_type === 'boolean')
-                                                @if($setting->getCastedValue())
-                                                    <span class="ml-1 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Aktif</span>
-                                                @else
-                                                    <span class="ml-1 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">Nonaktif</span>
-                                                @endif
-                                            @else
-                                                <span class="ml-1 font-mono text-gray-900">{{ $setting->value }}</span>
-                                            @endif
-                                        </div>
-                                    @endif
-
-                                    {{-- Last updated audit info --}}
-                                    @if($setting->updated_at && $setting->updated_by_user_id)
-                                        <p class="mt-2 text-xs text-gray-400">
-                                            Diperbarui {{ $setting->updated_at->diffForHumans() }}
-                                        </p>
-                                    @endif
-                                </div>
-
-                                {{-- Edit button (hidden when this row is being edited or read-only) --}}
-                                @if($editingId !== $setting->id)
-                                    @if($setting->is_editable)
-                                        <button
-                                            type="button"
-                                            wire:click="startEdit({{ $setting->id }})"
-                                            class="text-sm font-medium text-indigo-600 hover:text-indigo-700"
-                                        >
-                                            Edit
-                                        </button>
-                                    @else
-                                        <span class="text-xs text-gray-400 italic">Tidak dapat diedit</span>
-                                    @endif
+    {{-- Settings grouped by section --}}
+    @forelse($groupedSettings as $group => $settings)
+        <x-bpjs.card :title="ucfirst($group)" rise>
+            <div style="display: flex; flex-direction: column;">
+                @foreach($settings as $setting)
+                    <div class="flex items-start justify-between gap-4" style="padding: 16px 0; border-top: 1px solid var(--slate-100);">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h3 style="font-size: 13.5px; font-weight: 600; color: var(--slate-800);">
+                                    {{ $setting->label }}
+                                </h3>
+                                @if(!$setting->is_editable)
+                                    <x-bpjs.pill variant="slate">Sistem</x-bpjs.pill>
                                 @endif
                             </div>
+
+                            @if($setting->description)
+                                <p style="font-size: 12px; color: var(--slate-500); margin-top: 2px;">
+                                    {{ $setting->description }}
+                                </p>
+                            @endif
+
+                            {{-- Edit mode for this row --}}
+                            @if($editingId === $setting->id)
+                                <div class="mt-3 space-y-3">
+                                    @if($setting->data_type === 'integer')
+                                        <input
+                                            type="number"
+                                            wire:model="editValue"
+                                            min="0"
+                                            class="input"
+                                            style="max-width: 160px;"
+                                        />
+                                    @elseif($setting->data_type === 'boolean')
+                                        <label class="inline-flex items-center gap-3 cursor-pointer select-none">
+                                            <span class="relative inline-flex" style="width: 44px; height: 24px;">
+                                                <input
+                                                    type="checkbox"
+                                                    wire:model="editValue"
+                                                    class="peer sr-only"
+                                                />
+                                                <span aria-hidden="true" style="position: absolute; inset: 0; border-radius: 9999px; background: var(--slate-300); transition: background .15s;" class="peer-checked:!bg-[var(--bpjs-green-500)] peer-focus-visible:[box-shadow:var(--bpjs-ring)]"></span>
+                                                <span aria-hidden="true" style="position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 9999px; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.2); transition: transform .15s;" class="peer-checked:translate-x-5"></span>
+                                            </span>
+                                            <span style="font-size: 13.5px; font-weight: 500; color: var(--slate-700);">Aktif</span>
+                                        </label>
+                                    @else
+                                        <input
+                                            type="text"
+                                            wire:model="editValue"
+                                            class="input"
+                                        />
+                                    @endif
+
+                                    <div class="flex gap-2">
+                                        <x-bpjs.button variant="primary" icon="check" wire:click="save">
+                                            Simpan
+                                        </x-bpjs.button>
+                                        <x-bpjs.button variant="ghost" wire:click="cancelEdit">
+                                            Batal
+                                        </x-bpjs.button>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="mt-2 flex items-center gap-2" style="font-size: 13px;">
+                                    <span style="font-weight: 600; color: var(--slate-600);">Nilai saat ini:</span>
+                                    @if($setting->data_type === 'boolean')
+                                        @if($setting->getCastedValue())
+                                            <x-bpjs.pill variant="green">Aktif</x-bpjs.pill>
+                                        @else
+                                            <x-bpjs.pill variant="slate">Nonaktif</x-bpjs.pill>
+                                        @endif
+                                    @else
+                                        <span class="font-mono" style="color: var(--slate-900);">{{ $setting->value }}</span>
+                                    @endif
+                                </div>
+                            @endif
+
+                            {{-- Last updated audit info --}}
+                            @if($setting->updated_at && $setting->updated_by_user_id)
+                                <p class="mt-2 flex items-center gap-1.5" style="font-size: 11.5px; color: var(--slate-400);">
+                                    <x-icon name="clock" :size="13" />
+                                    Diperbarui {{ $setting->updated_at->diffForHumans() }}
+                                </p>
+                            @endif
                         </div>
-                    @endforeach
-                </div>
+
+                        {{-- Edit button (hidden when this row is being edited or read-only) --}}
+                        @if($editingId !== $setting->id)
+                            @if($setting->is_editable)
+                                <x-bpjs.button variant="ghost" icon="settings" wire:click="startEdit({{ $setting->id }})">
+                                    Edit
+                                </x-bpjs.button>
+                            @else
+                                <span class="italic" style="font-size: 11.5px; color: var(--slate-400);">Tidak dapat diedit</span>
+                            @endif
+                        @endif
+                    </div>
+                @endforeach
             </div>
-        @empty
-            <div class="bg-white shadow-sm sm:rounded-lg p-6 text-center text-sm text-gray-500">
+        </x-bpjs.card>
+    @empty
+        <x-bpjs.card>
+            <div class="text-center" style="padding: 24px; font-size: 13.5px; color: var(--slate-500);">
                 Belum ada pengaturan yang tersedia.
             </div>
-        @endforelse
-    </div>
+        </x-bpjs.card>
+    @endforelse
+
+    {{-- Database backup download (self-gates on app-settings.update) --}}
+    <livewire:admin.backup-manager />
 </div>

@@ -2,28 +2,23 @@
     $user = \App\Models\User::with('roles')->findOrFail($userId);
 @endphp
 
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('admin.users.index') }}" wire:navigate
-               class="text-gray-500 hover:text-gray-700">
-                ← Kembali
-            </a>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Edit Pengguna') }}: {{ $user->name }}
-            </h2>
-        </div>
-    </x-slot>
+<x-app-layout title="Ubah Pengguna" subtitle="{{ $user->name }}">
+    <div class="mb-4">
+        <a href="{{ route('admin.users.index') }}" wire:navigate
+           class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800">
+            <x-icon name="chevronLeft" :size="16" /> Kembali ke daftar
+        </a>
+    </div>
 
     @if(session('status'))
-        <div class="mb-4 max-w-3xl mx-auto px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-md">
-            {{ session('status') }}
+        <div class="card card--pad bpjs-rise mb-4 flex items-center gap-2.5"
+             style="max-width: 760px; border-color: var(--bpjs-green-200); background: var(--bpjs-green-50);">
+            <span style="color: var(--bpjs-green-700); display: inline-flex;"><x-icon name="checkCircle" :size="18" /></span>
+            <span class="text-sm font-medium" style="color: var(--bpjs-green-800);">{{ session('status') }}</span>
         </div>
     @endif
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <livewire:admin.user-form :user="$user" />
-        </div>
+    <div style="max-width: 760px;">
+        <livewire:admin.user-form :user="$user" />
     </div>
 </x-app-layout>

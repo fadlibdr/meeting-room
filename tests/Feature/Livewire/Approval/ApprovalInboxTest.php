@@ -89,7 +89,6 @@ class ApprovalInboxTest extends TestCase
         Livewire::actingAs($approver)
             ->test(ApprovalInbox::class)
             ->assertOk()
-            ->assertSee('Kotak Persetujuan')
             ->assertSee($booking->booking_code);
     }
 

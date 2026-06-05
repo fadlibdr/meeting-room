@@ -19,19 +19,19 @@ class BackupController extends Controller
         $name = $backups->suggestedFilename();
 
         Log::warning('database_backup.downloaded', [
-            'user_id'    => $request->user()?->id,
-            'email'      => $request->user()?->email,
-            'ip'         => $request->ip(),
+            'user_id' => $request->user()->id,
+            'email' => $request->user()->email,
+            'ip' => $request->ip(),
             'user_agent' => $request->userAgent(),
-            'filename'   => $name,
-            'at'         => now()->toIso8601String(),
+            'filename' => $name,
+            'at' => now()->toIso8601String(),
         ]);
 
         return response()
             ->download($path, $name, [
-                'Content-Type'  => 'application/gzip',
+                'Content-Type' => 'application/gzip',
                 'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-                'Pragma'        => 'no-cache',
+                'Pragma' => 'no-cache',
             ])
             ->deleteFileAfterSend(true);
     }
