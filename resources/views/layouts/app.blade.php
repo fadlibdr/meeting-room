@@ -101,6 +101,10 @@
                                class="nav__item @if(request()->routeIs('admin.users.*')) active @endif">
                                 <x-icon name="users" :size="19" /> Pengguna
                             </a>
+                            <a href="{{ route('admin.units.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.units.*')) active @endif">
+                                <x-icon name="building" :size="19" /> Unit
+                            </a>
                         @endhasPermission
 
                         @hasPermission('activity-logs.view')

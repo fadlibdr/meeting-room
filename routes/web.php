@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\FacilityController;
 use App\Http\Controllers\Admin\RoomBlockController;
 use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BookingAttachmentController;
@@ -80,6 +81,19 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::get('users/{userId}/edit', [UserController::class, 'edit'])
             ->middleware('permission:users.update')
             ->name('users.edit');
+
+        // Org structure — Units (reuse users.* permissions, like Facilities reuse rooms.*)
+        Route::get('units', [UnitController::class, 'index'])
+            ->middleware('permission:users.view')
+            ->name('units.index');
+
+        Route::get('units/create', [UnitController::class, 'create'])
+            ->middleware('permission:users.create')
+            ->name('units.create');
+
+        Route::get('units/{unitId}/edit', [UnitController::class, 'edit'])
+            ->middleware('permission:users.update')
+            ->name('units.edit');
 
         // Sprint 2 — Room Management (management UI gated by rooms.update;
         // view-only roles hold rooms.view but use the public list instead)
