@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
+use App\Actions\CancelRecurringRoomBlockAction;
 use App\Actions\CancelRoomBlockAction;
 use App\Models\RoomBlockSchedule;
 use App\Models\User;
@@ -41,6 +42,19 @@ class RoomBlockList extends Component
         } catch (DomainException) {
             session()->flash('status', 'Blokir ruang sudah dibatalkan sebelumnya.');
         }
+    }
+
+    public function cancelSeries(int $blockId): void
+    {
+        $authUser = auth()->user();
+        if (! $authUser instanceof User || ! $authUser->hasPermission('rooms.manage-blocks')) {
+            abort(403);
+        }
+
+        $block = RoomBlockSchedule::findOrFail($blockId);
+        $count = app(CancelRecurringRoomBlockAction::class)->execute($block, $authUser);
+
+        session()->flash('status', "Seri blokir dibatalkan: {$count} jadwal.");
     }
 
     public function render(): View

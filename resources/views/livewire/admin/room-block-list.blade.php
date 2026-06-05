@@ -40,7 +40,14 @@
                         <td>
                             <x-bpjs.pill variant="slate">{{ $block->block_type->label() }}</x-bpjs.pill>
                         </td>
-                        <td class="text-slate-900">{{ $block->title }}</td>
+                        <td class="text-slate-900">
+                            <span class="inline-flex items-center gap-2">
+                                {{ $block->title }}
+                                @if($block->recurrence_group_id !== null)
+                                    <x-bpjs.pill variant="blue">Berulang</x-bpjs.pill>
+                                @endif
+                            </span>
+                        </td>
                         <td class="whitespace-nowrap text-slate-600">
                             <span class="mono">{{ $block->starts_at->format('d M Y H:i') }} – {{ $block->ends_at->format('H:i') }}</span>
                         </td>
@@ -54,9 +61,16 @@
                         <td class="text-right">
                             @if($block->cancelled_at === null)
                                 @hasPermission('rooms.manage-blocks')
-                                    <x-bpjs.button variant="danger" wire:click="cancel({{ $block->id }})"
-                                                   wire:confirm="Batalkan blokir &quot;{{ $block->title }}&quot;?" type="button"
-                                                   class="!px-3 !py-1.5 !text-xs !rounded-lg">Batalkan</x-bpjs.button>
+                                    <div class="inline-flex items-center justify-end gap-2">
+                                        <x-bpjs.button variant="danger" wire:click="cancel({{ $block->id }})"
+                                                       wire:confirm="Batalkan blokir &quot;{{ $block->title }}&quot;?" type="button"
+                                                       class="!px-3 !py-1.5 !text-xs !rounded-lg">Batalkan</x-bpjs.button>
+                                        @if($block->recurrence_group_id !== null)
+                                            <x-bpjs.button variant="solid-danger" wire:click="cancelSeries({{ $block->id }})"
+                                                           wire:confirm="Batalkan SEMUA jadwal aktif dalam seri ini?" type="button"
+                                                           class="!px-3 !py-1.5 !text-xs !rounded-lg">Batalkan Seri</x-bpjs.button>
+                                        @endif
+                                    </div>
                                 @endhasPermission
                             @else
                                 <span class="text-slate-400">—</span>
