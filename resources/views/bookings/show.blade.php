@@ -15,6 +15,10 @@
                     {{ $booking->booking_code }}
                 </div>
                 <div style="font-size: 14px; color: var(--slate-600); margin-top: 4px;">{{ $booking->subject }}</div>
+                <a href="{{ route('bookings.calendar', $booking->id) }}"
+                   class="inline-flex items-center gap-1.5 mt-3 text-bpjs-blue-600 hover:text-bpjs-blue-700 font-medium" style="font-size: 13px;">
+                    <x-icon name="calendar" :size="15" /> Tambah ke Kalender
+                </a>
             </div>
             <div class="flex items-center gap-2">
                 @if ($booking->isRecurring())
