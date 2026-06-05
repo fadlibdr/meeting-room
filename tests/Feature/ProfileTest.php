@@ -46,6 +46,22 @@ class ProfileTest extends TestCase
         $this->assertNull($user->email_verified_at);
     }
 
+    public function test_email_notification_preference_can_be_toggled(): void
+    {
+        $user = User::factory()->create(['email_notifications' => true]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-profile-information-form')
+            ->set('name', $user->name)
+            ->set('email', $user->email)
+            ->set('emailNotifications', false)
+            ->call('updateProfileInformation')
+            ->assertHasNoErrors();
+
+        $this->assertFalse($user->refresh()->email_notifications);
+    }
+
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
     {
         $user = User::factory()->create();

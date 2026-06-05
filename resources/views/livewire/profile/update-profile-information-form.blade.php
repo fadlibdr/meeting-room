@@ -10,6 +10,7 @@ new class extends Component
 {
     public string $name = '';
     public string $email = '';
+    public bool $emailNotifications = true;
 
     /**
      * Mount the component.
@@ -18,6 +19,7 @@ new class extends Component
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
+        $this->emailNotifications = (bool) Auth::user()->email_notifications;
     }
 
     /**
@@ -33,6 +35,7 @@ new class extends Component
         ]);
 
         $user->fill($validated);
+        $user->email_notifications = $this->emailNotifications;
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
@@ -85,6 +88,17 @@ new class extends Component
                    class="input font-mono @error('email') input--err @enderror"
                    required autocomplete="username" />
         </x-bpjs.field>
+
+        <div class="pt-1">
+            <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                <input type="checkbox" wire:model="emailNotifications" id="emailNotifications"
+                       class="mt-0.5 rounded border-slate-300 text-bpjs-blue-600 shadow-sm focus:ring-bpjs-blue-500" />
+                <span>
+                    <span class="text-sm font-semibold text-slate-700">{{ __('Terima notifikasi email') }}</span>
+                    <span class="block field__hint">{{ __('Jika dimatikan, Anda tidak akan menerima email notifikasi reservasi (notifikasi dalam aplikasi tetap aktif).') }}</span>
+                </span>
+            </label>
+        </div>
 
         @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
             <div>

@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $approver_user_id
  * @property bool $is_active
  * @property string|null $timezone
+ * @property bool $email_notifications
  * @property Carbon|null $last_login_at
  * @property int $failed_login_attempts
  * @property Carbon|null $locked_until
@@ -51,6 +52,7 @@ class User extends Authenticatable
         'approver_user_id',
         'is_active',
         'timezone',
+        'email_notifications',
     ];
 
     /**
@@ -59,6 +61,16 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    /**
+     * Default attribute values (mirror DB column defaults so new in-memory
+     * instances behave correctly before a reload).
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'email_notifications' => true,
     ];
 
     /**
@@ -72,6 +84,7 @@ class User extends Authenticatable
             'locked_until' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'email_notifications' => 'boolean',
             'failed_login_attempts' => 'integer',
         ];
     }
