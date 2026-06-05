@@ -35,7 +35,10 @@ final class BookingReminderNotification extends Notification implements ShouldQu
     public function via(object $notifiable): array
     {
         $channels = ['database'];
-        if (app(SettingsService::class)->get('notifications.send_email_default', false)) {
+        $globalOn = (bool) app(SettingsService::class)->get('notifications.send_email_default', false);
+        $userOptIn = ! $notifiable instanceof User || $notifiable->email_notifications;
+
+        if ($globalOn && $userOptIn) {
             $channels[] = 'mail';
         }
 

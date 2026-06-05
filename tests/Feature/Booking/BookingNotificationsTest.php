@@ -419,4 +419,51 @@ class BookingNotificationsTest extends TestCase
         $this->assertStringContainsString($booking->booking_code, $mail->subject);
         $this->assertSame(route('bookings.show', $booking->id), $mail->actionUrl);
     }
+
+    // ─── PER-USER PREFERENCE (2.1.2) ─────────────────────────────────
+
+    public function test_user_opt_out_suppresses_mail_even_when_global_is_on(): void
+    {
+        $this->setEmailDefault(true);
+        $ctx = $this->makeSubmittedBooking();
+        $ctx['requester']->update(['email_notifications' => false]);
+        $block = RoomBlockSchedule::factory()->create(['room_id' => $ctx['booking']->room_id]);
+        $user = $ctx['requester']->fresh();
+
+        foreach ($this->allNotifications($ctx['booking'], $block) as $notification) {
+            $this->assertSame(['database'], $notification->via($user));
+        }
+    }
+
+    public function test_user_opt_in_with_global_on_includes_mail(): void
+    {
+        $this->setEmailDefault(true);
+        $ctx = $this->makeSubmittedBooking();
+        $ctx['requester']->update(['email_notifications' => true]);
+
+        $via = (new BookingApprovedNotification($ctx['booking']))->via($ctx['requester']->fresh());
+
+        $this->assertSame(['database', 'mail'], $via);
+    }
+
+    public function test_user_pref_is_irrelevant_when_global_is_off(): void
+    {
+        $this->setEmailDefault(false);
+        $ctx = $this->makeSubmittedBooking();
+        $ctx['requester']->update(['email_notifications' => true]);
+
+        $via = (new BookingApprovedNotification($ctx['booking']))->via($ctx['requester']->fresh());
+
+        $this->assertSame(['database'], $via);
+    }
+
+    public function test_default_user_inherits_global_on(): void
+    {
+        $this->setEmailDefault(true);
+        $ctx = $this->makeSubmittedBooking(); // requester created with the column default (true)
+
+        $via = (new BookingApprovedNotification($ctx['booking']))->via($ctx['requester']);
+
+        $this->assertSame(['database', 'mail'], $via);
+    }
 }
