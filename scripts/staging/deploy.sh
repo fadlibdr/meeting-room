@@ -1,6 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
+# umask 022 — FIRST, before anything writes files.
+# A stray restrictive umask (e.g. 077) once wrote cache files mode 600,
+# which 500'd the app (staging incident 2026-05-30). This makes the deploy
+# immune to the calling shell's umask, matching the deployment runbook §4
+# and the production-cutover §F deploy block.
+umask 022
+
 cd /var/www/meeting-room
 
 echo "==> Pulling latest from develop"
