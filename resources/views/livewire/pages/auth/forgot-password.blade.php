@@ -37,25 +37,26 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
-    </div>
+    <h2 class="font-display font-bold text-slate-900" style="font-size: 24px; letter-spacing: -0.01em;">
+        {{ __('Lupa Kata Sandi') }}
+    </h2>
+    <p class="mt-1.5 text-slate-500" style="font-size: 13.5px;">
+        {{ __('Masukkan email Anda dan kami akan mengirimkan tautan untuk mengatur ulang kata sandi.') }}
+    </p>
 
     <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <x-auth-session-status class="mb-4 mt-4" :status="session('status')" />
 
-    <form wire:submit="sendPasswordResetLink">
+    <form wire:submit="sendPasswordResetLink" class="mt-7 space-y-5">
         <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+        <x-bpjs.field :label="__('Email')" for="email" req :error="$errors->first('email')">
+            <input wire:model="email" id="email" name="email" type="email" required autofocus
+                   autocomplete="username" placeholder="nama@bpjs-kesehatan.go.id"
+                   class="input @error('email') input--err @enderror">
+        </x-bpjs.field>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Email Password Reset Link') }}
-            </x-primary-button>
-        </div>
+        <x-bpjs.button type="submit" size="lg" block>
+            {{ __('Kirim Tautan Reset Kata Sandi') }}
+        </x-bpjs.button>
     </form>
 </div>

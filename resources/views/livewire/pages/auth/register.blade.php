@@ -37,52 +37,52 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
-    <form wire:submit="register">
+    <h2 class="font-display font-bold text-slate-900" style="font-size: 24px; letter-spacing: -0.01em;">
+        {{ __('Daftar Akun') }}
+    </h2>
+    <p class="mt-1.5 text-slate-500" style="font-size: 13.5px;">
+        {{ __('Buat akun baru untuk mengakses sistem.') }}
+    </p>
+
+    <form wire:submit="register" class="mt-7 space-y-5">
         <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input wire:model="name" id="name" class="block mt-1 w-full" type="text" name="name" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
-        </div>
+        <x-bpjs.field :label="__('Nama')" for="name" req :error="$errors->first('name')">
+            <input wire:model="name" id="name" name="name" type="text" required autofocus
+                   autocomplete="name" placeholder="Nama lengkap"
+                   class="input @error('name') input--err @enderror">
+        </x-bpjs.field>
 
         <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+        <x-bpjs.field :label="__('Email')" for="email" req :error="$errors->first('email')">
+            <input wire:model="email" id="email" name="email" type="email" required
+                   autocomplete="username" placeholder="nama@bpjs-kesehatan.go.id"
+                   class="input @error('email') input--err @enderror">
+        </x-bpjs.field>
 
         <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input wire:model="password" id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+        <x-bpjs.field :label="__('Kata Sandi')" for="password" req :error="$errors->first('password')">
+            <input wire:model="password" id="password" name="password" type="password" required
+                   autocomplete="new-password" placeholder="••••••••"
+                   class="input @error('password') input--err @enderror">
+        </x-bpjs.field>
 
         <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+        <x-bpjs.field :label="__('Konfirmasi Kata Sandi')" for="password_confirmation" req :error="$errors->first('password_confirmation')">
+            <input wire:model="password_confirmation" id="password_confirmation" name="password_confirmation" type="password" required
+                   autocomplete="new-password" placeholder="••••••••"
+                   class="input @error('password_confirmation') input--err @enderror">
+        </x-bpjs.field>
 
-            <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
+        <x-bpjs.button type="submit" size="lg" block>
+            {{ __('Daftar') }}
+        </x-bpjs.button>
 
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}" wire:navigate>
-                {{ __('Already registered?') }}
+        <p class="text-center text-slate-600" style="font-size: 13px;">
+            {{ __('Sudah punya akun?') }}
+            <a class="text-bpjs-blue-600 hover:text-bpjs-blue-700 font-medium"
+               href="{{ route('login') }}" wire:navigate>
+                {{ __('Masuk') }}
             </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
+        </p>
     </form>
 </div>
