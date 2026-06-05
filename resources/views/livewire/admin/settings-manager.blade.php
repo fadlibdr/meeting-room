@@ -65,6 +65,15 @@
                                             </span>
                                             <span style="font-size: 13.5px; font-weight: 500; color: var(--slate-700);">Aktif</span>
                                         </label>
+                                    @elseif($setting->data_type === 'encrypted')
+                                        <input
+                                            type="password"
+                                            wire:model="editValue"
+                                            autocomplete="new-password"
+                                            placeholder="Kosongkan untuk tidak mengubah"
+                                            class="input"
+                                            style="max-width: 320px;"
+                                        />
                                     @else
                                         <input
                                             type="text"
@@ -90,6 +99,12 @@
                                             <x-bpjs.pill variant="green">Aktif</x-bpjs.pill>
                                         @else
                                             <x-bpjs.pill variant="slate">Nonaktif</x-bpjs.pill>
+                                        @endif
+                                    @elseif($setting->data_type === 'encrypted')
+                                        @if($setting->value !== null && $setting->value !== '')
+                                            <x-bpjs.pill variant="green">Tersimpan</x-bpjs.pill>
+                                        @else
+                                            <x-bpjs.pill variant="slate">Belum diatur</x-bpjs.pill>
                                         @endif
                                     @else
                                         <span class="font-mono" style="color: var(--slate-900);">{{ $setting->value }}</span>
@@ -119,6 +134,22 @@
                     </div>
                 @endforeach
             </div>
+
+            @if($group === 'email')
+                <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--slate-100);">
+                    <h3 style="font-size: 13.5px; font-weight: 600; color: var(--slate-800);">Kirim Email Uji</h3>
+                    <p style="font-size: 12px; color: var(--slate-500); margin-top: 2px;">
+                        Kirim email percobaan memakai konfigurasi tersimpan, untuk memverifikasi sebelum mengaktifkan notifikasi email.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-2.5" style="margin-top: 12px;">
+                        <input type="email" wire:model="testEmailAddress" placeholder="nama@bpjs-kesehatan.go.id"
+                               class="input" style="max-width: 280px;" />
+                        <x-bpjs.button variant="success" icon="arrowRight" wire:click="sendTestEmail" wire:loading.attr="disabled" wire:target="sendTestEmail">
+                            Kirim Email Uji
+                        </x-bpjs.button>
+                    </div>
+                </div>
+            @endif
         </x-bpjs.card>
     @empty
         <x-bpjs.card>
