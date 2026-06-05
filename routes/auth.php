@@ -14,4 +14,10 @@ Route::middleware('guest')->group(function () {
         ->name('password.reset');
 });
 
-Route::middleware('auth')->group(function () {});
+Route::middleware('auth')->group(function () {
+    Route::post('logout', function () {
+        app(\App\Livewire\Actions\Logout::class)();
+
+        return redirect('/');
+    })->name('logout');
+});

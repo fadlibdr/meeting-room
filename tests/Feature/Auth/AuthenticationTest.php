@@ -62,9 +62,12 @@ class AuthenticationTest extends TestCase
 
         $response = $this->get('/dashboard');
 
+        // The Breeze top-nav was replaced by the BPJS two-column sidebar shell;
+        // assert the redesigned navigation renders for an authenticated user.
         $response
             ->assertOk()
-            ->assertSeeVolt('layout.navigation');
+            ->assertSee('Dashboard')
+            ->assertSee('Keluar');
     }
 
     public function test_users_can_logout(): void
@@ -73,13 +76,11 @@ class AuthenticationTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = Volt::test('layout.navigation');
+        // Logout is now a standard POST route (reachable from the sidebar
+        // user chip and the topbar profile menu) rather than a Volt action.
+        $response = $this->post('/logout');
 
-        $component->call('logout');
-
-        $component
-            ->assertHasNoErrors()
-            ->assertRedirect('/');
+        $response->assertRedirect('/');
 
         $this->assertGuest();
     }

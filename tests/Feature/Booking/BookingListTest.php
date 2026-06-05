@@ -141,13 +141,13 @@ class BookingListTest extends TestCase
     {
         $this->actingAs($this->userWithRole('requester'));
 
-        Livewire::test(BookingList::class)->assertSee('Buat Booking');
+        Livewire::test(BookingList::class)->assertSee('Tambah');
     }
 
     public function test_create_button_hidden_without_create_permission(): void
     {
         $this->actingAs($this->userWithRole('ga_admin'));
 
-        Livewire::test(BookingList::class)->assertDontSee('Buat Booking');
+        Livewire::test(BookingList::class)->assertDontSee('Tambah');
     }
 }

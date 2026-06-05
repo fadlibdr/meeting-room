@@ -45,7 +45,7 @@ class BookingCalendarTest extends TestCase
         Livewire::actingAs($user)
             ->test(BookingCalendar::class)
             ->assertOk()
-            ->assertSee('Kalender Reservasi');
+            ->assertSee('Hari Ini');
     }
 
     public function test_unauthenticated_calendar_redirects_to_login(): void

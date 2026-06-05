@@ -1,73 +1,73 @@
 <div>
-    <form wire:submit="save" class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div class="p-6 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="roomId" class="block text-sm font-medium text-gray-700">Ruang <span class="text-red-500">*</span></label>
-                    <select wire:model.live="roomId" id="roomId" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+    <form wire:submit="save" class="card bpjs-rise" style="overflow: hidden;">
+        <div class="card--pad" style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="r-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <x-bpjs.field label="Ruangan" req for="roomId" :error="$errors->first('roomId')">
+                    <select wire:model.live="roomId" id="roomId" class="select @error('roomId') input--err @enderror">
                         <option value="">— Pilih ruang —</option>
                         @foreach($rooms as $room)
                             <option value="{{ $room->id }}">{{ $room->name }}</option>
                         @endforeach
                     </select>
-                    @error('roomId') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="blockType" class="block text-sm font-medium text-gray-700">Jenis Blokir <span class="text-red-500">*</span></label>
-                    <select wire:model="blockType" id="blockType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                </x-bpjs.field>
+
+                <x-bpjs.field label="Jenis Blokir" req for="blockType" :error="$errors->first('blockType')">
+                    <select wire:model="blockType" id="blockType" class="select @error('blockType') input--err @enderror">
                         @foreach($blockTypes as $type)
                             <option value="{{ $type->value }}">{{ $type->label() }}</option>
                         @endforeach
                     </select>
-                    @error('blockType') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                </div>
-            </div>
-            <div>
-                <label for="title" class="block text-sm font-medium text-gray-700">Judul <span class="text-red-500">*</span></label>
-                <input wire:model="title" type="text" id="title" placeholder="contoh: Pemeliharaan AC" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
-                @error('title') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="startsAt" class="block text-sm font-medium text-gray-700">Mulai <span class="text-red-500">*</span></label>
-                    <input wire:model.live="startsAt" type="datetime-local" id="startsAt" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
-                    @error('startsAt') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="endsAt" class="block text-sm font-medium text-gray-700">Selesai <span class="text-red-500">*</span></label>
-                    <input wire:model.live="endsAt" type="datetime-local" id="endsAt" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
-                    @error('endsAt') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                </div>
-            </div>
-            <div>
-                <label for="reason" class="block text-sm font-medium text-gray-700">Alasan (opsional)</label>
-                <textarea wire:model="reason" id="reason" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"></textarea>
-                @error('reason') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </x-bpjs.field>
             </div>
 
+            <x-bpjs.field label="Judul" req for="title" :error="$errors->first('title')">
+                <input wire:model="title" type="text" id="title" placeholder="contoh: Pemeliharaan AC"
+                       class="input @error('title') input--err @enderror" />
+            </x-bpjs.field>
+
+            <div class="r-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <x-bpjs.field label="Mulai" req for="startsAt" :error="$errors->first('startsAt')">
+                    <input wire:model.live="startsAt" type="datetime-local" id="startsAt"
+                           class="input @error('startsAt') input--err @enderror" />
+                </x-bpjs.field>
+
+                <x-bpjs.field label="Selesai" req for="endsAt" :error="$errors->first('endsAt')">
+                    <input wire:model.live="endsAt" type="datetime-local" id="endsAt"
+                           class="input @error('endsAt') input--err @enderror" />
+                </x-bpjs.field>
+            </div>
+
+            <x-bpjs.field label="Alasan (opsional)" for="reason" :error="$errors->first('reason')">
+                <textarea wire:model="reason" id="reason" rows="2" class="textarea @error('reason') input--err @enderror"></textarea>
+            </x-bpjs.field>
+
             @if($conflicts->isNotEmpty())
-                <div class="rounded-md border border-amber-200 bg-amber-50 p-4">
-                    <p class="text-sm font-medium text-amber-800">Booking yang bentrok ({{ $conflicts->count() }}):</p>
-                    <ul class="mt-2 space-y-1 text-sm text-amber-700">
+                <div class="card" style="padding: 16px; border-color: var(--amber-200); background: var(--amber-50);">
+                    <p class="text-sm font-semibold" style="color: var(--amber-800);">
+                        Booking yang bentrok ({{ $conflicts->count() }}):
+                    </p>
+                    <ul class="mt-2 space-y-1 text-sm" style="color: var(--amber-700);">
                         @foreach($conflicts as $b)
-                            <li>• {{ $b->subject }} ({{ $b->starts_at->format('d M H:i') }}–{{ $b->ends_at->format('H:i') }})</li>
+                            <li>• {{ $b->subject }} (<span class="mono">{{ $b->starts_at->format('d M H:i') }}–{{ $b->ends_at->format('H:i') }}</span>)</li>
                         @endforeach
                     </ul>
-                    <label class="mt-3 flex items-center cursor-pointer">
-                        <input type="checkbox" wire:model="cancelConflicting" class="rounded border-gray-300 text-red-600 shadow-sm focus:ring-red-500" />
-                        <span class="ml-2 text-sm text-amber-900">Batalkan booking di atas dan tetap buat blokir</span>
+                    <label class="mt-3 flex items-center cursor-pointer gap-2">
+                        <input type="checkbox" wire:model="cancelConflicting"
+                               style="accent-color: var(--red-600); width: 16px; height: 16px;" />
+                        <span class="text-sm" style="color: var(--amber-800);">Batalkan booking di atas dan tetap buat blokir</span>
                     </label>
                 </div>
             @endif
 
-            @error('conflict') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+            @error('conflict') <p class="field__err">{{ $message }}</p> @enderror
         </div>
-        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-            <a href="{{ route('admin.room-blocks.index') }}" wire:navigate class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-md">Batal</a>
-            <button type="submit" wire:loading.attr="disabled" wire:target="save" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md disabled:opacity-50">
-                <span wire:loading.remove wire:target="save">Simpan Blokir</span>
+
+        <div class="modal__foot">
+            <x-bpjs.button variant="ghost" :href="route('admin.room-blocks.index')" wire:navigate>Batal</x-bpjs.button>
+            <x-bpjs.button variant="primary" icon="check" type="submit" wire:loading.attr="disabled" wire:target="save">
+                <span wire:loading.remove wire:target="save">Buat Blokir</span>
                 <span wire:loading wire:target="save">Memproses...</span>
-            </button>
+            </x-bpjs.button>
         </div>
     </form>
 </div>

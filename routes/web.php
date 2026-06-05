@@ -64,7 +64,7 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     Route::get('approvals', ApprovalInbox::class)
         ->middleware('permission:bookings.approve')
         ->name('approvals.index');
-    Route::view('rooms', 'placeholder')->name('rooms.index');
+    Route::view('rooms', 'rooms.public')->name('rooms.index');
 
     // Admin
     Route::prefix('admin')->name('admin.')->group(function () {

@@ -38,42 +38,42 @@ new class extends Component
     }
 }; ?>
 
-<section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Update Password') }}
+<x-bpjs.card rise>
+    <header class="mb-5">
+        <h2 class="h-display" style="font-size: 16px; font-weight: 700; color: var(--slate-900);">
+            {{ __('Ubah Kata Sandi') }}
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __('Ensure your account is using a long, random password to stay secure.') }}
+        <p class="mt-1" style="font-size: 13px; color: var(--slate-500);">
+            {{ __('Pastikan akun Anda menggunakan kata sandi yang panjang dan acak agar tetap aman.') }}
         </p>
     </header>
 
-    <form wire:submit="updatePassword" class="mt-6 space-y-6">
-        <div>
-            <x-input-label for="update_password_current_password" :value="__('Current Password')" />
-            <x-text-input wire:model="current_password" id="update_password_current_password" name="current_password" type="password" class="mt-1 block w-full" autocomplete="current-password" />
-            <x-input-error :messages="$errors->get('current_password')" class="mt-2" />
-        </div>
+    <form wire:submit="updatePassword" class="space-y-5">
+        <x-bpjs.field :label="__('Kata Sandi Saat Ini')" for="update_password_current_password" :error="$errors->first('current_password')">
+            <input wire:model="current_password" id="update_password_current_password" name="current_password" type="password"
+                   class="input @error('current_password') input--err @enderror"
+                   autocomplete="current-password" />
+        </x-bpjs.field>
 
-        <div>
-            <x-input-label for="update_password_password" :value="__('New Password')" />
-            <x-text-input wire:model="password" id="update_password_password" name="password" type="password" class="mt-1 block w-full" autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+        <x-bpjs.field :label="__('Kata Sandi Baru')" for="update_password_password" :error="$errors->first('password')">
+            <input wire:model="password" id="update_password_password" name="password" type="password"
+                   class="input @error('password') input--err @enderror"
+                   autocomplete="new-password" />
+        </x-bpjs.field>
 
-        <div>
-            <x-input-label for="update_password_password_confirmation" :value="__('Confirm Password')" />
-            <x-text-input wire:model="password_confirmation" id="update_password_password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
+        <x-bpjs.field :label="__('Konfirmasi Kata Sandi')" for="update_password_password_confirmation" :error="$errors->first('password_confirmation')">
+            <input wire:model="password_confirmation" id="update_password_password_confirmation" name="password_confirmation" type="password"
+                   class="input @error('password_confirmation') input--err @enderror"
+                   autocomplete="new-password" />
+        </x-bpjs.field>
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+        <div class="flex items-center gap-4 pt-1">
+            <x-bpjs.button type="submit" variant="primary" icon="check">{{ __('Simpan') }}</x-bpjs.button>
 
-            <x-action-message class="me-3" on="password-updated">
-                {{ __('Saved.') }}
+            <x-action-message class="me-3" on="password-updated" style="font-size: 13px; font-weight: 600; color: var(--bpjs-green-700);">
+                {{ __('Tersimpan.') }}
             </x-action-message>
         </div>
     </form>
-</section>
+</x-bpjs.card>
