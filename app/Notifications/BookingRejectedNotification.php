@@ -7,17 +7,23 @@ namespace App\Notifications;
 use App\Actions\RejectBookingAction;
 use App\Enums\NotificationType;
 use App\Models\Booking;
+use App\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * In-app notification sent to the requester when their booking is rejected.
- * Database channel only. Dispatched by RejectBookingAction after its
- * transaction commits. Carries the rejection reason in the payload.
+ * Notification to the requester when their booking is rejected. Database
+ * (in-app inbox) + mail. Queued. Dispatched by RejectBookingAction after its
+ * transaction commits. Carries the rejection reason.
  *
  * @see RejectBookingAction
  */
-final class BookingRejectedNotification extends Notification
+final class BookingRejectedNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(
         private readonly Booking $booking,
     ) {}
@@ -27,7 +33,29 @@ final class BookingRejectedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $tz = (string) config('app.display_timezone', 'Asia/Jakarta');
+        $name = $notifiable instanceof User ? $notifiable->name : 'Pengguna';
+        $waktu = $this->booking->starts_at->copy()->setTimezone($tz)
+            ->locale('id')->isoFormat('dddd, D MMMM Y [pukul] HH:mm');
+
+        $mail = (new MailMessage)
+            ->subject('Reservasi Ditolak: '.$this->booking->booking_code)
+            ->greeting('Halo '.$name.',')
+            ->line(sprintf('Reservasi %s ditolak.', $this->booking->booking_code))
+            ->line('Subjek: '.$this->booking->subject)
+            ->line('Ruang: '.($this->booking->room->name ?? '-'))
+            ->line('Waktu: '.$waktu);
+
+        if ($this->booking->rejection_reason !== null && $this->booking->rejection_reason !== '') {
+            $mail->line('Alasan: '.$this->booking->rejection_reason);
+        }
+
+        return $mail->action('Lihat Reservasi', route('bookings.show', $this->booking->id));
     }
 
     /**

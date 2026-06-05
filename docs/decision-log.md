@@ -32,7 +32,7 @@ Records architectural and scope decisions that deviate from, extend, or clarify 
 ### ADR-005 · Notifications send synchronously (no queue worker)
 **Decision:** Notifications use the database channel and send synchronously; none implements `ShouldQueue`, and no queue worker runs. `QUEUE_CONNECTION=database` is configured but inert.
 **Context:** Notifications are in-app only and low-volume; email-queued notifications are deferred.
-**Status:** Accepted (30 May 2026). A supervised worker is to be added if/when async work (email, large exports) ships — see deployment runbook §8.
+**Status:** ~~Accepted (30 May 2026)~~ **Superseded by ADR-009 (6 Jun 2026)** — notifications now also send email and implement `ShouldQueue`.
 
 ### ADR-006 · Application Settings module
 **Decision:** A runtime Settings module (`SettingsManager` UI + `SettingsService` + `app_settings` table) manages configurable application behavior, gated by an `app-settings.view` permission.
@@ -48,6 +48,13 @@ Records architectural and scope decisions that deviate from, extend, or clarify 
 **Decision:** The VPS runs a served staging checkout (`/var/www/meeting-room`, `APP_ENV=staging`, DB `meeting_room`) separate from a dev/test checkout (`~/meeting-room-dev`, `APP_ENV=local`, DB `meeting_room_dev`). The suite runs only in the dev checkout; the served app is never used for test runs.
 **Context:** Isolating the test database and `RefreshDatabase` runs from the live staging instance.
 **Status:** Accepted (30 May 2026). Documented operationally in deployment runbook §2.
+
+### ADR-009 · Notifications send via `['database', 'mail']` and are queued (Stage 1 real email)
+**Decision:** All six notifications (`BookingSubmitted`, `BookingApproved`, `BookingRejected`, `BookingReminder`, `BookingCancelled`, `RoomBlockCreated`) now `implement ShouldQueue` and send on both the `database` (in-app inbox) and `mail` channels, each with a Bahasa-Indonesia `toMail()`. The in-app `toArray()` payloads are unchanged.
+**Context:** Deviation **D-2** ("live but silent") — the app was in production with `MAIL_MAILER=smtp` but every notification was database-channel only, so nothing ever emailed. This closes D-2: approval/rejection/cancellation/reminder/block emails now reach people.
+**Consequence — queue dependence:** because the notifications are now queued, the **`database` channel also routes through the queue**. The default `jobs`/`failed_jobs` tables (removed in Sprint 0) are re-added by this change, and a **queue worker becomes mandatory in every non-`sync` environment** — without a jobs table + running worker, *both* email and in-app notifications stop. `sync` remains the test/`phpunit.xml` setting (notifications fire inline, mail captured by the `array` mailer), and is an acceptable low-volume fallback for staging.
+**Stage 2 (future):** per-user notification preferences will gate the `mail` channel inside `via()` (e.g. return `['database']` when a user opts out of email).
+**Status:** Accepted (6 Jun 2026, `feat/stage1-real-email`). Supersedes ADR-005.
 
 ---
 

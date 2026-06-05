@@ -8,17 +8,23 @@ use App\Actions\BlockRoomAction;
 use App\Enums\NotificationType;
 use App\Models\Booking;
 use App\Models\RoomBlockSchedule;
+use App\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * In-app notification to the requester of a booking that was cancelled because
- * an admin created a room block over its slot (§H.7 force-cancel). Database
- * channel only; dispatched by BlockRoomAction after its transaction commits.
+ * Notification to the requester of a booking that was cancelled because an
+ * admin created a room block over its slot (§H.7 force-cancel). Database
+ * (in-app inbox) + mail. Queued. Dispatched by BlockRoomAction after commit.
  *
  * @see BlockRoomAction
  */
-final class RoomBlockCreatedNotification extends Notification
+final class RoomBlockCreatedNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(
         private readonly RoomBlockSchedule $block,
         private readonly Booking $cancelledBooking,
@@ -29,7 +35,27 @@ final class RoomBlockCreatedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $tz = (string) config('app.display_timezone', 'Asia/Jakarta');
+        $name = $notifiable instanceof User ? $notifiable->name : 'Pengguna';
+        $waktu = $this->cancelledBooking->starts_at->copy()->setTimezone($tz)
+            ->locale('id')->isoFormat('dddd, D MMMM Y [pukul] HH:mm');
+
+        return (new MailMessage)
+            ->subject('Reservasi Dibatalkan — Ruang Diblokir: '.$this->cancelledBooking->booking_code)
+            ->greeting('Halo '.$name.',')
+            ->line(sprintf(
+                'Reservasi %s dibatalkan karena ruang diblokir (%s).',
+                $this->cancelledBooking->booking_code,
+                $this->block->block_type->label(),
+            ))
+            ->line('Ruang: '.($this->block->room->name ?? '-'))
+            ->line('Waktu: '.$waktu)
+            ->action('Lihat Reservasi', route('bookings.show', $this->cancelledBooking->id));
     }
 
     /**

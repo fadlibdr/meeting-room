@@ -13,12 +13,17 @@ use App\Models\Booking;
 use App\Models\BookingApproval;
 use App\Models\Role;
 use App\Models\Room;
+use App\Models\RoomBlockSchedule;
 use App\Models\Unit;
 use App\Models\User;
 use App\Notifications\BookingApprovedNotification;
+use App\Notifications\BookingCancelledNotification;
 use App\Notifications\BookingRejectedNotification;
+use App\Notifications\BookingReminderNotification;
 use App\Notifications\BookingSubmittedNotification;
+use App\Notifications\RoomBlockCreatedNotification;
 use Database\Seeders\RolesAndPermissionsSeeder;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
@@ -256,5 +261,112 @@ class BookingNotificationsTest extends TestCase
         $this->assertSame($reason, $payload['reason']);
         $this->assertArrayHasKey('message', $payload);
         $this->assertArrayHasKey('url', $payload);
+    }
+
+    // ─── MAIL CHANNEL (Stage 1: real email, D-2) ─────────────────────
+
+    public function test_every_notification_is_queued_and_uses_database_and_mail(): void
+    {
+        $ctx = $this->makeSubmittedBooking();
+        $booking = $ctx['booking'];
+        $block = RoomBlockSchedule::factory()->create(['room_id' => $booking->room_id]);
+        $user = $ctx['requester'];
+
+        $cases = [
+            new BookingSubmittedNotification($booking),
+            new BookingApprovedNotification($booking),
+            new BookingRejectedNotification($booking),
+            new BookingCancelledNotification($booking),
+            new BookingReminderNotification($booking),
+            new RoomBlockCreatedNotification($block, $booking),
+        ];
+
+        foreach ($cases as $notification) {
+            $this->assertInstanceOf(ShouldQueue::class, $notification);
+            $this->assertSame(['database', 'mail'], $notification->via($user));
+        }
+    }
+
+    public function test_submitted_mail_renders_subject_greeting_and_lines(): void
+    {
+        $ctx = $this->makeSubmittedBooking();
+        $booking = $ctx['booking'];
+
+        $mail = (new BookingSubmittedNotification($booking))->toMail($ctx['approver']);
+
+        $this->assertStringContainsString($booking->booking_code, $mail->subject);
+        $this->assertStringContainsString($ctx['approver']->name, (string) $mail->greeting);
+        $this->assertTrue(
+            collect($mail->introLines)->contains(fn (string $l): bool => str_contains($l, $booking->booking_code)),
+            'A mail line should reference the booking code.'
+        );
+        $this->assertSame(route('bookings.show', $booking->id), $mail->actionUrl);
+    }
+
+    public function test_approved_mail_renders_subject_and_action(): void
+    {
+        $ctx = $this->makeSubmittedBooking();
+        $booking = $ctx['booking'];
+
+        $mail = (new BookingApprovedNotification($booking))->toMail($ctx['requester']);
+
+        $this->assertStringContainsString($booking->booking_code, $mail->subject);
+        $this->assertStringContainsString('disetujui', strtolower(implode(' ', $mail->introLines)));
+        $this->assertSame(route('bookings.show', $booking->id), $mail->actionUrl);
+    }
+
+    public function test_rejected_mail_includes_the_reason_line(): void
+    {
+        $reason = 'Bentrok dengan agenda direksi.';
+        $ctx = $this->makeSubmittedBooking();
+        $booking = $ctx['booking'];
+        $booking->update(['rejection_reason' => $reason]);
+
+        $mail = (new BookingRejectedNotification($booking->fresh() ?? $booking))->toMail($ctx['requester']);
+
+        $this->assertStringContainsString($booking->booking_code, $mail->subject);
+        $this->assertTrue(
+            collect($mail->introLines)->contains(fn (string $l): bool => str_contains($l, $reason)),
+            'The rejection reason should appear in the mail body.'
+        );
+    }
+
+    public function test_cancelled_mail_includes_the_reason_line(): void
+    {
+        $reason = 'Rapat dibatalkan oleh pemohon.';
+        $ctx = $this->makeSubmittedBooking();
+        $booking = $ctx['booking'];
+        $booking->update(['cancellation_reason' => $reason]);
+
+        $mail = (new BookingCancelledNotification($booking->fresh() ?? $booking))->toMail($ctx['approver']);
+
+        $this->assertStringContainsString($booking->booking_code, $mail->subject);
+        $this->assertTrue(
+            collect($mail->introLines)->contains(fn (string $l): bool => str_contains($l, $reason)),
+            'The cancellation reason should appear in the mail body.'
+        );
+    }
+
+    public function test_reminder_mail_references_the_booking(): void
+    {
+        $ctx = $this->makeSubmittedBooking();
+        $booking = $ctx['booking'];
+
+        $mail = (new BookingReminderNotification($booking))->toMail($ctx['requester']);
+
+        $this->assertStringContainsString($booking->booking_code, $mail->subject);
+        $this->assertSame(route('bookings.show', $booking->id), $mail->actionUrl);
+    }
+
+    public function test_room_block_mail_points_at_the_cancelled_booking(): void
+    {
+        $ctx = $this->makeSubmittedBooking();
+        $booking = $ctx['booking'];
+        $block = RoomBlockSchedule::factory()->create(['room_id' => $booking->room_id]);
+
+        $mail = (new RoomBlockCreatedNotification($block, $booking))->toMail($ctx['requester']);
+
+        $this->assertStringContainsString($booking->booking_code, $mail->subject);
+        $this->assertSame(route('bookings.show', $booking->id), $mail->actionUrl);
     }
 }
