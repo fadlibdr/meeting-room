@@ -48,6 +48,9 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         ->name('bookings.attachments.destroy');
     Route::post('bookings/{booking}/cancel', [BookingController::class, 'cancel'])
         ->name('bookings.cancel');
+    Route::post('bookings/{booking}/cancel-series', [BookingController::class, 'cancelSeries'])
+        ->can('cancel', 'booking')
+        ->name('bookings.cancel-series');
     Route::post('bookings/{booking}/submit', [BookingController::class, 'submit'])
         ->can('submit', 'booking')
         ->name('bookings.submit');

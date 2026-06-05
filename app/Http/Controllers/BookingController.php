@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\CancelBookingAction;
+use App\Actions\CancelRecurringBookingAction;
 use App\Actions\DeleteBookingAction;
 use App\Actions\SubmitBookingAction;
 use App\Actions\SubmitDraftAction;
@@ -21,6 +22,7 @@ use DomainException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
@@ -113,6 +115,32 @@ class BookingController extends Controller
         return redirect()
             ->route('bookings.show', $booking->id)
             ->with('success', "Reservasi {$booking->booking_code} berhasil dibatalkan.");
+    }
+
+    /**
+     * Cancel every still-cancellable occurrence in this booking's recurring
+     * series. Route-authorized by can:cancel,booking. A reason is required so
+     * that approved occurrences (which CancelBookingAction refuses to cancel
+     * without one) are not silently skipped.
+     */
+    public function cancelSeries(
+        Request $request,
+        Booking $booking,
+        CancelRecurringBookingAction $action,
+    ): RedirectResponse {
+        $validated = $request->validate(
+            ['cancellation_reason' => ['required', 'string', 'max:2000']],
+            ['cancellation_reason.required' => 'Alasan pembatalan wajib diisi untuk membatalkan seri.'],
+        );
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $count = $action->execute($booking, $user, $validated['cancellation_reason']);
+
+        return redirect()
+            ->route('bookings.show', $booking->id)
+            ->with('success', "Seri reservasi dibatalkan: {$count} jadwal.");
     }
 
     /**

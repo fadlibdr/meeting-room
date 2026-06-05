@@ -16,7 +16,12 @@
                 </div>
                 <div style="font-size: 14px; color: var(--slate-600); margin-top: 4px;">{{ $booking->subject }}</div>
             </div>
-            <x-bpjs.status-pill :status="$booking->status" />
+            <div class="flex items-center gap-2">
+                @if ($booking->isRecurring())
+                    <x-bpjs.pill variant="blue"><x-icon name="calendar" :size="13" /> Berulang</x-bpjs.pill>
+                @endif
+                <x-bpjs.status-pill :status="$booking->status" />
+            </div>
         </x-bpjs.card>
 
         {{-- Informasi Rapat --}}
@@ -236,8 +241,16 @@
                                     placeholder="{{ $booking->status === \App\Enums\BookingStatus::Approved ? 'Wajib diisi untuk reservasi yang sudah disetujui.' : 'Opsional.' }}">{{ old('cancellation_reason') }}</textarea>
                             </x-bpjs.field>
 
-                            <div style="margin-top: 14px;">
+                            <div class="flex flex-wrap items-center gap-2.5" style="margin-top: 14px;">
                                 <x-bpjs.button type="submit" variant="solid-danger" icon="x">Batalkan Reservasi</x-bpjs.button>
+                                @if ($booking->isRecurring())
+                                    <button type="submit"
+                                            formaction="{{ route('bookings.cancel-series', $booking->id) }}"
+                                            onclick="return confirm('Batalkan SEMUA jadwal dalam seri berulang ini? Alasan wajib diisi.');"
+                                            class="btn btn--danger">
+                                        <x-icon name="x" :size="17" /> Batalkan Seri
+                                    </button>
+                                @endif
                             </div>
                         </form>
                     </div>
