@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\Livewire\Booking;
 
+use App\Actions\CreateRecurringBookingAction;
 use App\Actions\RescheduleBookingAction;
 use App\Actions\SubmitBookingAction;
 use App\Actions\UpdateBookingAction;
 use App\DataTransferObjects\ConflictItem;
+use App\Enums\RecurrenceFrequency;
 use App\Exceptions\ApprovalRoutingException;
 use App\Exceptions\BookingConflictException;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\User;
 use App\Services\BookingConflictService;
+use App\Services\RecurrenceExpander;
 use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Support\Collection;
@@ -67,6 +70,25 @@ class BookingForm extends Component
     public ?string $agenda = null;
 
     public int $attendeeCount = 1;
+
+    // ── Recurrence (create mode only) ───────────────────────────────
+    /** Toggle: when true, submit() creates a recurring series. */
+    public bool $recurring = false;
+
+    /** daily | weekly | monthly */
+    public string $recurrenceFrequency = 'weekly';
+
+    /** Every N units. */
+    public int $recurrenceInterval = 1;
+
+    /** count | until */
+    public string $recurrenceEnd = 'count';
+
+    /** Total occurrences when $recurrenceEnd === 'count'. */
+    public int $recurrenceCount = 4;
+
+    /** Inclusive end date (YYYY-MM-DD) when $recurrenceEnd === 'until'. */
+    public string $recurrenceUntil = '';
 
     /**
      * Form-level submit error banner.
@@ -223,7 +245,7 @@ class BookingForm extends Component
      */
     protected function rules(): array
     {
-        return [
+        $rules = [
             'roomId' => ['required', 'integer', 'exists:rooms,id'],
             'subject' => ['required', 'string', 'min:3', 'max:150'],
             'agenda' => ['nullable', 'string', 'max:5000'],
@@ -231,6 +253,16 @@ class BookingForm extends Component
             'startsAt' => ['required', 'date', 'after:now'],
             'endsAt' => ['required', 'date', 'after:startsAt'],
         ];
+
+        if ($this->mode === 'create' && $this->recurring) {
+            $rules['recurrenceFrequency'] = ['required', 'in:daily,weekly,monthly'];
+            $rules['recurrenceInterval'] = ['required', 'integer', 'min:1', 'max:12'];
+            $rules['recurrenceEnd'] = ['required', 'in:count,until'];
+            $rules['recurrenceCount'] = ['required_if:recurrenceEnd,count', 'integer', 'min:1', 'max:'.RecurrenceExpander::MAX_OCCURRENCES];
+            $rules['recurrenceUntil'] = ['required_if:recurrenceEnd,until', 'nullable', 'date', 'after:startsAt'];
+        }
+
+        return $rules;
     }
 
     /**
@@ -268,7 +300,9 @@ class BookingForm extends Component
         // lockForUpdate + re-check anyway (defense in depth); this catches the
         // common case before transaction overhead.
         $this->checkAvailability(app(BookingConflictService::class));
-        if ($this->conflictStatus === 'conflict') {
+        // For a recurring series the action skips conflicting occurrences, so a
+        // first-occurrence clash should NOT block the whole submit.
+        if (! $this->recurring && $this->conflictStatus === 'conflict') {
             $this->submitError = 'Slot waktu yang dipilih bentrok dengan jadwal lain. '
                 .'Silakan pilih waktu lain.';
 
@@ -300,6 +334,35 @@ class BookingForm extends Component
                     $user,
                     $payload,
                 );
+            } elseif ($this->recurring) {
+                $until = ($this->recurrenceEnd === 'until' && $this->recurrenceUntil !== '')
+                    ? CarbonImmutable::parse($this->recurrenceUntil)->endOfDay()
+                    : null;
+                $series = app(CreateRecurringBookingAction::class)->execute(
+                    $user,
+                    $payload,
+                    RecurrenceFrequency::from($this->recurrenceFrequency),
+                    $this->recurrenceInterval,
+                    $until,
+                    $this->recurrenceEnd === 'count' ? $this->recurrenceCount : null,
+                );
+
+                if ($series['created']->isEmpty()) {
+                    $this->submitError = 'Tidak ada jadwal yang dapat dibuat — semua tanggal bentrok dengan jadwal lain.';
+
+                    return null;
+                }
+
+                $createdCount = $series['created']->count();
+                $skippedCount = count($series['skipped']);
+                $message = "Seri reservasi dibuat: {$createdCount} jadwal berhasil.";
+                if ($skippedCount > 0) {
+                    $dates = collect($series['skipped'])->pluck('starts_at')->implode(', ');
+                    $message .= " {$skippedCount} dilewati karena bentrok ({$dates}).";
+                }
+                session()->flash('success', $message);
+
+                return $this->redirect(route('bookings.index'), navigate: true);
             } else {
                 $booking = $submitAction->execute($user, $payload);
             }

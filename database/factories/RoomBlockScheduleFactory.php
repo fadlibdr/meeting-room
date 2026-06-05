@@ -22,6 +22,7 @@ class RoomBlockScheduleFactory extends Factory
 
         return [
             'room_id' => Room::factory(),
+            'recurrence_group_id' => null,
             'block_type' => $this->faker->randomElement(RoomBlockType::cases()),
             'title' => $this->faker->randomElement([
                 'Pemeliharaan AC',
