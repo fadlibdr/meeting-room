@@ -7,19 +7,24 @@ namespace App\Notifications;
 use App\Actions\CancelBookingAction;
 use App\Enums\NotificationType;
 use App\Models\Booking;
+use App\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * In-app notification sent to a booking's assigned approver when the
- * booking is cancelled. Database channel only. Dispatched by
- * CancelBookingAction after its transaction commits — NOT for Draft
- * cancellations (never visible to an approver) and NOT when the
- * reschedule pipeline suppresses it (M3-Dec-3).
+ * Notification to a booking's assigned approver when the booking is cancelled.
+ * Database (in-app inbox) + mail. Queued. Dispatched by CancelBookingAction
+ * after commit — NOT for Draft cancellations (never visible to an approver) and
+ * NOT when the reschedule pipeline suppresses it (M3-Dec-3).
  *
  * @see CancelBookingAction
  */
-final class BookingCancelledNotification extends Notification
+final class BookingCancelledNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(
         private readonly Booking $booking,
     ) {}
@@ -29,7 +34,29 @@ final class BookingCancelledNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $tz = (string) config('app.display_timezone', 'Asia/Jakarta');
+        $name = $notifiable instanceof User ? $notifiable->name : 'Pengguna';
+        $waktu = $this->booking->starts_at->copy()->setTimezone($tz)
+            ->locale('id')->isoFormat('dddd, D MMMM Y [pukul] HH:mm');
+
+        $mail = (new MailMessage)
+            ->subject('Reservasi Dibatalkan: '.$this->booking->booking_code)
+            ->greeting('Halo '.$name.',')
+            ->line(sprintf('Reservasi %s dibatalkan.', $this->booking->booking_code))
+            ->line('Subjek: '.$this->booking->subject)
+            ->line('Ruang: '.($this->booking->room->name ?? '-'))
+            ->line('Waktu: '.$waktu);
+
+        if ($this->booking->cancellation_reason !== null && $this->booking->cancellation_reason !== '') {
+            $mail->line('Alasan: '.$this->booking->cancellation_reason);
+        }
+
+        return $mail->action('Tinjau Reservasi', route('bookings.show', $this->booking->id));
     }
 
     /**

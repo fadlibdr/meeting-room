@@ -7,18 +7,23 @@ namespace App\Notifications;
 use App\Actions\SubmitBookingAction;
 use App\Enums\NotificationType;
 use App\Models\Booking;
+use App\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * In-app notification sent to the assigned approver when a booking enters
- * Submitted status and awaits their decision. Database channel only — a
- * synchronous insert into `notifications`. Dispatched by SubmitBookingAction
- * after its transaction commits, and only when an approver exists.
+ * Notification to the assigned approver when a booking enters Submitted status
+ * and awaits their decision. Database (in-app inbox) + mail. Queued. Dispatched
+ * by SubmitBookingAction after its transaction commits, when an approver exists.
  *
  * @see SubmitBookingAction
  */
-final class BookingSubmittedNotification extends Notification
+final class BookingSubmittedNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(
         private readonly Booking $booking,
     ) {}
@@ -28,7 +33,24 @@ final class BookingSubmittedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $tz = (string) config('app.display_timezone', 'Asia/Jakarta');
+        $name = $notifiable instanceof User ? $notifiable->name : 'Pengguna';
+        $waktu = $this->booking->starts_at->copy()->setTimezone($tz)
+            ->locale('id')->isoFormat('dddd, D MMMM Y [pukul] HH:mm');
+
+        return (new MailMessage)
+            ->subject('Persetujuan Reservasi: '.$this->booking->booking_code)
+            ->greeting('Halo '.$name.',')
+            ->line(sprintf('Reservasi %s menunggu persetujuan Anda.', $this->booking->booking_code))
+            ->line('Subjek: '.$this->booking->subject)
+            ->line('Ruang: '.($this->booking->room->name ?? '-'))
+            ->line('Waktu: '.$waktu)
+            ->action('Tinjau Reservasi', route('bookings.show', $this->booking->id));
     }
 
     /**
