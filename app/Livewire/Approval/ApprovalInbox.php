@@ -133,6 +133,6 @@ class ApprovalInbox extends Component
 
         return view('livewire.approval.approval-inbox', [
             'pendingBookings' => $pendingBookings,
-        ])->layout('layouts.app');
+        ])->layout('layouts.app', ['title' => 'Persetujuan', 'subtitle' => 'Reservasi menunggu persetujuan Anda']);
     }
 }

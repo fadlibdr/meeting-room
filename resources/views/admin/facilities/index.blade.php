@@ -1,13 +1,10 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Manajemen Fasilitas') }}</h2>
-    </x-slot>
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @if(session('status'))
-                <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-md text-sm">{{ session('status') }}</div>
-            @endif
-            <livewire:admin.facility-list />
+<x-app-layout title="Fasilitas" subtitle="Katalog fasilitas yang dapat dipasang pada ruang rapat">
+    @if(session('status'))
+        <div class="mb-6 flex items-center gap-2 rounded-xl border border-bpjs-green-200 bg-bpjs-green-50 px-4 py-3 text-sm text-bpjs-green-800 bpjs-rise">
+            <x-icon name="checkCircle" :size="18" />
+            <span>{{ session('status') }}</span>
         </div>
-    </div>
+    @endif
+
+    <livewire:admin.facility-list />
 </x-app-layout>

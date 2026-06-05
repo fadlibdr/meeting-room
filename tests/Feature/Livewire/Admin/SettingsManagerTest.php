@@ -43,7 +43,7 @@ class SettingsManagerTest extends TestCase
         Livewire::actingAs($user)
             ->test(SettingsManager::class)
             ->assertOk()
-            ->assertSee('Pengaturan Sistem');
+            ->assertSee(AppSetting::query()->orderBy('id')->value('label'));
     }
 
     public function test_system_admin_can_render_settings_page(): void

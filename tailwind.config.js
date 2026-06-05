@@ -9,11 +9,22 @@ export default {
         './resources/views/**/*.blade.php',
     ],
 
+    // Bespoke BPJS component classes (app.css @layer components) whose modifier
+    // is built dynamically in Blade — e.g. <x-bpjs.button> emits 'btn--'.$variant
+    // and <x-bpjs.pill>/<x-bpjs.status-pill> emit 'pill--'.$variant. Those literals
+    // never appear in source, so the production purge would strip the unused ones
+    // (btn--success, btn--solid-danger, pill--red, …). Safelist the full families.
+    safelist: [
+        'btn--primary', 'btn--success', 'btn--ghost', 'btn--danger', 'btn--solid-danger', 'btn--lg', 'btn--block',
+        'pill--green', 'pill--amber', 'pill--red', 'pill--blue', 'pill--slate',
+        'input--err',
+    ],
+
     theme: {
         extend: {
             fontFamily: {
                 sans: ['"IBM Plex Sans"', ...defaultTheme.fontFamily.sans],
-                display: ['"Public Sans"', ...defaultTheme.fontFamily.sans],
+                display: ['"Libre Franklin"', ...defaultTheme.fontFamily.sans],
                 mono: ['"IBM Plex Mono"', ...defaultTheme.fontFamily.mono],
             },
             colors: {
@@ -43,6 +54,16 @@ export default {
                         900: '#00270d',
                     },
                 },
+            },
+            borderRadius: {
+                // BPJS kit uses slightly larger radii than Breeze defaults
+                'card': '1rem',     // 16px — cards / panels / modals
+                'ctl': '0.625rem',  // 10px — buttons, inputs, controls
+            },
+            boxShadow: {
+                'card': '0 1px 2px rgba(16,24,40,.04)',
+                'pop': '0 18px 40px rgba(16,24,40,.16)',
+                'modal': '0 24px 60px rgba(0,0,0,.3)',
             },
         },
     },

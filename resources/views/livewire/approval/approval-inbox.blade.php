@@ -1,93 +1,102 @@
 <div wire:poll.30s>
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
-            {{-- Page header --}}
-            <div>
-                <h1 class="font-display text-3xl font-semibold text-slate-900 tracking-tight">
-                    Kotak Persetujuan
-                </h1>
-                <p class="mt-2 text-sm text-slate-500">
-                    Reservasi yang menunggu keputusan Anda.
-                </p>
+    {{-- Feedback banner --}}
+    @if ($feedback)
+        @if ($feedbackType === 'success')
+            <div role="status" class="toast bpjs-pop" style="position: static; transform: none; margin: 0 auto 18px; max-width: max-content;">
+                <span class="ck"><x-icon name="checkCircle" :size="18" /></span>
+                {{ $feedback }}
             </div>
+        @else
+            <div role="status" class="card card--pad bpjs-pop mb-[18px]" style="border-color: var(--red-300); background: var(--red-50); color: var(--red-800); display: flex; align-items: center; gap: 10px;">
+                <x-icon name="info" :size="18" />
+                <span class="text-sm font-medium">{{ $feedback }}</span>
+            </div>
+        @endif
+    @endif
 
-            {{-- Feedback banner --}}
-            @if ($feedback)
-                <div role="status"
-                    class="rounded-lg border p-4 text-sm {{ $feedbackType === 'success'
-                        ? 'border-green-200 bg-green-50 text-green-800'
-                        : 'border-red-200 bg-red-50 text-red-700' }}">
-                    {{ $feedback }}
-                </div>
-            @endif
-
-            {{-- Queue --}}
-            @forelse ($pendingBookings as $booking)
-                <div class="bg-white rounded-lg shadow-sm p-6" wire:key="booking-{{ $booking->id }}">
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <p class="font-display text-lg font-semibold text-slate-900">
-                                {{ $booking->subject }}
-                            </p>
-                            <p class="mt-1 text-sm text-slate-500">
-                                {{ $booking->booking_code }} · {{ $booking->room->name }} ·
-                                @displayDateTime($booking->starts_at)
-                            </p>
-                            <p class="mt-1 text-sm text-slate-500">
-                                Pemesan: {{ $booking->requester->name }} ·
-                                {{ $booking->attendee_count }} peserta
-                            </p>
+    {{-- Queue --}}
+    <div class="flex flex-col gap-[18px]">
+        @forelse ($pendingBookings as $booking)
+            <x-bpjs.card rise wire:key="booking-{{ $booking->id }}">
+                <div class="flex items-start justify-between gap-4 flex-wrap">
+                    <div class="min-w-0">
+                        <p class="h-display font-bold text-slate-900" style="font-size: 17px;">
+                            {{ $booking->subject }}
+                        </p>
+                        <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-slate-500" style="font-size: 12.5px;">
+                            <span class="inline-flex items-center gap-1.5">
+                                <x-icon name="doc" :size="14" />
+                                <span class="font-mono text-slate-600">{{ $booking->booking_code }}</span>
+                            </span>
+                            <span class="inline-flex items-center gap-1.5">
+                                <x-icon name="building" :size="14" />
+                                {{ $booking->room->name }}
+                            </span>
+                            <span class="inline-flex items-center gap-1.5">
+                                <x-icon name="clock" :size="14" />
+                                <span class="font-mono">@displayDateTime($booking->starts_at)</span>
+                            </span>
                         </div>
-                        <a href="{{ route('bookings.show', $booking) }}"
-                           class="text-sm text-blue-600 hover:text-blue-800 whitespace-nowrap">
-                            Lihat detail
-                        </a>
+                        <div class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-slate-500" style="font-size: 12.5px;">
+                            <span class="inline-flex items-center gap-1.5">
+                                <x-icon name="users" :size="14" />
+                                Pemesan: <span class="font-medium text-slate-700">{{ $booking->requester->name }}</span>
+                            </span>
+                            <span class="inline-flex items-center gap-1.5">
+                                <x-icon name="users" :size="14" />
+                                {{ $booking->attendee_count }} peserta
+                            </span>
+                        </div>
                     </div>
 
-                    @if ($rejectingId === $booking->id)
-                        <div class="mt-4 pt-4 border-t border-slate-100">
-                            <label class="block text-sm font-medium text-slate-700 mb-1">
-                                Alasan penolakan
-                            </label>
-                            <textarea wire:model="rejectReason" rows="2"
-                                class="w-full rounded-lg border-slate-300 text-sm focus:border-red-400 focus:ring-red-400"
-                                placeholder="Jelaskan alasan penolakan..."></textarea>
-                            @error('rejectReason')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                            <div class="mt-3 flex gap-2">
-                                <button type="button" wire:click="reject"
-                                    class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
-                                    Konfirmasi Penolakan
-                                </button>
-                                <button type="button" wire:click="cancelReject"
-                                    class="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200">
-                                    Batal
-                                </button>
-                            </div>
-                        </div>
-                    @else
-                        <div class="mt-4 flex gap-2">
-                            <button type="button" wire:click="approve({{ $booking->id }})"
-                                class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
-                                Setujui
-                            </button>
-                            <button type="button" wire:click="startReject({{ $booking->id }})"
-                                class="rounded-lg bg-white border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">
-                                Tolak
-                            </button>
-                        </div>
-                    @endif
+                    <a href="{{ route('bookings.show', $booking) }}"
+                       class="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold"
+                       style="font-size: 13px; color: var(--bpjs-blue-600);">
+                        Detail
+                        <x-icon name="arrowRight" :size="15" />
+                    </a>
                 </div>
-            @empty
-                <div class="bg-white rounded-lg shadow-sm p-10 text-center">
-                    <p class="text-sm text-slate-400">
-                        Tidak ada reservasi yang menunggu persetujuan Anda.
-                    </p>
-                </div>
-            @endforelse
 
-        </div>
+                @if ($rejectingId === $booking->id)
+                    <div class="mt-4 pt-4" style="border-top: 1px solid var(--slate-100);">
+                        <x-bpjs.field label="Alasan penolakan" req :error="$errors->first('rejectReason')">
+                            <textarea wire:model="rejectReason" rows="2"
+                                class="textarea @error('rejectReason') input--err @enderror"
+                                placeholder="Jelaskan alasan penolakan..."></textarea>
+                        </x-bpjs.field>
+                        <div class="mt-3 flex gap-2">
+                            <x-bpjs.button variant="solid-danger" type="button" wire:click="reject" icon="check">
+                                Konfirmasi Penolakan
+                            </x-bpjs.button>
+                            <x-bpjs.button variant="ghost" type="button" wire:click="cancelReject">
+                                Batal
+                            </x-bpjs.button>
+                        </div>
+                    </div>
+                @else
+                    <div class="mt-4 pt-4 flex gap-2" style="border-top: 1px solid var(--slate-100);">
+                        <x-bpjs.button variant="success" type="button" wire:click="approve({{ $booking->id }})" icon="check">
+                            Setujui
+                        </x-bpjs.button>
+                        <x-bpjs.button variant="danger" type="button" wire:click="startReject({{ $booking->id }})" icon="x">
+                            Tolak
+                        </x-bpjs.button>
+                    </div>
+                @endif
+            </x-bpjs.card>
+        @empty
+            <x-bpjs.card rise class="text-center" style="padding: 56px 24px;">
+                <div class="mx-auto flex items-center justify-center" style="width: 64px; height: 64px; border-radius: 9999px; background: var(--bpjs-green-50); color: var(--bpjs-green-600);">
+                    <x-icon name="checkCircle" :size="34" />
+                </div>
+                <p class="h-display font-bold text-slate-900 mt-4" style="font-size: 18px;">
+                    Semua beres!
+                </p>
+                <p class="mt-1.5 text-slate-500" style="font-size: 13px;">
+                    Tidak ada reservasi yang menunggu persetujuan Anda.
+                </p>
+            </x-bpjs.card>
+        @endforelse
     </div>
 </div>

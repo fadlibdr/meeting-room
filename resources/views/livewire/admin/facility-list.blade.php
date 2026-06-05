@@ -1,83 +1,113 @@
 <div>
-    <div class="mb-6 bg-white rounded-lg shadow-sm p-4">
+    {{-- Filters --}}
+    <div class="card card--pad mb-6 bpjs-rise">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="md:col-span-2">
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Cari kode atau nama</label>
-                <input wire:model.live.debounce.300ms="search" type="text" id="search" placeholder="contoh: projector"
-                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
+                <x-bpjs.field label="Cari kode atau nama" for="search">
+                    <div class="relative">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <x-icon name="search" :size="18" />
+                        </span>
+                        <input wire:model.live.debounce.300ms="search" type="text" id="search"
+                               placeholder="contoh: projector" class="input pl-10" />
+                    </div>
+                </x-bpjs.field>
             </div>
             <div>
-                <label for="categoryFilter" class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                <select wire:model.live="categoryFilter" id="categoryFilter"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                    <option value="">Semua kategori</option>
-                    @foreach($categories as $cat)
-                        <option value="{{ $cat }}">{{ ucfirst($cat) }}</option>
-                    @endforeach
-                </select>
+                <x-bpjs.field label="Kategori" for="categoryFilter">
+                    <select wire:model.live="categoryFilter" id="categoryFilter" class="select">
+                        <option value="">Semua kategori</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat }}">{{ ucfirst($cat) }}</option>
+                        @endforeach
+                    </select>
+                </x-bpjs.field>
             </div>
             <div>
-                <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select wire:model.live="statusFilter" id="statusFilter"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                    <option value="all">Semua</option>
-                    <option value="active">Aktif</option>
-                    <option value="inactive">Nonaktif</option>
-                </select>
+                <x-bpjs.field label="Status" for="statusFilter">
+                    <select wire:model.live="statusFilter" id="statusFilter" class="select">
+                        <option value="all">Semua</option>
+                        <option value="active">Aktif</option>
+                        <option value="inactive">Nonaktif</option>
+                    </select>
+                </x-bpjs.field>
             </div>
         </div>
-        <div class="mt-4 flex items-center justify-between">
-            <button wire:click="clearFilters" type="button" class="text-sm text-gray-500 hover:text-gray-700">Reset filter</button>
+        <div class="mt-4 flex items-center justify-between gap-3">
+            <button wire:click="clearFilters" type="button"
+                    class="text-sm font-medium text-slate-500 hover:text-slate-800">Reset filter</button>
             @hasPermission('rooms.create')
-                <a href="{{ route('admin.facilities.create') }}" wire:navigate
-                   class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md shadow-sm">+ Tambah Fasilitas</a>
+                <x-bpjs.button :href="route('admin.facilities.create')" icon="plus" wire:navigate>
+                    Tambah Fasilitas
+                </x-bpjs.button>
             @endhasPermission
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+    {{-- Table --}}
+    <div class="card bpjs-rise">
+        <table class="dtable">
+            <thead>
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                    <th>Kode</th>
+                    <th>Nama</th>
+                    <th>Kategori</th>
+                    <th>Status</th>
+                    <th class="text-right">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody>
                 @forelse($facilities as $facility)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{{ $facility->code }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $facility->name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $facility->category ? ucfirst($facility->category) : '-' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @if($facility->is_active)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Aktif</span>
+                    <tr>
+                        <td class="font-mono text-slate-900">{{ $facility->code }}</td>
+                        <td>
+                            <div class="flex items-center gap-2.5">
+                                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-bpjs-blue-50 text-bpjs-blue-600 flex-shrink-0">
+                                    <x-icon :name="$facility->icon ?: 'panelLeft'" :size="17" />
+                                </span>
+                                <span class="font-semibold text-slate-900">{{ $facility->name }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            @if($facility->category)
+                                <x-bpjs.pill variant="blue">{{ ucfirst($facility->category) }}</x-bpjs.pill>
                             @else
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Nonaktif</span>
+                                <span class="text-slate-400">-</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                            @hasPermission('rooms.update')
-                                <a href="{{ route('admin.facilities.edit', $facility->id) }}" wire:navigate class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                                <button wire:click="toggleActive({{ $facility->id }})"
-                                        wire:confirm="{{ $facility->is_active ? 'Nonaktifkan ' : 'Aktifkan ' }}{{ $facility->name }}?"
-                                        type="button"
-                                        class="{{ $facility->is_active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900' }}">
-                                    {{ $facility->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
-                                </button>
-                            @endhasPermission
+                        <td>
+                            @if($facility->is_active)
+                                <x-bpjs.pill variant="green">Aktif</x-bpjs.pill>
+                            @else
+                                <x-bpjs.pill variant="slate">Nonaktif</x-bpjs.pill>
+                            @endif
+                        </td>
+                        <td class="text-right">
+                            <div class="inline-flex items-center justify-end gap-3">
+                                @hasPermission('rooms.update')
+                                    <a href="{{ route('admin.facilities.edit', $facility->id) }}" wire:navigate
+                                       class="text-sm font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">Edit</a>
+                                    <button wire:click="toggleActive({{ $facility->id }})"
+                                            wire:confirm="{{ $facility->is_active ? 'Nonaktifkan ' : 'Aktifkan ' }}{{ $facility->name }}?"
+                                            type="button"
+                                            class="text-sm font-semibold {{ $facility->is_active ? 'text-red-700 hover:text-red-800' : 'text-bpjs-green-600 hover:text-bpjs-green-700' }}">
+                                        {{ $facility->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                    </button>
+                                @endhasPermission
+                            </div>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="px-6 py-12 text-center text-sm text-gray-500">Tidak ada fasilitas yang sesuai dengan filter.</td></tr>
+                    <tr>
+                        <td colspan="5" class="text-center text-slate-500" style="padding: 48px 16px;">
+                            Tidak ada fasilitas yang sesuai dengan filter.
+                        </td>
+                    </tr>
                 @endforelse
             </tbody>
         </table>
         @if($facilities->hasPages())
-            <div class="px-6 py-3 border-t border-gray-200">{{ $facilities->links() }}</div>
+            <div class="px-5 py-3 border-t border-slate-100">{{ $facilities->links() }}</div>
         @endif
     </div>
 </div>

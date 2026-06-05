@@ -358,6 +358,6 @@ class BookingForm extends Component
     public function render(): View
     {
         return view('livewire.booking.booking-form')
-            ->layout('layouts.app');
+            ->layout('layouts.app', ['title' => 'Buat Reservasi', 'subtitle' => 'Ajukan pemesanan ruang rapat']);
     }
 }

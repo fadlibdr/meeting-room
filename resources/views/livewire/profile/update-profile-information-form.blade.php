@@ -62,54 +62,54 @@ new class extends Component
     }
 }; ?>
 
-<section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
+<x-bpjs.card rise>
+    <header class="mb-5">
+        <h2 class="h-display" style="font-size: 16px; font-weight: 700; color: var(--slate-900);">
+            {{ __('Informasi Profil') }}
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and email address.") }}
+        <p class="mt-1" style="font-size: 13px; color: var(--slate-500);">
+            {{ __('Perbarui informasi profil dan alamat email akun Anda.') }}
         </p>
     </header>
 
-    <form wire:submit="updateProfileInformation" class="mt-6 space-y-6">
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input wire:model="name" id="name" name="name" type="text" class="mt-1 block w-full" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
-        </div>
+    <form wire:submit="updateProfileInformation" class="space-y-5">
+        <x-bpjs.field :label="__('Nama')" req for="name" :error="$errors->first('name')">
+            <input wire:model="name" id="name" name="name" type="text"
+                   class="input @error('name') input--err @enderror"
+                   required autofocus autocomplete="name" />
+        </x-bpjs.field>
 
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" name="email" type="email" class="mt-1 block w-full" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+        <x-bpjs.field :label="__('Email')" req for="email" :error="$errors->first('email')">
+            <input wire:model="email" id="email" name="email" type="email"
+                   class="input font-mono @error('email') input--err @enderror"
+                   required autocomplete="username" />
+        </x-bpjs.field>
 
-            @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
+        @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
+            <div>
+                <p style="font-size: 13px; color: var(--slate-700);">
+                    {{ __('Alamat email Anda belum terverifikasi.') }}
 
-                        <button wire:click.prevent="sendVerification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
+                    <button wire:click.prevent="sendVerification" class="underline focus-bpjs" style="font-size: 13px; color: var(--bpjs-blue-600);">
+                        {{ __('Klik di sini untuk mengirim ulang email verifikasi.') }}
+                    </button>
+                </p>
+
+                @if (session('status') === 'verification-link-sent')
+                    <p class="mt-2" style="font-size: 13px; font-weight: 600; color: var(--bpjs-green-700);">
+                        {{ __('Tautan verifikasi baru telah dikirim ke alamat email Anda.') }}
                     </p>
+                @endif
+            </div>
+        @endif
 
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
-            @endif
-        </div>
+        <div class="flex items-center gap-4 pt-1">
+            <x-bpjs.button type="submit" variant="primary" icon="check">{{ __('Simpan') }}</x-bpjs.button>
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
-
-            <x-action-message class="me-3" on="profile-updated">
-                {{ __('Saved.') }}
+            <x-action-message class="me-3" on="profile-updated" style="font-size: 13px; font-weight: 600; color: var(--bpjs-green-700);">
+                {{ __('Tersimpan.') }}
             </x-action-message>
         </div>
     </form>
-</section>
+</x-bpjs.card>

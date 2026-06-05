@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\FacilityController;
 use App\Http\Controllers\Admin\RoomBlockController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BookingAttachmentController;
 use App\Http\Controllers\BookingController;
 use App\Livewire\Admin\SettingsManager;
@@ -64,7 +65,7 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     Route::get('approvals', ApprovalInbox::class)
         ->middleware('permission:bookings.approve')
         ->name('approvals.index');
-    Route::view('rooms', 'placeholder')->name('rooms.index');
+    Route::view('rooms', 'rooms.public')->name('rooms.index');
 
     // Admin
     Route::prefix('admin')->name('admin.')->group(function () {
@@ -128,6 +129,6 @@ Route::middleware(['auth', 'user.active'])->group(function () {
 require __DIR__.'/auth.php';
 
 // --- Database backup download (app-settings.update: super_admin, system_admin) ---
-Route::post('/admin/settings/backup/download', [\App\Http\Controllers\BackupController::class, 'download'])
+Route::post('/admin/settings/backup/download', [BackupController::class, 'download'])
     ->middleware(['auth', 'permission:app-settings.update', 'throttle:6,1'])
     ->name('admin.backup.download');

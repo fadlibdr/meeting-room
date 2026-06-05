@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Actions\Logout;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -14,4 +15,10 @@ Route::middleware('guest')->group(function () {
         ->name('password.reset');
 });
 
-Route::middleware('auth')->group(function () {});
+Route::middleware('auth')->group(function () {
+    Route::post('logout', function () {
+        app(Logout::class)();
+
+        return redirect('/');
+    })->name('logout');
+});
