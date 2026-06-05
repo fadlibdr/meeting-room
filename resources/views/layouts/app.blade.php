@@ -1,3 +1,15 @@
+@props(['title' => null, 'subtitle' => null])
+@php
+    $u = auth()->user();
+    $initials = collect(explode(' ', trim($u?->name ?? '')))
+        ->filter()->take(2)->map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)))->implode('');
+    $primaryRole = $u?->roles->firstWhere('pivot.is_primary', true)?->name
+        ?? $u?->roles->first()?->name
+        ?? $u?->job_title;
+    $pendingCount = ($u && $u->hasPermission('bookings.approve'))
+        ? \App\Models\Booking::where('status', 'submitted')->count()
+        : 0;
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -5,32 +17,180 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'BPJS Kesehatan') }}</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-        <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            <livewire:layout.navigation />
+        <div class="app" x-data="{ nav: window.innerWidth > 1024 }" :class="{ 'nav-collapsed': !nav }">
 
-            <!-- Page Heading -->
-            @if (isset($header))
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
+            {{-- Off-canvas scrim (mobile) --}}
+            <div class="nav-scrim" @click="nav = false"></div>
+
+            {{-- ============ SIDEBAR ============ --}}
+            <aside class="sidebar">
+                <div class="sidebar__brand">
+                    <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center">
+                        <img src="{{ asset('images/bpjs/bpjs-kesehatan-logo-white.png') }}" alt="BPJS Kesehatan">
+                    </a>
+                </div>
+
+                <nav class="nav">
+                    <div class="nav__label">Menu</div>
+
+                    <a href="{{ route('dashboard') }}" wire:navigate
+                       class="nav__item @if(request()->routeIs('dashboard')) active @endif">
+                        <x-icon name="dashboard" :size="19" /> Dashboard
+                    </a>
+
+                    @hasPermission('bookings.view')
+                        <a href="{{ route('calendar.index') }}" wire:navigate
+                           class="nav__item @if(request()->routeIs('calendar.*') || request()->routeIs('bookings.new')) active @endif">
+                            <x-icon name="calendar" :size="19" /> Kalender
+                        </a>
+                    @endhasPermission
+
+                    @if($u->hasPermission('bookings.view') || $u->hasPermission('bookings.view-all'))
+                        <a href="{{ route('bookings.index') }}" wire:navigate
+                           class="nav__item @if(request()->routeIs('bookings.*') && !request()->routeIs('bookings.new')) active @endif">
+                            <x-icon name="doc" :size="19" /> Reservasi
+                        </a>
+                    @endif
+
+                    @hasPermission('bookings.approve')
+                        <a href="{{ route('approvals.index') }}" wire:navigate
+                           class="nav__item @if(request()->routeIs('approvals.*')) active @endif">
+                            <x-icon name="inbox" :size="19" /> Persetujuan
+                            @if($pendingCount > 0)<span class="count">{{ $pendingCount }}</span>@endif
+                        </a>
+                    @endhasPermission
+
+                    @hasPermission('rooms.view')
+                        <a href="{{ route('rooms.index') }}" wire:navigate
+                           class="nav__item @if(request()->routeIs('rooms.*') && !request()->routeIs('admin.*')) active @endif">
+                            <x-icon name="building" :size="19" /> Ruangan
+                        </a>
+                    @endhasPermission
+
+                    @if($u->hasPermission('rooms.create') || $u->hasPermission('rooms.update') || $u->hasPermission('rooms.manage-blocks') || $u->hasPermission('users.view') || $u->hasPermission('activity-logs.view') || $u->hasPermission('app-settings.view'))
+                        <div class="nav__label">Administrasi</div>
+
+                        @hasPermission('rooms.create')
+                            <a href="{{ route('admin.rooms.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.rooms.*')) active @endif">
+                                <x-icon name="building" :size="19" /> Kelola Ruangan
+                            </a>
+                        @endhasPermission
+
+                        @hasPermission('rooms.update')
+                            <a href="{{ route('admin.facilities.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.facilities.*')) active @endif">
+                                <x-icon name="panelLeft" :size="19" /> Fasilitas
+                            </a>
+                        @endhasPermission
+
+                        @hasPermission('rooms.manage-blocks')
+                            <a href="{{ route('admin.room-blocks.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.room-blocks.*')) active @endif">
+                                <x-icon name="clock" :size="19" /> Blokir Ruangan
+                            </a>
+                        @endhasPermission
+
+                        @hasPermission('users.view')
+                            <a href="{{ route('admin.users.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.users.*')) active @endif">
+                                <x-icon name="users" :size="19" /> Pengguna
+                            </a>
+                        @endhasPermission
+
+                        @hasPermission('activity-logs.view')
+                            <a href="{{ route('admin.logs.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.logs.*')) active @endif">
+                                <x-icon name="doc" :size="19" /> Log Aktivitas
+                            </a>
+                        @endhasPermission
+
+                        @hasPermission('app-settings.view')
+                            <a href="{{ route('admin.settings.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.settings.*')) active @endif">
+                                <x-icon name="settings" :size="19" /> Pengaturan
+                            </a>
+                        @endhasPermission
+                    @endif
+                </nav>
+
+                <div class="sidebar__foot">
+                    <div class="userchip">
+                        <div class="ava">{{ $initials ?: '—' }}</div>
+                        <div style="min-width: 0;">
+                            <div class="nm" x-data="{{ json_encode(['name' => $u->name]) }}" x-text="name"
+                                 x-on:profile-updated.window="name = $event.detail.name"></div>
+                            @if($primaryRole)<div class="rl">{{ $primaryRole }}</div>@endif
+                        </div>
+                        <form method="POST" action="{{ route('logout') }}" class="ml-auto flex">
+                            @csrf
+                            <button type="submit" class="lo" title="Keluar"><x-icon name="logout" :size="17" /></button>
+                        </form>
                     </div>
-                </header>
-            @endif
+                </div>
+            </aside>
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
+            {{-- ============ MAIN COLUMN ============ --}}
+            <div class="main">
+                <header class="topbar">
+                    <button class="iconbtn" @click="nav = !nav" aria-label="Tampilkan / sembunyikan menu" style="margin-right: 4px;">
+                        <x-icon name="menu" :size="20" />
+                    </button>
+
+                    <div style="min-width: 0;">
+                        @if($title)
+                            <h1>{{ $title }}</h1>
+                            @if($subtitle)<div class="sub">{{ $subtitle }}</div>@endif
+                        @elseif(isset($header))
+                            {{ $header }}
+                        @endif
+                    </div>
+
+                    <div class="spacer"></div>
+
+                    <livewire:notification-dropdown />
+
+                    <x-dropdown align="right" width="56">
+                        <x-slot name="trigger">
+                            <button class="profilebtn" aria-label="Profil pengguna">
+                                <span class="ava">{{ $initials ?: '—' }}</span>
+                                <x-icon name="chevronDown" :size="15" />
+                            </button>
+                        </x-slot>
+                        <x-slot name="content">
+                            <div class="px-4 py-3 border-b border-slate-100">
+                                <div class="text-sm font-bold text-slate-900 font-display">{{ $u->name }}</div>
+                                @if($primaryRole)<div class="text-xs text-slate-500 truncate">{{ $primaryRole }}</div>@endif
+                            </div>
+                            <x-dropdown-link :href="route('profile')" wire:navigate>
+                                {{ __('Profil Saya') }}
+                            </x-dropdown-link>
+                            @hasPermission('app-settings.view')
+                                <x-dropdown-link :href="route('admin.settings.index')" wire:navigate>
+                                    {{ __('Pengaturan') }}
+                                </x-dropdown-link>
+                            @endhasPermission
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full text-start">
+                                    <x-dropdown-link class="text-red-600">{{ __('Keluar') }}</x-dropdown-link>
+                                </button>
+                            </form>
+                        </x-slot>
+                    </x-dropdown>
+                </header>
+
+                <main class="scroll">
+                    <div class="page">
+                        {{ $slot }}
+                    </div>
+                </main>
+            </div>
         </div>
     </body>
 </html>

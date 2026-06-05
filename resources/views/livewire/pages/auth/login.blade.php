@@ -25,47 +25,48 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <h2 class="font-display font-bold text-slate-900" style="font-size: 24px; letter-spacing: -0.01em;">
+        {{ __('Masuk ke akun Anda') }}
+    </h2>
+    <p class="mt-1.5 text-slate-500" style="font-size: 13.5px;">
+        {{ __('Gunakan email dinas BPJS Kesehatan Anda.') }}
+    </p>
 
-    <form wire:submit="login">
+    <!-- Session Status -->
+    <x-auth-session-status class="mb-4 mt-4" :status="session('status')" />
+
+    <form wire:submit="login" class="mt-7 space-y-5">
         <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="form.email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('form.email')" class="mt-2" />
-        </div>
+        <x-bpjs.field :label="__('Email')" for="email" req :error="$errors->first('form.email')">
+            <input wire:model="form.email" id="email" name="email" type="email" required autofocus
+                   autocomplete="username" placeholder="nama@bpjs-kesehatan.go.id"
+                   class="input @error('form.email') input--err @enderror">
+        </x-bpjs.field>
 
         <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+        <x-bpjs.field :label="__('Kata Sandi')" for="password" req :error="$errors->first('form.password')">
+            <input wire:model="form.password" id="password" name="password" type="password" required
+                   autocomplete="current-password" placeholder="••••••••"
+                   class="input @error('form.password') input--err @enderror">
+        </x-bpjs.field>
 
-            <x-text-input wire:model="form.password" id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('form.password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember" class="inline-flex items-center">
-                <input wire:model="form.remember" id="remember" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+        <div class="flex items-center justify-between">
+            <label for="remember" class="inline-flex items-center cursor-pointer">
+                <input wire:model="form.remember" id="remember" type="checkbox" name="remember"
+                       class="rounded border-slate-300 text-bpjs-blue-600 shadow-sm focus:ring-bpjs-blue-500">
+                <span class="ms-2 text-slate-600" style="font-size: 13px;">{{ __('Ingat saya') }}</span>
             </label>
-        </div>
 
-        <div class="flex items-center justify-end mt-4">
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}" wire:navigate>
-                    {{ __('Forgot your password?') }}
+                <a class="text-bpjs-blue-600 hover:text-bpjs-blue-700 font-medium" style="font-size: 13px;"
+                   href="{{ route('password.request') }}" wire:navigate>
+                    {{ __('Lupa sandi?') }}
                 </a>
             @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
         </div>
+
+        <x-bpjs.button type="submit" size="lg" block>
+            {{ __('Masuk') }}
+        </x-bpjs.button>
     </form>
 </div>

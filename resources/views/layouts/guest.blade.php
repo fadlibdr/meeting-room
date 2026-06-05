@@ -5,25 +5,61 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'BPJS Kesehatan') }}</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-        <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-            <div>
-                <a href="/" wire:navigate>
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
-                </a>
+    <body class="font-sans antialiased">
+        <div class="flex min-h-screen">
+            {{-- ===== Brand panel (hidden < 820px) ===== --}}
+            <div class="login-brand relative flex-1 flex-col justify-between p-12 text-white overflow-hidden"
+                 style="display: flex; background: linear-gradient(150deg, #00538f 0%, #00416d 60%, #002e4a 100%);">
+                <div class="absolute inset-0 pointer-events-none"
+                     style="background: radial-gradient(90% 50% at 90% -10%, rgba(0,177,64,.22), transparent 60%);"></div>
+
+                <div class="relative z-10">
+                    <img src="{{ asset('images/bpjs/bpjs-kesehatan-logo-white.png') }}" alt="BPJS Kesehatan" style="height: 34px;">
+                </div>
+
+                <div class="relative z-10 max-w-md">
+                    <h1 class="font-display font-extrabold text-white leading-tight" style="font-size: 40px; letter-spacing: -0.02em;">
+                        Reservasi ruang rapat, tanpa ribet.
+                    </h1>
+                    <p class="mt-5 text-white/75 leading-relaxed" style="font-size: 15px;">
+                        Sistem Pemesanan Ruang Rapat BPJS Kesehatan — ajukan, setujui, dan kelola
+                        penggunaan ruang rapat dalam satu tempat.
+                    </p>
+
+                    <div class="mt-10 grid grid-cols-3 gap-6 max-w-sm">
+                        <div>
+                            <div class="font-display font-extrabold text-white" style="font-size: 26px;">{{ \App\Models\Room::where('status', 'active')->count() }}</div>
+                            <div class="text-white/60 mt-1" style="font-size: 12px;">Ruang aktif</div>
+                        </div>
+                        <div>
+                            <div class="font-display font-extrabold text-white" style="font-size: 26px;">24/7</div>
+                            <div class="text-white/60 mt-1" style="font-size: 12px;">Akses daring</div>
+                        </div>
+                        <div>
+                            <div class="font-display font-extrabold text-white" style="font-size: 26px;">100%</div>
+                            <div class="text-white/60 mt-1" style="font-size: 12px;">Terpantau</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative z-10 text-white/45" style="font-size: 12px;">
+                    © {{ date('Y') }} BPJS Kesehatan · Direktorat SDM dan Umum
+                </div>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
+            {{-- ===== Form column ===== --}}
+            <div class="login-form flex flex-col justify-center items-center bg-white px-6 py-12"
+                 style="flex: 0 0 480px; max-width: 480px;">
+                <div class="w-full" style="max-width: 360px;">
+                    <div class="mb-8 text-center" style="display: none;" x-data x-init="if (window.innerWidth <= 820) $el.style.display = 'block'">
+                        <img src="{{ asset('images/bpjs/bpjs-kesehatan-logo.png') }}" alt="BPJS Kesehatan" class="inline-block" style="height: 30px;">
+                    </div>
+                    {{ $slot }}
+                </div>
             </div>
         </div>
     </body>
