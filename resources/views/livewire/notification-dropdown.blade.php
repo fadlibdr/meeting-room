@@ -2,16 +2,12 @@
     <button
         @click="open = ! open"
         type="button"
-        class="relative inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none transition"
+        class="iconbtn"
         aria-label="Notifikasi"
     >
-        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-        </svg>
+        <x-icon name="bell" :size="20" />
         @if ($this->unreadCount > 0)
-            <span class="absolute -top-0.5 -end-0.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-semibold leading-none text-white bg-red-500 rounded-full">
-                {{ $this->unreadCount > 9 ? '9+' : $this->unreadCount }}
-            </span>
+            <span class="dot"></span>
         @endif
     </button>
 
@@ -20,40 +16,42 @@
         x-cloak
         @click.outside="open = false"
         x-transition.origin.top.right
-        class="absolute end-0 mt-2 w-80 max-w-[90vw] bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50"
+        class="bpjs-pop"
+        style="position: absolute; inset-inline-end: 0; top: calc(100% + 8px); width: 340px; max-width: 90vw; background: #fff; border: 1px solid var(--slate-200); border-radius: 14px; box-shadow: 0 18px 40px rgba(16,24,40,.16); z-index: 50; overflow: hidden;"
     >
-        <div class="flex items-center justify-between px-4 py-2 border-b border-gray-100">
-            <span class="text-sm font-semibold text-gray-700">Notifikasi</span>
+        <div class="flex items-center justify-between" style="padding: 12px 16px; border-bottom: 1px solid var(--slate-100);">
+            <span class="h-display" style="font-weight: 700; font-size: 13.5px; color: var(--slate-800);">Notifikasi</span>
             @if ($this->unreadCount > 0)
-                <button type="button" wire:click="markAllAsRead" class="text-xs font-medium text-indigo-600 hover:text-indigo-800">
+                <button type="button" wire:click="markAllAsRead" style="font-size: 11.5px; font-weight: 600; color: var(--bpjs-blue-600);" class="hover:underline">
                     Tandai semua dibaca
                 </button>
             @endif
         </div>
 
-        <div class="max-h-96 overflow-y-auto divide-y divide-gray-50">
+        <div style="max-height: 340px; overflow-y: auto;">
             @forelse ($this->notifications as $notification)
                 <button
                     type="button"
                     wire:click="markAsRead('{{ $notification->id }}')"
                     wire:key="notif-{{ $notification->id }}"
-                    class="block w-full text-start px-4 py-3 transition hover:bg-gray-50 {{ $notification->read_at ? '' : 'bg-indigo-50/60' }}"
+                    class="block w-full text-start transition"
+                    style="padding: 12px 16px; border-bottom: 1px solid var(--slate-50); {{ $notification->read_at ? 'background: #fff;' : 'background: rgba(0,102,179,.05);' }}"
+                    onmouseover="this.style.background='var(--slate-50)'"
+                    onmouseout="this.style.background='{{ $notification->read_at ? '#fff' : 'rgba(0,102,179,.05)' }}'"
                 >
-                    <div class="flex items-start gap-2">
-                        @unless ($notification->read_at)
-                            <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500"></span>
-                        @endunless
+                    <div class="flex items-start gap-2.5">
+                        <span style="margin-top: 6px; width: 7px; height: 7px; border-radius: 9999px; flex-shrink: 0; background: {{ $notification->read_at ? 'transparent' : 'var(--bpjs-blue-500)' }};"></span>
                         <div class="min-w-0 flex-1">
-                            <p class="text-sm text-gray-800">{{ $notification->data['message'] ?? 'Notifikasi' }}</p>
+                            <p style="font-size: 13px; color: var(--slate-800); line-height: 1.35;">{{ $notification->data['message'] ?? 'Notifikasi' }}</p>
                             @if (! empty($notification->data['subject']))
-                                <p class="text-xs text-gray-500 truncate">{{ $notification->data['subject'] }}</p>
+                                <p class="truncate" style="font-size: 11.5px; color: var(--slate-500); margin-top: 2px;">{{ $notification->data['subject'] }}</p>
                             @endif
-                            <p class="mt-0.5 text-xs text-gray-400">{{ $notification->created_at?->diffForHumans() }}</p>
+                            <p style="font-size: 11px; color: var(--slate-400); margin-top: 3px;">{{ $notification->created_at?->diffForHumans() }}</p>
                         </div>
                     </div>
                 </button>
             @empty
-                <p class="px-4 py-6 text-sm text-center text-gray-400">Tidak ada notifikasi</p>
+                <p class="text-center" style="padding: 24px 16px; font-size: 13px; color: var(--slate-400);">Tidak ada notifikasi</p>
             @endforelse
         </div>
     </div>

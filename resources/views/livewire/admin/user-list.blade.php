@@ -1,174 +1,128 @@
+@php
+    $rolePill = [
+        'super_admin'   => 'red',
+        'system_admin'  => 'blue',
+        'ga_admin'      => 'blue',
+        'unit_approver' => 'green',
+        'requester'     => 'slate',
+    ];
+    $avaColors = ['var(--bpjs-blue-600)', 'var(--bpjs-green-600)', 'var(--slate-500)', 'var(--amber-700)'];
+@endphp
 <div>
     @if(session('error'))
-        <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-md text-sm">
-            {{ session('error') }}
+        <div class="card card--pad bpjs-rise mb-4 flex items-center gap-2.5"
+             style="border-color: var(--red-300); background: var(--red-50);">
+            <span style="color: var(--red-600); display: inline-flex;"><x-icon name="alert" :size="18" /></span>
+            <span class="text-sm font-medium" style="color: var(--red-800);">{{ session('error') }}</span>
         </div>
     @endif
 
-    {{-- Filters Bar --}}
-    <div class="mb-6 bg-white rounded-lg shadow-sm p-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {{-- Search --}}
-            <div class="md:col-span-2">
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">
-                    Cari nama atau email
-                </label>
-                <input
-                    wire:model.live.debounce.300ms="search"
-                    type="text"
-                    id="search"
-                    placeholder="contoh: budi atau @bpjs"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                />
-            </div>
+    {{-- Filter bar --}}
+    <div class="card bpjs-rise mb-4" style="padding: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+        <x-bpjs.field label="Cari pengguna" for="search">
+            <input wire:model.live.debounce.300ms="search" type="text" id="search"
+                   placeholder="nama atau email" class="input" style="min-width: 240px;" />
+        </x-bpjs.field>
 
-            {{-- Role Filter --}}
-            <div>
-                <label for="roleFilter" class="block text-sm font-medium text-gray-700 mb-1">
-                    Role
-                </label>
-                <select
-                    wire:model.live="roleFilter"
-                    id="roleFilter"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                >
-                    <option value="">Semua role</option>
-                    @foreach($roles as $role)
-                        <option value="{{ $role->code }}">{{ $role->name }}</option>
-                    @endforeach
-                </select>
-            </div>
+        <x-bpjs.field label="Peran" for="roleFilter">
+            <select wire:model.live="roleFilter" id="roleFilter" class="select" style="min-width: 180px;">
+                <option value="">Semua peran</option>
+                @foreach($roles as $role)
+                    <option value="{{ $role->code }}">{{ $role->name }}</option>
+                @endforeach
+            </select>
+        </x-bpjs.field>
 
-            {{-- Status Filter --}}
-            <div>
-                <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-1">
-                    Status
-                </label>
-                <select
-                    wire:model.live="statusFilter"
-                    id="statusFilter"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                >
-                    <option value="all">Semua</option>
-                    <option value="active">Aktif</option>
-                    <option value="inactive">Nonaktif</option>
-                </select>
-            </div>
-        </div>
+        <x-bpjs.field label="Status" for="statusFilter">
+            <select wire:model.live="statusFilter" id="statusFilter" class="select" style="min-width: 150px;">
+                <option value="all">Semua status</option>
+                <option value="active">Aktif</option>
+                <option value="inactive">Nonaktif</option>
+            </select>
+        </x-bpjs.field>
 
-        {{-- Action Row --}}
-        <div class="mt-4 flex items-center justify-between">
-            <button
-                wire:click="clearFilters"
-                type="button"
-                class="text-sm text-gray-500 hover:text-gray-700"
-            >
-                Reset filter
-            </button>
+        <button wire:click="clearFilters" type="button"
+                class="text-sm font-medium text-slate-500 hover:text-slate-800" style="padding-bottom: 10px;">
+            Reset filter
+        </button>
 
+        <div style="margin-left: auto;">
             @hasPermission('users.create')
-                <a
-                    href="{{ route('admin.users.create') }}"
-                    wire:navigate
-                    class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md shadow-sm"
-                >
-                    + Tambah Pengguna
-                </a>
+                <x-bpjs.button variant="primary" icon="plus" :href="route('admin.users.create')" wire:navigate>
+                    Tambah Pengguna
+                </x-bpjs.button>
             @endhasPermission
         </div>
     </div>
 
-    {{-- Users Table --}}
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+    {{-- Table --}}
+    <div class="card bpjs-rise" style="overflow: hidden;">
+        <table class="dtable">
+            <thead>
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Nama
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Unit
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Role
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                    </th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Aksi
-                    </th>
+                    <th>Pengguna</th>
+                    <th>Unit Kerja</th>
+                    <th>Peran</th>
+                    <th>Status</th>
+                    <th class="text-right">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                @forelse($users as $user)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {{ $user->name }}
+            <tbody>
+                @forelse($users as $i => $user)
+                    @php
+                        $initials = collect(explode(' ', trim($user->name)))
+                            ->filter()->take(2)->map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)))->implode('');
+                    @endphp
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 11px;">
+                                <span style="width: 34px; height: 34px; border-radius: 9999px; background: {{ $avaColors[$i % count($avaColors)] }}; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-family: var(--font-display); flex-shrink: 0;">{{ $initials ?: '—' }}</span>
+                                <div style="min-width: 0;">
+                                    <div class="font-semibold text-slate-900">{{ $user->name }}</div>
+                                    <div class="mono" style="font-size: 11px; color: var(--slate-500);">{{ $user->email }}</div>
+                                </div>
+                            </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $user->email }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $user->unit?->name ?? '-' }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td class="text-slate-600">{{ $user->unit?->name ?? '—' }}</td>
+                        <td>
                             <div class="flex flex-wrap gap-1">
                                 @foreach($user->roles as $role)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                        {{ $role->name }}
-                                    </span>
+                                    <x-bpjs.pill :variant="$rolePill[$role->code] ?? 'slate'">{{ $role->name }}</x-bpjs.pill>
                                 @endforeach
                             </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td>
                             @if($user->is_active)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                    Aktif
+                                <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--bpjs-green-700); font-weight: 600;">
+                                    <span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--bpjs-green-500);"></span>Aktif
                                 </span>
                             @else
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                    Nonaktif
+                                <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--slate-400); font-weight: 600;">
+                                    <span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--slate-300);"></span>Nonaktif
                                 </span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                        <td class="text-right">
                             @hasPermission('users.update')
-                                <a
-                                    href="{{ route('admin.users.edit', $user->id) }}"
-                                    wire:navigate
-                                    class="text-indigo-600 hover:text-indigo-900"
-                                >
-                                    Edit
-                                </a>
-                                <button
-                                    wire:click="toggleActive({{ $user->id }})"
-                                    wire:confirm="{{ $user->is_active ? 'Nonaktifkan ' : 'Aktifkan ' }}{{ $user->name }}?"
-                                    type="button"
-                                    class="{{ $user->is_active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900' }}"
-                                >
-                                    {{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
-                                </button>
+                                <div style="display: inline-flex; gap: 6px;">
+                                    <x-bpjs.button variant="ghost" :href="route('admin.users.edit', $user->id)" wire:navigate
+                                                   class="!px-3 !py-1.5 !text-xs !rounded-lg">Edit</x-bpjs.button>
+                                    <x-bpjs.button :variant="$user->is_active ? 'danger' : 'success'"
+                                                   wire:click="toggleActive({{ $user->id }})"
+                                                   wire:confirm="{{ $user->is_active ? 'Nonaktifkan ' : 'Aktifkan ' }}{{ $user->name }}?"
+                                                   type="button"
+                                                   class="!px-3 !py-1.5 !text-xs !rounded-lg">{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</x-bpjs.button>
+                                </div>
                             @endhasPermission
                         </td>
                     </tr>
                 @empty
-                    <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500">
-                            Tidak ada pengguna yang sesuai dengan filter.
-                        </td>
-                    </tr>
+                    <tr><td colspan="5" class="text-center text-slate-400" style="padding: 48px;">Tidak ada pengguna yang cocok.</td></tr>
                 @endforelse
             </tbody>
         </table>
-
         @if($users->hasPages())
-            <div class="px-6 py-3 border-t border-gray-200">
-                {{ $users->links() }}
-            </div>
+            <div class="px-4 py-3 border-t border-slate-100">{{ $users->links() }}</div>
         @endif
     </div>
 </div>

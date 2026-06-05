@@ -1,19 +1,11 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('admin.users.index') }}" wire:navigate
-               class="text-gray-500 hover:text-gray-700">
-                ← Kembali
-            </a>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Tambah Pengguna') }}
-            </h2>
-        </div>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <livewire:admin.user-form />
-        </div>
+<x-app-layout title="Tambah Pengguna" subtitle="Buat akun pengguna baru.">
+    <div class="mb-4">
+        <a href="{{ route('admin.users.index') }}" wire:navigate
+           class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800">
+            <x-icon name="chevronLeft" :size="16" /> Kembali ke daftar
+        </a>
+    </div>
+    <div style="max-width: 760px;">
+        <livewire:admin.user-form />
     </div>
 </x-app-layout>

@@ -132,7 +132,7 @@ class BookingList extends Component
             'canViewAll' => $canViewAll,
             'canCreate' => $user->hasPermission('bookings.create'),
             'statuses' => BookingStatus::cases(),
-        ])->layout('layouts.app');
+        ])->layout('layouts.app', ['title' => 'Reservasi', 'subtitle' => 'Daftar pemesanan ruang rapat']);
     }
 
     /**

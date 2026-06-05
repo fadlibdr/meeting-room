@@ -113,6 +113,6 @@ class SettingsManager extends Component
     {
         return view('livewire.admin.settings-manager', [
             'groupedSettings' => $this->getGroupedSettings($service),
-        ])->layout('layouts.app');
+        ])->layout('layouts.app', ['title' => 'Pengaturan', 'subtitle' => 'Konfigurasi sistem reservasi']);
     }
 }

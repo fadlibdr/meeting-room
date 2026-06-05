@@ -58,7 +58,7 @@ class BookingFormTest extends TestCase
         Livewire::actingAs($user)
             ->test(BookingForm::class)
             ->assertOk()
-            ->assertSee('Buat Reservasi Ruangan');
+            ->assertSee('Judul Rapat');
     }
 
     public function test_unauthenticated_route_redirects_to_login(): void

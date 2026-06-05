@@ -1,14 +1,10 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('admin.rooms.index') }}" wire:navigate class="text-gray-500 hover:text-gray-700">← Kembali</a>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Tambah Ruang') }}</h2>
-        </div>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <livewire:admin.room-form />
-        </div>
+<x-app-layout title="Tambah Ruangan" subtitle="Daftarkan ruang rapat baru ke dalam sistem">
+    <div class="mb-6">
+        <a href="{{ route('admin.rooms.index') }}" wire:navigate
+           class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800">
+            <x-icon name="chevronLeft" :size="16" /> Kembali ke Kelola Ruangan
+        </a>
     </div>
+
+    <livewire:admin.room-form />
 </x-app-layout>

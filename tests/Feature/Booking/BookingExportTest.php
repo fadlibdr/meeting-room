@@ -118,6 +118,6 @@ class BookingExportTest extends TestCase
     {
         $user = $this->userWithRole('requester');
 
-        Livewire::actingAs($user)->test(BookingList::class)->assertSee('Export CSV');
+        Livewire::actingAs($user)->test(BookingList::class)->assertSee('Ekspor');
     }
 }
