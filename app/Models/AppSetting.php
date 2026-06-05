@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
+use Throwable;
 
 /**
  * @property int $id
@@ -62,7 +64,22 @@ class AppSetting extends Model
             'integer' => (int) $this->value,
             'boolean' => filter_var($this->value, FILTER_VALIDATE_BOOLEAN),
             'json' => json_decode($this->value, true),
+            'encrypted' => $this->decryptSafely($this->value),
             default => $this->value,
         };
+    }
+
+    /**
+     * Decrypt an `encrypted` setting value, returning null on any failure
+     * (tampered ciphertext, wrong APP_KEY) so a bad secret never crashes a
+     * request — the mail provider then falls back to the .env value.
+     */
+    private function decryptSafely(string $value): ?string
+    {
+        try {
+            return Crypt::decryptString($value);
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\AppSetting;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 
 class SettingsService
 {
@@ -31,7 +32,10 @@ class SettingsService
         $setting = AppSetting::where('key', $key)->first();
         if ($setting !== null) {
             $value = $setting->getCastedValue();
-            Cache::forever($cacheKey, $value ?? '__NULL__');
+            // Never cache decrypted secrets at rest — only structural settings.
+            if ($setting->data_type !== 'encrypted') {
+                Cache::forever($cacheKey, $value ?? '__NULL__');
+            }
 
             return $value;
         }
@@ -128,6 +132,7 @@ class SettingsService
             'integer' => (string) (int) $value,
             'boolean' => $value ? '1' : '0',
             'json' => json_encode($value, JSON_UNESCAPED_UNICODE) ?: '',
+            'encrypted' => Crypt::encryptString((string) $value),
             default => (string) $value,
         };
     }
