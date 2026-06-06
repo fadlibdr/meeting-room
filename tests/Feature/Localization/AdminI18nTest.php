@@ -47,4 +47,23 @@ class AdminI18nTest extends TestCase
             ->assertSee('Add Unit')
             ->assertDontSee('Tambah Unit');
     }
+
+    public function test_facility_list_renders_english(): void
+    {
+        $this->actingAs($this->superAdminEn())
+            ->get(route('admin.facilities.index'))
+            ->assertOk()
+            ->assertSee('All categories')
+            ->assertSee('Add Facility')
+            ->assertDontSee('Semua kategori');
+    }
+
+    public function test_room_block_list_renders_english(): void
+    {
+        $this->actingAs($this->superAdminEn())
+            ->get(route('admin.room-blocks.index'))
+            ->assertOk()
+            ->assertSee('Block Room')
+            ->assertDontSee('Tidak ada blokir ruangan.');
+    }
 }
