@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Enums\BookingStatus;
+use App\Enums\WebhookEvent;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\BookingApproval;
@@ -12,6 +13,7 @@ use App\Models\BookingStatusHistory;
 use App\Models\User;
 use App\Notifications\BookingCancelledNotification;
 use App\Policies\BookingPolicy;
+use App\Services\WebhookDispatcher;
 use DomainException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -103,6 +105,8 @@ final class CancelBookingAction
                     ->notify(new BookingCancelledNotification($cancelled));
             }
         }
+
+        app(WebhookDispatcher::class)->dispatch(WebhookEvent::BookingCancelled, $cancelled);
 
         return $cancelled;
     }

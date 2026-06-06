@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Enums\WebhookEvent;
 use App\Models\Booking;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use App\Services\WebhookDispatcher;
 
 /**
  * Stamps a booking's check-in (Stage 4.1 front-office + Stage 3 A.3 QR).
@@ -35,6 +37,8 @@ final class CheckInBookingAction
                     'via' => $actor !== null ? 'desk' : 'qr',
                 ],
             ], $actor);
+
+            app(WebhookDispatcher::class)->dispatch(WebhookEvent::BookingCheckedIn, $booking);
         }
 
         return $booking;

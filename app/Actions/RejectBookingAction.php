@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Enums\BookingStatus;
+use App\Enums\WebhookEvent;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\BookingApproval;
@@ -12,6 +13,7 @@ use App\Models\BookingStatusHistory;
 use App\Models\User;
 use App\Notifications\BookingRejectedNotification;
 use App\Policies\BookingPolicy;
+use App\Services\WebhookDispatcher;
 use DomainException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -73,6 +75,8 @@ final class RejectBookingAction
         // 2D-F: notify the requester after the transaction commits (see Approve).
         User::findOrFail($rejected->requester_user_id)
             ->notify(new BookingRejectedNotification($rejected));
+
+        app(WebhookDispatcher::class)->dispatch(WebhookEvent::BookingRejected, $rejected);
 
         return $rejected;
     }
