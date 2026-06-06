@@ -7,6 +7,14 @@
 
         <title>{{ config('app.name', 'BPJS Kesehatan') }}</title>
 
+        {{-- PWA --}}
+        <meta name="theme-color" content="#005490">
+        <link rel="manifest" href="/manifest.webmanifest">
+        <link rel="apple-touch-icon" href="/images/pwa/icon-192.png">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-title" content="Ruang Rapat">
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">

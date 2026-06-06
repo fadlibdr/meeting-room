@@ -27,6 +27,9 @@ Route::get('/', function () {
 // Stage 3.1 — UI language switch (guests via session, users persisted to profile).
 Route::post('locale/{locale}', [LocaleController::class, 'update'])->name('locale.update');
 
+// Stage 3.2 — PWA offline fallback (cached by the service worker).
+Route::view('offline', 'offline')->name('offline');
+
 Route::middleware(['auth', 'user.active'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 

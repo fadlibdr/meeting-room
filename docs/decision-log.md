@@ -94,6 +94,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence — REQUIRED prod env change:** `APP_LOCALE` and `APP_FALLBACK_LOCALE` must be **`id`** (set in `.env`, `.env.example`, `phpunit.xml`). **If prod leaves `APP_LOCALE=en`, shipping `en.json` would flip the entire default UI to English.** The deploy of this release MUST set `APP_LOCALE=id` (and re-run `config:cache`) before/with the code rollout.
 **Status:** Accepted (6 Jun 2026, `feat/stage3-i18n-foundation`).
 
+### ADR-014 · PWA is an installable shell with a conservative, network-first service worker
+**Decision:** The app ships a **`manifest.webmanifest`** (standalone display, BPJS-blue `#005490` theme, 192/512 + maskable icons generated from the white logo via GD) linked from both layouts with the matching `theme-color` / apple-touch meta, plus a **service worker** registered from `app.js`. The SW is deliberately cautious for an authenticated CSRF/Livewire app: **navigations are network-first** with a cached **`/offline`** fallback (never serves a stale authenticated HTML page), **`/build/*` and `/images/*` are stale-while-revalidate** (content-hashed/immutable), and everything else (POST, Livewire updates, cross-origin) passes through. Responsive layout was already mature (off-canvas sidebar < 1024px, table `overflow-x` < 860px, topbar breakpoints), so 3.2 adds installability + offline rather than a CSS overhaul.
+**Context:** Stage-3.2. A cache-first SW would have risked serving stale CSRF tokens / Livewire snapshots; network-first keeps correctness while still giving installability and a graceful offline page. SW registration failures are swallowed — the app is identical without it.
+**Consequence:** `public/manifest.webmanifest`, `public/sw.js`, and `public/images/pwa/*` are committed (they live outside the gitignored `public/build`). The SW is served from the web root so its scope is `/`.
+**Status:** Accepted (6 Jun 2026, `feat/stage3-responsive-pwa`).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*
