@@ -27,12 +27,12 @@
 
             <div class="r-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <x-bpjs.field :label="__('Mulai')" req for="startsAt" :error="$errors->first('startsAt')">
-                    <input wire:model.live="startsAt" type="datetime-local" id="startsAt"
+                    <input wire:model.live="startsAt" type="datetime-local" lang="id" id="startsAt"
                            class="input @error('startsAt') input--err @enderror" />
                 </x-bpjs.field>
 
                 <x-bpjs.field :label="__('Selesai')" req for="endsAt" :error="$errors->first('endsAt')">
-                    <input wire:model.live="endsAt" type="datetime-local" id="endsAt"
+                    <input wire:model.live="endsAt" type="datetime-local" lang="id" id="endsAt"
                            class="input @error('endsAt') input--err @enderror" />
                 </x-bpjs.field>
             </div>

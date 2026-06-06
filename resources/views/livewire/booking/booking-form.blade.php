@@ -61,7 +61,7 @@
                     <x-bpjs.field :label="__('Waktu Mulai')" req for="startsAt" :error="$errors->first('startsAt')">
                         <input
                             wire:model.live.debounce.500ms="startsAt"
-                            type="datetime-local"
+                            type="datetime-local" lang="id"
                             id="startsAt"
                             class="input @error('startsAt') input--err @enderror"
                         />
@@ -69,7 +69,7 @@
                     <x-bpjs.field :label="__('Waktu Selesai')" req for="endsAt" :error="$errors->first('endsAt')">
                         <input
                             wire:model.live.debounce.500ms="endsAt"
-                            type="datetime-local"
+                            type="datetime-local" lang="id"
                             id="endsAt"
                             class="input @error('endsAt') input--err @enderror"
                         />
