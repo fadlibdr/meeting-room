@@ -61,9 +61,9 @@ class RoomFacilityManager extends Component
             'isOperational' => ['boolean'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ], [
-            'selectedFacilityId.required' => 'Pilih fasilitas terlebih dahulu.',
-            'selectedFacilityId.exists' => 'Fasilitas tidak ditemukan atau nonaktif.',
-            'selectedFacilityId.unique' => 'Fasilitas ini sudah ditambahkan ke ruang.',
+            'selectedFacilityId.required' => __('Pilih fasilitas terlebih dahulu.'),
+            'selectedFacilityId.exists' => __('Fasilitas tidak ditemukan atau nonaktif.'),
+            'selectedFacilityId.unique' => __('Fasilitas ini sudah ditambahkan ke ruang.'),
             'quantity.min' => 'Jumlah minimal 1.',
         ]);
 
@@ -76,7 +76,7 @@ class RoomFacilityManager extends Component
         ]);
 
         $this->reset(['selectedFacilityId', 'quantity', 'isOperational', 'notes']);
-        session()->flash('facility_status', 'Fasilitas ditambahkan ke ruang.');
+        session()->flash('facility_status', __('Fasilitas ditambahkan ke ruang.'));
     }
 
     public function startEdit(int $itemId): void
@@ -117,14 +117,14 @@ class RoomFacilityManager extends Component
         ]);
 
         $this->cancelEdit();
-        session()->flash('facility_status', 'Fasilitas diperbarui.');
+        session()->flash('facility_status', __('Fasilitas diperbarui.'));
     }
 
     public function remove(int $itemId): void
     {
         $this->guard();
         RoomFacilityItem::query()->where('room_id', $this->room->id)->findOrFail($itemId)->delete();
-        session()->flash('facility_status', 'Fasilitas dihapus dari ruang.');
+        session()->flash('facility_status', __('Fasilitas dihapus dari ruang.'));
     }
 
     public function render(): View

@@ -3,31 +3,31 @@
     <div class="card card--pad mb-6 bpjs-rise">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="md:col-span-2">
-                <x-bpjs.field label="Cari kode, nama, atau lokasi" for="search">
+                <x-bpjs.field :label="__('Cari kode, nama, atau lokasi')" for="search">
                     <div class="relative">
                         <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                             <x-icon name="search" :size="18" />
                         </span>
                         <input wire:model.live.debounce.300ms="search" type="text" id="search"
-                               placeholder="contoh: Garuda atau RM-"
+                               placeholder="{{ __('contoh: Garuda atau RM-') }}"
                                class="input pl-10" />
                     </div>
                 </x-bpjs.field>
             </div>
             <div>
-                <x-bpjs.field label="Status" for="statusFilter">
+                <x-bpjs.field :label="__('Status')" for="statusFilter">
                     <select wire:model.live="statusFilter" id="statusFilter" class="select">
-                        <option value="all">Semua</option>
-                        <option value="active">Aktif</option>
-                        <option value="inactive">Nonaktif</option>
-                        <option value="archived">Arsip</option>
+                        <option value="all">{{ __('Semua') }}</option>
+                        <option value="active">{{ __('Aktif') }}</option>
+                        <option value="inactive">{{ __('Nonaktif') }}</option>
+                        <option value="archived">{{ __('Arsip') }}</option>
                     </select>
                 </x-bpjs.field>
             </div>
             <div>
-                <x-bpjs.field label="Mode Approval" for="approvalFilter">
+                <x-bpjs.field :label="__('Mode Approval')" for="approvalFilter">
                     <select wire:model.live="approvalFilter" id="approvalFilter" class="select">
-                        <option value="">Semua mode</option>
+                        <option value="">{{ __('Semua mode') }}</option>
                         @foreach($approvalModes as $mode)
                             <option value="{{ $mode->value }}">{{ $mode->label() }}</option>
                         @endforeach
@@ -38,10 +38,10 @@
 
         <div class="mt-4 flex items-center justify-between gap-3">
             <button wire:click="clearFilters" type="button"
-                    class="text-sm font-medium text-slate-500 hover:text-slate-800">Reset filter</button>
+                    class="text-sm font-medium text-slate-500 hover:text-slate-800">{{ __('Reset filter') }}</button>
             @hasPermission('rooms.create')
                 <x-bpjs.button :href="route('admin.rooms.create')" icon="plus" wire:navigate>
-                    Tambah Ruangan
+                    {{ __('Tambah Ruangan') }}
                 </x-bpjs.button>
             @endhasPermission
         </div>
@@ -52,13 +52,13 @@
         <table class="dtable">
             <thead>
                 <tr>
-                    <th>Kode</th>
-                    <th>Nama</th>
-                    <th>Lokasi</th>
-                    <th>Kapasitas</th>
-                    <th>Mode Approval</th>
-                    <th>Status</th>
-                    <th class="text-right">Aksi</th>
+                    <th>{{ __('Kode') }}</th>
+                    <th>{{ __('Nama') }}</th>
+                    <th>{{ __('Lokasi') }}</th>
+                    <th>{{ __('Kapasitas') }}</th>
+                    <th>{{ __('Mode Approval') }}</th>
+                    <th>{{ __('Status') }}</th>
+                    <th class="text-right">{{ __('Aksi') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -85,20 +85,20 @@
                             <div class="inline-flex items-center justify-end gap-3">
                                 @hasPermission('rooms.update')
                                     <a href="{{ route('admin.rooms.edit', $room->id) }}" wire:navigate
-                                       class="text-sm font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">Edit</a>
+                                       class="text-sm font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">{{ __('Edit') }}</a>
                                     @if($room->status !== \App\Enums\RoomStatus::Active)
-                                        <button wire:click="activate({{ $room->id }})" wire:confirm="Aktifkan kembali {{ $room->name }}?"
-                                                type="button" class="text-sm font-semibold text-bpjs-green-600 hover:text-bpjs-green-700">Aktifkan</button>
+                                        <button wire:click="activate({{ $room->id }})" wire:confirm="{{ __('Aktifkan kembali :name?', ['name' => $room->name]) }}"
+                                                type="button" class="text-sm font-semibold text-bpjs-green-600 hover:text-bpjs-green-700">{{ __('Aktifkan') }}</button>
                                     @endif
                                 @endhasPermission
                                 @hasPermission('rooms.delete')
                                     @if($room->status === \App\Enums\RoomStatus::Active)
-                                        <button wire:click="deactivate({{ $room->id }})" wire:confirm="Nonaktifkan {{ $room->name }}?"
-                                                type="button" class="text-sm font-semibold text-amber-700 hover:text-amber-800">Nonaktifkan</button>
+                                        <button wire:click="deactivate({{ $room->id }})" wire:confirm="{{ __('Nonaktifkan :name?', ['name' => $room->name]) }}"
+                                                type="button" class="text-sm font-semibold text-amber-700 hover:text-amber-800">{{ __('Nonaktifkan') }}</button>
                                     @endif
                                     @if($room->status !== \App\Enums\RoomStatus::Archived)
-                                        <button wire:click="archive({{ $room->id }})" wire:confirm="Arsipkan {{ $room->name }}? Ruang tidak akan muncul untuk pemesanan baru."
-                                                type="button" class="text-sm font-semibold text-red-700 hover:text-red-800">Arsipkan</button>
+                                        <button wire:click="archive({{ $room->id }})" wire:confirm="{{ __('Arsipkan :name? Ruang tidak akan muncul untuk pemesanan baru.', ['name' => $room->name]) }}"
+                                                type="button" class="text-sm font-semibold text-red-700 hover:text-red-800">{{ __('Arsipkan') }}</button>
                                     @endif
                                 @endhasPermission
                             </div>
@@ -107,7 +107,7 @@
                 @empty
                     <tr>
                         <td colspan="7" class="text-center text-slate-500" style="padding: 48px 16px;">
-                            Tidak ada ruang yang sesuai dengan filter.
+                            {{ __('Tidak ada ruang yang sesuai dengan filter.') }}
                         </td>
                     </tr>
                 @endforelse

@@ -43,6 +43,18 @@ class RoomManagementTest extends TestCase
         $this->actingAs($this->userWithRole('super_admin'))->get(route('admin.rooms.index'))->assertOk();
     }
 
+    public function test_room_index_is_translated_to_english(): void
+    {
+        $admin = $this->userWithRole('super_admin');
+        $admin->update(['locale' => 'en']);
+
+        $this->actingAs($admin)->get(route('admin.rooms.index'))
+            ->assertOk()
+            ->assertSee('Manage Rooms')
+            ->assertSee('Approval Mode')
+            ->assertDontSee('Kelola Ruangan');
+    }
+
     public function test_ga_admin_can_view_room_index(): void
     {
         $this->actingAs($this->userWithRole('ga_admin'))->get(route('admin.rooms.index'))->assertOk();

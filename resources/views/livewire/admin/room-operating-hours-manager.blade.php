@@ -11,10 +11,10 @@
             <table class="dtable">
                 <thead>
                     <tr>
-                        <th>Hari</th>
-                        <th>Status</th>
-                        <th>Jam Buka</th>
-                        <th>Jam Tutup</th>
+                        <th>{{ __('Hari') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Jam Buka') }}</th>
+                        <th>{{ __('Jam Tutup') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -25,11 +25,11 @@
                                 <label class="flex items-center cursor-pointer gap-2">
                                     <input type="checkbox" wire:model.live="isClosed.{{ $day }}"
                                            class="rounded border-slate-300 text-bpjs-blue-600 shadow-sm focus:ring-bpjs-blue-500" />
-                                    <span class="text-sm text-slate-600">Tutup</span>
+                                    <span class="text-sm text-slate-600">{{ __('Tutup') }}</span>
                                 </label>
                             </td>
                             @if($isClosed[$day] ?? false)
-                                <td class="text-slate-400" colspan="2">Tutup sepanjang hari</td>
+                                <td class="text-slate-400" colspan="2">{{ __('Tutup sepanjang hari') }}</td>
                             @else
                                 <td>
                                     <input type="time" wire:model="openTime.{{ $day }}"
@@ -49,8 +49,8 @@
             @hasPermission('rooms.update')
                 <div class="modal__foot" style="border-radius: 0 0 16px 16px;">
                     <x-bpjs.button type="submit" wire:loading.attr="disabled" wire:target="save">
-                        <span wire:loading.remove wire:target="save">Simpan Jam Operasional</span>
-                        <span wire:loading wire:target="save">Memproses...</span>
+                        <span wire:loading.remove wire:target="save">{{ __('Simpan Jam Operasional') }}</span>
+                        <span wire:loading wire:target="save">{{ __('Memproses...') }}</span>
                     </x-bpjs.button>
                 </div>
             @endhasPermission

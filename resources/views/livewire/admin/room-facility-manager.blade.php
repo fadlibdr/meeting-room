@@ -10,10 +10,10 @@
         <div class="card card--pad mb-4">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                 <div class="md:col-span-5">
-                    <x-bpjs.field label="Fasilitas" for="selectedFacilityId" :error="$errors->first('selectedFacilityId')">
+                    <x-bpjs.field :label="__('Fasilitas')" for="selectedFacilityId" :error="$errors->first('selectedFacilityId')">
                         <select wire:model="selectedFacilityId" id="selectedFacilityId"
                                 class="select @error('selectedFacilityId') input--err @enderror">
-                            <option value="">— Pilih fasilitas —</option>
+                            <option value="">{{ __('— Pilih fasilitas —') }}</option>
                             @foreach($availableFacilities as $f)
                                 <option value="{{ $f->id }}">{{ $f->name }}@if($f->category) ({{ ucfirst($f->category) }})@endif</option>
                             @endforeach
@@ -21,7 +21,7 @@
                     </x-bpjs.field>
                 </div>
                 <div class="md:col-span-2">
-                    <x-bpjs.field label="Jumlah" for="quantity" :error="$errors->first('quantity')">
+                    <x-bpjs.field :label="__('Jumlah')" for="quantity" :error="$errors->first('quantity')">
                         <input wire:model="quantity" type="number" min="1" id="quantity"
                                class="input @error('quantity') input--err @enderror" />
                     </x-bpjs.field>
@@ -30,15 +30,15 @@
                     <label class="flex items-center cursor-pointer gap-2 pb-2.5">
                         <input type="checkbox" wire:model="isOperational"
                                class="rounded border-slate-300 text-bpjs-blue-600 shadow-sm focus:ring-bpjs-blue-500" />
-                        <span class="text-sm text-slate-700">Siap pakai</span>
+                        <span class="text-sm text-slate-700">{{ __('Siap pakai') }}</span>
                     </label>
                 </div>
                 <div class="md:col-span-3">
-                    <x-bpjs.button wire:click="addFacility" type="button" icon="plus" block>Tambah</x-bpjs.button>
+                    <x-bpjs.button wire:click="addFacility" type="button" icon="plus" block>{{ __('Tambah') }}</x-bpjs.button>
                 </div>
             </div>
             <div class="mt-3">
-                <input wire:model="notes" type="text" placeholder="Catatan (opsional)"
+                <input wire:model="notes" type="text" placeholder="{{ __('Catatan (opsional)') }}"
                        class="input @error('notes') input--err @enderror" />
                 @error('notes') <p class="field__err">{{ $message }}</p> @enderror
             </div>
@@ -49,11 +49,11 @@
         <table class="dtable">
             <thead>
                 <tr>
-                    <th>Fasilitas</th>
-                    <th>Jumlah</th>
-                    <th>Kondisi</th>
-                    <th>Catatan</th>
-                    <th class="text-right">Aksi</th>
+                    <th>{{ __('Fasilitas') }}</th>
+                    <th>{{ __('Jumlah') }}</th>
+                    <th>{{ __('Kondisi') }}</th>
+                    <th>{{ __('Catatan') }}</th>
+                    <th class="text-right">{{ __('Aksi') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -70,7 +70,7 @@
                                 <label class="flex items-center cursor-pointer gap-2">
                                     <input type="checkbox" wire:model="editIsOperational"
                                            class="rounded border-slate-300 text-bpjs-blue-600 shadow-sm focus:ring-bpjs-blue-500" />
-                                    <span class="text-xs text-slate-600">Siap pakai</span>
+                                    <span class="text-xs text-slate-600">{{ __('Siap pakai') }}</span>
                                 </label>
                             </td>
                             <td>
@@ -79,9 +79,9 @@
                             <td class="text-right">
                                 <div class="inline-flex items-center justify-end gap-3">
                                     <button wire:click="saveEdit" type="button"
-                                            class="text-sm font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">Simpan</button>
+                                            class="text-sm font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">{{ __('Simpan') }}</button>
                                     <button wire:click="cancelEdit" type="button"
-                                            class="text-sm font-semibold text-slate-500 hover:text-slate-800">Batal</button>
+                                            class="text-sm font-semibold text-slate-500 hover:text-slate-800">{{ __('Batal') }}</button>
                                 </div>
                             </td>
                         @else
@@ -89,9 +89,9 @@
                             <td class="font-mono text-slate-700">{{ $item->quantity }}</td>
                             <td>
                                 @if($item->is_operational)
-                                    <x-bpjs.pill variant="green">Siap pakai</x-bpjs.pill>
+                                    <x-bpjs.pill variant="green">{{ __('Siap pakai') }}</x-bpjs.pill>
                                 @else
-                                    <x-bpjs.pill variant="amber">Rusak</x-bpjs.pill>
+                                    <x-bpjs.pill variant="amber">{{ __('Rusak') }}</x-bpjs.pill>
                                 @endif
                             </td>
                             <td class="text-slate-500">{{ $item->notes ?? '-' }}</td>
@@ -99,9 +99,9 @@
                                 @hasPermission('rooms.update')
                                     <div class="inline-flex items-center justify-end gap-3">
                                         <button wire:click="startEdit({{ $item->id }})" type="button"
-                                                class="text-sm font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">Edit</button>
-                                        <button wire:click="remove({{ $item->id }})" wire:confirm="Hapus {{ $item->facility->name }} dari ruang?" type="button"
-                                                class="text-sm font-semibold text-red-700 hover:text-red-800">Hapus</button>
+                                                class="text-sm font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">{{ __('Edit') }}</button>
+                                        <button wire:click="remove({{ $item->id }})" wire:confirm="{{ __('Hapus :name dari ruang?', ['name' => $item->facility->name]) }}" type="button"
+                                                class="text-sm font-semibold text-red-700 hover:text-red-800">{{ __('Hapus') }}</button>
                                     </div>
                                 @endhasPermission
                             </td>
@@ -110,7 +110,7 @@
                 @empty
                     <tr>
                         <td colspan="5" class="text-center text-slate-500" style="padding: 32px 16px;">
-                            Belum ada fasilitas yang ditambahkan ke ruang ini.
+                            {{ __('Belum ada fasilitas yang ditambahkan ke ruang ini.') }}
                         </td>
                     </tr>
                 @endforelse
