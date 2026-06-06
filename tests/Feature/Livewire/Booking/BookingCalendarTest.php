@@ -48,6 +48,19 @@ class BookingCalendarTest extends TestCase
             ->assertSee('Hari Ini');
     }
 
+    public function test_calendar_renders_english_for_en_locale(): void
+    {
+        $user = $this->userWithRole('requester');
+        $user->update(['locale' => 'en']);
+
+        // Full HTTP request so the SetLocale middleware resolves the user locale.
+        $this->actingAs($user)
+            ->get(route('calendar.index'))
+            ->assertOk()
+            ->assertSee('Today')
+            ->assertDontSee('Hari Ini');
+    }
+
     public function test_unauthenticated_calendar_redirects_to_login(): void
     {
         $this->get('/calendar')->assertRedirect('/login');

@@ -4,21 +4,21 @@
     <x-bpjs.card class="card--pad mb-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-2">
-                <x-bpjs.button variant="ghost" wire:click="previousDay" aria-label="Hari sebelumnya" class="!px-2.5">
+                <x-bpjs.button variant="ghost" wire:click="previousDay" aria-label="{{ __('Hari sebelumnya') }}" class="!px-2.5">
                     <x-icon name="chevronLeft" :size="18" />
                 </x-bpjs.button>
 
                 <x-bpjs.button variant="ghost" wire:click="setToday" icon="calendar">
-                    Hari Ini
+                    {{ __('Hari Ini') }}
                 </x-bpjs.button>
 
-                <x-bpjs.button variant="ghost" wire:click="nextDay" aria-label="Hari berikutnya" class="!px-2.5">
+                <x-bpjs.button variant="ghost" wire:click="nextDay" aria-label="{{ __('Hari berikutnya') }}" class="!px-2.5">
                     <x-icon name="chevronRight" :size="18" />
                 </x-bpjs.button>
 
                 <label class="ml-1 flex items-center gap-2 rounded-[10px] border border-slate-300 bg-white px-3 py-2 focus-within:border-bpjs-blue-500">
                     <x-icon name="calendar" :size="16" class="text-slate-400" />
-                    <input type="date" wire:model.live="selectedDate" aria-label="Pilih tanggal"
+                    <input type="date" wire:model.live="selectedDate" aria-label="{{ __('Pilih tanggal') }}"
                         class="border-0 p-0 font-mono text-sm text-slate-900 focus:ring-0" />
                 </label>
 
@@ -31,11 +31,11 @@
             <div class="flex items-center gap-4">
                 <span class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
                     <span class="inline-block h-2.5 w-2.5 rounded-sm bg-bpjs-green-500"></span>
-                    Disetujui
+                    {{ __('Disetujui') }}
                 </span>
                 <span class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
                     <span class="inline-block h-2.5 w-2.5 rounded-sm bg-amber-400"></span>
-                    Menunggu
+                    {{ __('Menunggu') }}
                 </span>
             </div>
         </div>
@@ -43,7 +43,7 @@
 
     {{-- Room filter chips --}}
     <div class="mb-4 flex flex-wrap items-center gap-2">
-        <span class="eyebrow mr-1">Ruangan</span>
+        <span class="eyebrow mr-1">{{ __('Ruangan') }}</span>
         @foreach ($allRooms as $room)
             @php($isActive = empty($roomFilterIds) || in_array($room->id, $roomFilterIds))
             <button type="button" wire:click="toggleRoom({{ $room->id }})" aria-pressed="{{ $isActive ? 'true' : 'false' }}" @class([
@@ -58,7 +58,7 @@
         @if (! empty($roomFilterIds))
             <button type="button" wire:click="$set('roomFilterIds', [])" class="ml-1 inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-500 transition-colors hover:text-slate-700">
                 <x-icon name="x" :size="14" />
-                Reset filter
+                {{ __('Reset filter') }}
             </button>
         @endif
     </div>
@@ -70,17 +70,17 @@
                 <x-icon name="calendar" :size="28" />
             </span>
             <h3 class="h-display mt-4 text-base font-semibold text-slate-900">
-                {{ empty($rooms) ? 'Tidak ada ruangan yang dipilih' : 'Semua ruangan tutup' }}
+                {{ empty($rooms) ? __('Tidak ada ruangan yang dipilih') : __('Semua ruangan tutup') }}
             </h3>
             <p class="mx-auto mt-1 max-w-sm text-sm text-slate-500">
-                {{ empty($rooms) ? 'Pilih setidaknya satu ruangan dari filter di atas.' : "Tidak ada jam operasional untuk {$displayDate}." }}
+                {{ empty($rooms) ? __('Pilih setidaknya satu ruangan dari filter di atas.') : __('Tidak ada jam operasional untuk :date', ['date' => $displayDate]) }}
             </p>
         </x-bpjs.card>
     @else
         @if ($bookings->isEmpty())
             <div class="mb-3 flex items-center gap-2 rounded-[10px] bg-bpjs-blue-50 px-4 py-3 text-sm text-bpjs-blue-700 ring-1 ring-inset ring-bpjs-blue-100">
                 <x-icon name="info" :size="18" class="shrink-0" />
-                Belum ada reservasi untuk {{ $displayDate }}. Klik slot kosong untuk membuat reservasi pertama.
+                {{ __('Belum ada reservasi untuk :date. Klik slot kosong untuk membuat reservasi pertama.', ['date' => $displayDate]) }}
             </div>
         @endif
 
@@ -112,7 +112,7 @@
                         </div>
 
                         @foreach ($rooms as $i => $room)
-                            <a href="{{ $this->emptyCellHref($room->id, $slot) }}" wire:navigate aria-label="Buat reservasi {{ $room->name }} pukul {{ $slot }}" @class([
+                            <a href="{{ $this->emptyCellHref($room->id, $slot) }}" wire:navigate aria-label="{{ __('Buat reservasi :room pukul :slot', ['room' => $room->name, 'slot' => $slot]) }}" @class([
                                 'cell flex items-center justify-center border-b border-r border-slate-100 transition-colors',
                                 'bg-slate-50' => $rowIdx % 2 === 0,
                                 'bg-white' => $rowIdx % 2 !== 0,
@@ -156,7 +156,7 @@
         {{-- MOBILE: List view grouped by room --}}
         <div class="space-y-3 md:hidden">
             <x-bpjs.button variant="primary" icon="plus" block :href="route('bookings.new')" wire:navigate>
-                Buat Reservasi Baru
+                {{ __('Buat Reservasi Baru') }}
             </x-bpjs.button>
 
             @foreach ($rooms as $room)
@@ -170,17 +170,17 @@
                             @if ($room->floor || $room->location)
                                 {{ trim(($room->floor ?? '').($room->floor && $room->location ? ' - ' : '').($room->location ?? '')) }} ·
                             @endif
-                            Kapasitas {{ $room->capacity }}
+                            {{ __('Kapasitas') }} {{ $room->capacity }}
                         </p>
                     </header>
 
                     @if ($roomBookings->isEmpty())
                         <div class="px-4 py-4">
                             <p class="text-xs italic text-slate-500">
-                                Tidak ada reservasi untuk hari ini.
+                                {{ __('Tidak ada reservasi untuk hari ini.') }}
                             </p>
                             <a href="{{ route('bookings.new', ['room_id' => $room->id]) }}" wire:navigate class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">
-                                Reservasi ruangan ini
+                                {{ __('Reservasi ruangan ini') }}
                                 <x-icon name="chevronRight" :size="14" />
                             </a>
                         </div>
@@ -203,7 +203,7 @@
                                             </p>
                                         </div>
                                         <x-bpjs.pill :variant="$isApproved ? 'green' : 'amber'" class="flex-shrink-0">
-                                            {{ $isApproved ? 'Disetujui' : 'Menunggu' }}
+                                            {{ $isApproved ? __('Disetujui') : __('Menunggu') }}
                                         </x-bpjs.pill>
                                     </div>
                                 </li>
