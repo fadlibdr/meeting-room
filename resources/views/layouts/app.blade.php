@@ -218,6 +218,9 @@
                             <x-dropdown-link :href="route('api-tokens.index')" wire:navigate>
                                 {{ __('Token API') }}
                             </x-dropdown-link>
+                            <x-dropdown-link :href="route('api-docs.page')">
+                                {{ __('Dokumentasi API') }}
+                            </x-dropdown-link>
                             @hasPermission('app-settings.view')
                                 <x-dropdown-link :href="route('admin.settings.index')" wire:navigate>
                                     {{ __('common.settings') }}

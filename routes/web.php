@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\RoomBlockController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BookingAttachmentController;
 use App\Http\Controllers\BookingController;
@@ -194,6 +195,10 @@ Route::middleware(['auth', 'user.active'])->group(function () {
 
     // Stage 3 C — personal API token management
     Route::get('api-tokens', ApiTokenManager::class)->name('api-tokens.index');
+
+    // Stage 3 C — browsable API docs (Redoc over docs/openapi-v1.yaml)
+    Route::get('api-docs', [ApiDocsController::class, 'page'])->name('api-docs.page');
+    Route::get('api-docs/openapi.yaml', [ApiDocsController::class, 'spec'])->name('api-docs.spec');
 });
 
 require __DIR__.'/auth.php';
