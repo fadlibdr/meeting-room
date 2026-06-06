@@ -105,8 +105,11 @@ final class SubmitBookingAction
         $endsAt = CarbonImmutable::parse($input['ends_at'])->utc();
         $this->conflictService->assertNoConflict($room, $startsAt, $endsAt);
 
-        // 4. Resolve approval routing — approval_mode is also an enum cast
-        $resolution = $this->routingService->resolve($requester, $room->approval_mode);
+        // 4. Resolve approval routing — a CHAIN (Stage 3 B): policy-driven
+        // multi-step, or the legacy single-step mode as a 0/1-length chain.
+        $resolution = $this->routingService->resolve($requester, $room);
+        $chain = $resolution['chain'];
+        $firstApprover = $chain[0] ?? null;
 
         // 5. Create booking row
         $booking = Booking::create([
@@ -123,18 +126,18 @@ final class SubmitBookingAction
             'status' => $resolution['status']->value,
             'source' => $input['source'] ?? 'user',
             'approval_mode_snapshot' => $room->approval_mode->value,
-            'current_approval_step' => $resolution['current_step'],
-            'current_approver_user_id' => $resolution['approver_user_id'],
+            'current_approval_step' => $firstApprover !== null ? 1 : null,
+            'current_approver_user_id' => $firstApprover,
             'submitted_at' => Carbon::now(),
             'approved_at' => $resolution['approved_at'],
         ]);
 
-        // 6. Create approval row if needed
-        if ($resolution['approver_user_id'] !== null) {
+        // 6. Create one approval row per chain step (seq 1..N), all pending.
+        foreach ($chain as $i => $approverId) {
             BookingApproval::create([
                 'booking_id' => $booking->id,
-                'sequence_no' => 1,
-                'approver_user_id' => $resolution['approver_user_id'],
+                'sequence_no' => $i + 1,
+                'approver_user_id' => $approverId,
                 'status' => 'pending',
             ]);
         }

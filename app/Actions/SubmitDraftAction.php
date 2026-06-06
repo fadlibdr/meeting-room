@@ -119,7 +119,9 @@ final class SubmitDraftAction
         // 5. Resolve approval routing for the booking's requester (not the
         // actor) — the unit approver follows whoever owns the booking.
         $requester = User::query()->findOrFail($locked->requester_user_id);
-        $resolution = $this->routingService->resolve($requester, $room->approval_mode);
+        $resolution = $this->routingService->resolve($requester, $room);
+        $chain = $resolution['chain'];
+        $firstApprover = $chain[0] ?? null;
 
         // 6. Transition the booking. Re-snapshot the approval mode — the
         // room's mode may have changed since the draft was created.
@@ -131,25 +133,26 @@ final class SubmitDraftAction
         // unique(booking_id, sequence_no) constraint — a re-submit reusing
         // sequence_no 1 would collide. A fresh draft has no rows, so
         // (int) null + 1 = 1; a reverted-then-resubmitted draft advances to 2.
-        $approvalRequired = $resolution['approver_user_id'] !== null;
-        $nextStep = (int) $locked->approvals()->max('sequence_no') + 1;
+        $baseStep = (int) $locked->approvals()->max('sequence_no'); // 0 for a fresh draft
+        $firstStep = $baseStep + 1;
 
         $locked->update([
             'status' => $resolution['status']->value,
             'approval_mode_snapshot' => $room->approval_mode->value,
-            'current_approval_step' => $approvalRequired ? $nextStep : null,
-            'current_approver_user_id' => $resolution['approver_user_id'],
+            'current_approval_step' => $firstApprover !== null ? $firstStep : null,
+            'current_approver_user_id' => $firstApprover,
             'submitted_at' => Carbon::now(),
             'approved_at' => $resolution['approved_at'],
             'updated_by_user_id' => $actor->id,
         ]);
 
-        // 7. Create the approval row when approval is required.
-        if ($approvalRequired) {
+        // 7. Create one approval row per chain step, advancing past any prior
+        // cancelled rows (sequence_no is unique per booking).
+        foreach ($chain as $i => $approverId) {
             BookingApproval::create([
                 'booking_id' => $locked->id,
-                'sequence_no' => $nextStep,
-                'approver_user_id' => $resolution['approver_user_id'],
+                'sequence_no' => $firstStep + $i,
+                'approver_user_id' => $approverId,
                 'status' => 'pending',
             ]);
         }

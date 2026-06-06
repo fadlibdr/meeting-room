@@ -13,6 +13,7 @@ use App\Models\BookingStatusHistory;
 use App\Models\Room;
 use App\Models\User;
 use App\Notifications\BookingApprovedNotification;
+use App\Notifications\BookingSubmittedNotification;
 use App\Policies\BookingPolicy;
 use App\Services\BookingConflictService;
 use DomainException;
@@ -58,21 +59,31 @@ final class ApproveBookingAction
      */
     public function execute(Booking $booking, User $actor, ?string $notes = null): Booking
     {
-        /** @var Booking $approved */
-        $approved = DB::transaction(function () use ($booking, $actor, $notes): Booking {
+        /** @var array{booking: Booking, finalized: bool} $result */
+        $result = DB::transaction(function () use ($booking, $actor, $notes): array {
             return $this->performApprove($booking, $actor, $notes);
         });
 
-        // 2D-F: notify the requester AFTER the transaction commits, so a
-        // notification never fires for a rolled-back approval. Looked up by
-        // FK id (not the relation) to stay within larastan type resolution.
-        User::findOrFail($approved->requester_user_id)
-            ->notify(new BookingApprovedNotification($approved));
+        $approved = $result['booking'];
+
+        // Notify AFTER commit so nothing fires for a rolled-back approval.
+        if ($result['finalized']) {
+            // Final step approved → booking is Approved; tell the requester.
+            User::findOrFail($approved->requester_user_id)
+                ->notify(new BookingApprovedNotification($approved));
+        } elseif ($approved->current_approver_user_id !== null) {
+            // Multi-step chain advanced → tell the NEXT approver (Stage 3 B).
+            User::findOrFail($approved->current_approver_user_id)
+                ->notify(new BookingSubmittedNotification($approved));
+        }
 
         return $approved;
     }
 
-    private function performApprove(Booking $booking, User $actor, ?string $notes): Booking
+    /**
+     * @return array{booking: Booking, finalized: bool}
+     */
+    private function performApprove(Booking $booking, User $actor, ?string $notes): array
     {
         // 1. Lock the room row
         /** @var Room $room */
@@ -116,25 +127,45 @@ final class ApproveBookingAction
             'acted_by_user_id' => $actor->id,
         ]);
 
-        // 6. Update the booking — clear the Dec-03 hybrid pointer (terminal status).
-        $booking->update([
-            'status' => BookingStatus::Approved->value,
-            'approved_at' => Carbon::now(),
-            'current_approval_step' => null,
-            'current_approver_user_id' => null,
-            'updated_by_user_id' => $actor->id,
-        ]);
+        // 6. Multi-step (Stage 3 B): if a later pending step exists, ADVANCE the
+        // Dec-03 pointer atomically and keep the booking Submitted; otherwise
+        // FINALIZE to Approved. The pointer + current_approver_user_id always
+        // move together, preserving the IntegrityTest invariant.
+        /** @var BookingApproval|null $next */
+        $next = $booking->approvals()
+            ->where('status', 'pending')
+            ->where('sequence_no', '>', $approvalRow->sequence_no)
+            ->orderBy('sequence_no')
+            ->first();
 
-        // 7. Status history
-        BookingStatusHistory::create([
-            'booking_id' => $booking->id,
-            'from_status' => BookingStatus::Submitted->value,
-            'to_status' => BookingStatus::Approved->value,
-            'changed_by_user_id' => $actor->id,
-            'changed_at' => Carbon::now(),
-        ]);
+        $finalized = $next === null;
 
-        // 8. Audit log
+        if ($finalized) {
+            $booking->update([
+                'status' => BookingStatus::Approved->value,
+                'approved_at' => Carbon::now(),
+                'current_approval_step' => null,
+                'current_approver_user_id' => null,
+                'updated_by_user_id' => $actor->id,
+            ]);
+
+            // Status history only on the actual status transition.
+            BookingStatusHistory::create([
+                'booking_id' => $booking->id,
+                'from_status' => BookingStatus::Submitted->value,
+                'to_status' => BookingStatus::Approved->value,
+                'changed_by_user_id' => $actor->id,
+                'changed_at' => Carbon::now(),
+            ]);
+        } else {
+            $booking->update([
+                'current_approval_step' => $next->sequence_no,
+                'current_approver_user_id' => $next->approver_user_id,
+                'updated_by_user_id' => $actor->id,
+            ]);
+        }
+
+        // 7. Audit log (one per step acted on).
         ActivityLog::create([
             'actor_user_id' => $actor->id,
             'module' => 'bookings',
@@ -142,17 +173,21 @@ final class ApproveBookingAction
             'subject_type' => Booking::class,
             'subject_id' => $booking->id,
             'description' => sprintf(
-                'Booking %s disetujui oleh %s.',
+                $finalized ? 'Booking %s disetujui oleh %s.' : 'Booking %s disetujui pada satu langkah oleh %s.',
                 $booking->booking_code,
                 $actor->name,
             ),
             'context' => [
                 'room_id' => $room->id,
                 'approval_step' => $approvalRow->sequence_no,
+                'finalized' => $finalized,
+                'advanced_to_step' => $next?->sequence_no,
                 'acted_by_user_id' => $actor->id,
             ],
         ]);
 
-        return $booking->fresh(['room', 'requester', 'approvals']) ?? $booking;
+        $fresh = $booking->fresh(['room', 'requester', 'approvals']);
+
+        return ['booking' => $fresh ?? $booking, 'finalized' => $finalized];
     }
 }

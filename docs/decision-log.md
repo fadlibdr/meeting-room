@@ -117,6 +117,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Adds the `simplesoftwareio/simple-qrcode` dependency.
 **Status:** Accepted (6 Jun 2026, `feat/stage3-qr-checkin`). Closes Phase A (A.1 + A.2 + A.3).
 
+### ADR-018 · Multi-step approval = configurable policy chains resolved to concrete approvers
+**Decision:** Stage-3 B replaces single-step routing with a **chain**. A named, reusable **`approval_policies`** (+ ordered `approval_policy_steps`) is assignable to a **room and/or a unit**; resolution order at submit is **room policy > requester-unit policy > legacy per-room `approval_mode`** (so existing single-step behaviour is a 0/1-length chain — fully backward compatible). Each step resolves to ONE approver by type — **`unit_approver`** (the requester's own approver), **`role`** (lowest-id active holder), or **`user`** — then passes through **`approval_delegations`** (an active delegation re-routes an away approver to a stand-in, one hop) and is **de-duplicated** (no self-approval, no double-asking). `SubmitBookingAction`/`SubmitDraftAction` create N `booking_approvals` rows (seq 1..N) and point the **Dec-03 pointer** at step 1; `ApproveBookingAction` now **advances-or-finalizes** — approving a non-final step advances the pointer + `current_approver_user_id` atomically (status stays Submitted, the next approver is notified), the final step finalizes to Approved (requester notified). Reject at any step terminates.
+**Context:** Chosen the configurable-policy-table option (vs per-room/per-unit only) for flexibility. The pointer ↔ approval-row invariant (IntegrityTest) is preserved at every transition; routing stays pure (`ApprovalRoutingService` → `ApprovalChainResolver` → `DelegationResolver`), the calling action owns the transaction and the room/booking `lockForUpdate`. Highest-blast-radius internal item: shipped engine-only, all 57 existing approval-engine tests stay green plus new chain/resolver/e2e suites.
+**Consequence:** New tables (`approval_policies`, `approval_policy_steps`, `approval_delegations`) + `rooms.approval_policy_id` / `units.approval_policy_id`. Admin CRUD UI for policies & delegations is a tracked follow-up PR.
+**Status:** Accepted (6 Jun 2026, `feat/stage3-approval-chains`).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*

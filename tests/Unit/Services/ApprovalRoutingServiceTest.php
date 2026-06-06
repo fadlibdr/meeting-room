@@ -7,7 +7,9 @@ namespace Tests\Unit\Services;
 use App\Enums\BookingStatus;
 use App\Enums\RoomApprovalMode;
 use App\Exceptions\ApprovalRoutingException;
+use App\Models\ApprovalDelegation;
 use App\Models\Role;
+use App\Models\Room;
 use App\Models\User;
 use App\Services\ApprovalRoutingService;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -15,11 +17,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Unit tests for ApprovalRoutingService (M3-C2-i).
- *
- * The routing rule was extracted from SubmitBookingAction so SubmitDraftAction
- * can reuse it. SubmitBookingActionTest still exercises the rule end to end;
- * these cover the service in isolation.
+ * Unit tests for ApprovalRoutingService legacy (mode-driven) routing, now
+ * returning a CHAIN (Stage 3 B). Policy/chain/delegation behaviour lives in
+ * ApprovalChainResolverTest and the multi-step approval feature test.
  *
  * @see ApprovalRoutingService
  */
@@ -35,27 +35,28 @@ class ApprovalRoutingServiceTest extends TestCase
 
     private function service(): ApprovalRoutingService
     {
-        return new ApprovalRoutingService;
+        return app(ApprovalRoutingService::class);
+    }
+
+    private function room(RoomApprovalMode $mode): Room
+    {
+        return Room::factory()->create(['approval_mode' => $mode->value, 'approval_policy_id' => null]);
     }
 
     private function attachRole(User $user, string $roleCode): void
     {
         $role = Role::where('code', $roleCode)->firstOrFail();
-        $user->roles()->attach($role->id, [
-            'is_primary' => true,
-            'assigned_at' => now(),
-        ]);
+        $user->roles()->attach($role->id, ['is_primary' => true, 'assigned_at' => now()]);
     }
 
     public function test_none_mode_resolves_to_approved(): void
     {
         $requester = User::factory()->create();
 
-        $resolution = $this->service()->resolve($requester, RoomApprovalMode::None);
+        $resolution = $this->service()->resolve($requester, $this->room(RoomApprovalMode::None));
 
         $this->assertSame(BookingStatus::Approved, $resolution['status']);
-        $this->assertNull($resolution['current_step']);
-        $this->assertNull($resolution['approver_user_id']);
+        $this->assertSame([], $resolution['chain']);
         $this->assertNotNull($resolution['approved_at']);
     }
 
@@ -64,11 +65,10 @@ class ApprovalRoutingServiceTest extends TestCase
         $approver = User::factory()->create(['is_active' => true]);
         $requester = User::factory()->create(['approver_user_id' => $approver->id]);
 
-        $resolution = $this->service()->resolve($requester, RoomApprovalMode::UnitApprover);
+        $resolution = $this->service()->resolve($requester, $this->room(RoomApprovalMode::UnitApprover));
 
         $this->assertSame(BookingStatus::Submitted, $resolution['status']);
-        $this->assertSame(1, $resolution['current_step']);
-        $this->assertSame($approver->id, $resolution['approver_user_id']);
+        $this->assertSame([$approver->id], $resolution['chain']);
         $this->assertNull($resolution['approved_at']);
     }
 
@@ -78,7 +78,7 @@ class ApprovalRoutingServiceTest extends TestCase
 
         $this->expectException(ApprovalRoutingException::class);
 
-        $this->service()->resolve($requester, RoomApprovalMode::UnitApprover);
+        $this->service()->resolve($requester, $this->room(RoomApprovalMode::UnitApprover));
     }
 
     public function test_ga_admin_mode_resolves_to_submitted_with_an_active_ga_admin(): void
@@ -87,11 +87,10 @@ class ApprovalRoutingServiceTest extends TestCase
         $this->attachRole($gaAdmin, 'ga_admin');
         $requester = User::factory()->create();
 
-        $resolution = $this->service()->resolve($requester, RoomApprovalMode::GaAdmin);
+        $resolution = $this->service()->resolve($requester, $this->room(RoomApprovalMode::GaAdmin));
 
         $this->assertSame(BookingStatus::Submitted, $resolution['status']);
-        $this->assertSame(1, $resolution['current_step']);
-        $this->assertSame($gaAdmin->id, $resolution['approver_user_id']);
+        $this->assertSame([$gaAdmin->id], $resolution['chain']);
         $this->assertNull($resolution['approved_at']);
     }
 
@@ -101,7 +100,7 @@ class ApprovalRoutingServiceTest extends TestCase
 
         $this->expectException(ApprovalRoutingException::class);
 
-        $this->service()->resolve($requester, RoomApprovalMode::GaAdmin);
+        $this->service()->resolve($requester, $this->room(RoomApprovalMode::GaAdmin));
     }
 
     public function test_ga_admin_mode_excludes_inactive_ga_admins(): void
@@ -112,6 +111,24 @@ class ApprovalRoutingServiceTest extends TestCase
 
         $this->expectException(ApprovalRoutingException::class);
 
-        $this->service()->resolve($requester, RoomApprovalMode::GaAdmin);
+        $this->service()->resolve($requester, $this->room(RoomApprovalMode::GaAdmin));
+    }
+
+    public function test_legacy_unit_approver_is_re_routed_by_an_active_delegation(): void
+    {
+        $approver = User::factory()->create(['is_active' => true]);
+        $delegate = User::factory()->create(['is_active' => true]);
+        $requester = User::factory()->create(['approver_user_id' => $approver->id]);
+
+        ApprovalDelegation::factory()->create([
+            'from_user_id' => $approver->id,
+            'to_user_id' => $delegate->id,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDay(),
+        ]);
+
+        $resolution = $this->service()->resolve($requester, $this->room(RoomApprovalMode::UnitApprover));
+
+        $this->assertSame([$delegate->id], $resolution['chain']);
     }
 }
