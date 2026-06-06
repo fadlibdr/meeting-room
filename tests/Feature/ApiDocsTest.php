@@ -27,7 +27,9 @@ class ApiDocsTest extends TestCase
 
         $response->assertOk();
         $this->assertStringContainsString('application/yaml', (string) $response->headers->get('Content-Type'));
-        $this->assertStringContainsString('openapi: 3.0', $response->getContent());
+        $this->assertStringContainsString('openapi: 3.1', $response->getContent());
+        $this->assertStringContainsString('webhooks:', $response->getContent());
+        $this->assertStringContainsString('booking.auto_released', $response->getContent());
         $this->assertStringContainsString('/rooms/{room}/availability', $response->getContent());
     }
 

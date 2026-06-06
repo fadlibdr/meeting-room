@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: Meeting Room BPJS Kesehatan — Public API
   version: "1.0"
@@ -9,6 +9,17 @@ info:
     `read` for the read endpoints, `booking:write` to create a booking. A
     token never exceeds its owner — writes still pass the caller's permissions,
     conflict detection, and the approval chain (the API is not a bypass).
+
+
+    ## Webhooks
+
+
+    Outbound webhooks (see the **webhooks** section) deliver booking lifecycle
+    events to subscribed endpoints as `POST`s. Each request carries
+    `X-Webhook-Event`, `X-Webhook-Delivery`, and `X-Webhook-Signature` —
+    `sha256=<hex>`, an HMAC-SHA256 of the exact JSON body keyed with the
+    subscription's secret. Verify the signature before trusting a delivery.
+    Failed deliveries (non-2xx) are retried with backoff (4 attempts).
 servers:
   - url: https://booking.pi2.co.id/api/v1
     description: Production (path prefix /api/v1)
@@ -19,7 +30,26 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      description: Sanctum personal access token (Authorization: Bearer &lt;token&gt;).
+      description: Sanctum personal access token (Authorization Bearer header).
+  parameters:
+    WebhookEvent:
+      name: X-Webhook-Event
+      in: header
+      required: true
+      schema: { type: string }
+      description: The lifecycle event name (e.g. booking.approved).
+    WebhookDelivery:
+      name: X-Webhook-Delivery
+      in: header
+      required: true
+      schema: { type: string }
+      description: The delivery id (for idempotency / correlation).
+    WebhookSignature:
+      name: X-Webhook-Signature
+      in: header
+      required: true
+      schema: { type: string }
+      description: "sha256=<hex> — HMAC-SHA256 of the raw body, keyed with the subscription secret."
   schemas:
     Room:
       type: object
@@ -27,8 +57,8 @@ components:
         id: { type: integer }
         code: { type: string }
         name: { type: string }
-        location: { type: string, nullable: true }
-        floor: { type: string, nullable: true }
+        location: { type: [string, "null"] }
+        floor: { type: [string, "null"] }
         capacity: { type: integer }
         status: { type: string, enum: [active, inactive, archived] }
         is_active: { type: boolean }
@@ -39,12 +69,41 @@ components:
         booking_code: { type: string }
         subject: { type: string }
         status: { type: string, enum: [draft, submitted, approved, rejected, cancelled, completed] }
-        room: { type: object, properties: { id: { type: integer }, name: { type: string, nullable: true } } }
+        room:
+          type: object
+          properties:
+            id: { type: integer }
+            name: { type: [string, "null"] }
         attendee_count: { type: integer }
         starts_at: { type: string, format: date-time, description: UTC ISO-8601 }
         ends_at: { type: string, format: date-time, description: UTC ISO-8601 }
-        checked_in_at: { type: string, format: date-time, nullable: true }
-        created_at: { type: string, format: date-time, nullable: true }
+        checked_in_at: { type: [string, "null"], format: date-time }
+        created_at: { type: [string, "null"], format: date-time }
+    WebhookEnvelope:
+      type: object
+      required: [event, occurred_at, booking]
+      properties:
+        event:
+          type: string
+          enum:
+            - booking.submitted
+            - booking.approved
+            - booking.rejected
+            - booking.cancelled
+            - booking.auto_released
+            - booking.checked_in
+        occurred_at: { type: string, format: date-time, description: UTC ISO-8601 }
+        booking:
+          type: object
+          properties:
+            id: { type: integer }
+            booking_code: { type: string }
+            subject: { type: string }
+            status: { type: string }
+            room_id: { type: integer }
+            requester_user_id: { type: integer }
+            starts_at: { type: string, format: date-time }
+            ends_at: { type: string, format: date-time }
 paths:
   /user:
     get:
@@ -54,7 +113,7 @@ paths:
         "401": { description: Unauthenticated }
   /rooms:
     get:
-      summary: List active rooms (ability: read)
+      summary: List active rooms (ability read)
       responses:
         "200":
           description: Paginated rooms
@@ -67,7 +126,7 @@ paths:
         "403": { description: Missing read ability }
   /rooms/{room}/availability:
     get:
-      summary: Check a room's availability for a time window (ability: read)
+      summary: Check a room's availability for a time window (ability read)
       parameters:
         - { name: room, in: path, required: true, schema: { type: integer } }
         - { name: starts_at, in: query, required: true, schema: { type: string, format: date-time } }
@@ -95,7 +154,7 @@ paths:
         "422": { description: Validation error }
   /bookings:
     get:
-      summary: The token owner's bookings (ability: read)
+      summary: The token owner's bookings (ability read)
       responses:
         "200":
           description: Paginated bookings
@@ -107,7 +166,7 @@ paths:
                   data: { type: array, items: { $ref: "#/components/schemas/Booking" } }
         "403": { description: Missing read ability }
     post:
-      summary: Create a booking (ability: booking:write)
+      summary: Create a booking (ability booking:write)
       description: >
         Routes through the same submit pipeline as the web app — conflict
         detection and the approval chain apply. Requires the caller to hold the
@@ -122,7 +181,7 @@ paths:
               properties:
                 room_id: { type: integer }
                 subject: { type: string, maxLength: 150 }
-                agenda: { type: string, nullable: true }
+                agenda: { type: [string, "null"] }
                 attendee_count: { type: integer, minimum: 1 }
                 starts_at: { type: string, format: date-time }
                 ends_at: { type: string, format: date-time }
@@ -136,3 +195,89 @@ paths:
                 properties: { data: { $ref: "#/components/schemas/Booking" } }
         "403": { description: Missing booking:write ability or bookings.create permission }
         "422": { description: Validation error, slot conflict, or approval routing error }
+webhooks:
+  booking.submitted:
+    post:
+      summary: A booking was submitted for approval
+      description: Sent to subscribed endpoints when a booking enters the approval flow.
+      parameters:
+        - { $ref: "#/components/parameters/WebhookEvent" }
+        - { $ref: "#/components/parameters/WebhookDelivery" }
+        - { $ref: "#/components/parameters/WebhookSignature" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WebhookEnvelope" }
+      responses:
+        "2XX": { description: Acknowledged. Any non-2xx triggers a retry. }
+  booking.approved:
+    post:
+      summary: A booking was fully approved
+      parameters:
+        - { $ref: "#/components/parameters/WebhookEvent" }
+        - { $ref: "#/components/parameters/WebhookDelivery" }
+        - { $ref: "#/components/parameters/WebhookSignature" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WebhookEnvelope" }
+      responses:
+        "2XX": { description: Acknowledged. }
+  booking.rejected:
+    post:
+      summary: A booking was rejected
+      parameters:
+        - { $ref: "#/components/parameters/WebhookEvent" }
+        - { $ref: "#/components/parameters/WebhookDelivery" }
+        - { $ref: "#/components/parameters/WebhookSignature" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WebhookEnvelope" }
+      responses:
+        "2XX": { description: Acknowledged. }
+  booking.cancelled:
+    post:
+      summary: A booking was cancelled
+      parameters:
+        - { $ref: "#/components/parameters/WebhookEvent" }
+        - { $ref: "#/components/parameters/WebhookDelivery" }
+        - { $ref: "#/components/parameters/WebhookSignature" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WebhookEnvelope" }
+      responses:
+        "2XX": { description: Acknowledged. }
+  booking.auto_released:
+    post:
+      summary: A no-show booking was auto-released (the room was reclaimed)
+      parameters:
+        - { $ref: "#/components/parameters/WebhookEvent" }
+        - { $ref: "#/components/parameters/WebhookDelivery" }
+        - { $ref: "#/components/parameters/WebhookSignature" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WebhookEnvelope" }
+      responses:
+        "2XX": { description: Acknowledged. }
+  booking.checked_in:
+    post:
+      summary: Attendees checked in for a booking
+      parameters:
+        - { $ref: "#/components/parameters/WebhookEvent" }
+        - { $ref: "#/components/parameters/WebhookDelivery" }
+        - { $ref: "#/components/parameters/WebhookSignature" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WebhookEnvelope" }
+      responses:
+        "2XX": { description: Acknowledged. }
