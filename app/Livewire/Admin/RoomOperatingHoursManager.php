@@ -93,16 +93,16 @@ class RoomOperatingHoursManager extends Component
         }
 
         $this->validate($rules, [
-            'openTime.*.required' => 'Jam buka wajib diisi untuk hari yang tidak ditutup.',
-            'openTime.*.date_format' => 'Format jam buka tidak valid.',
-            'closeTime.*.required' => 'Jam tutup wajib diisi untuk hari yang tidak ditutup.',
-            'closeTime.*.date_format' => 'Format jam tutup tidak valid.',
+            'openTime.*.required' => __('Jam buka wajib diisi untuk hari yang tidak ditutup.'),
+            'openTime.*.date_format' => __('Format jam buka tidak valid.'),
+            'closeTime.*.required' => __('Jam tutup wajib diisi untuk hari yang tidak ditutup.'),
+            'closeTime.*.date_format' => __('Format jam tutup tidak valid.'),
         ]);
 
         $hasTimeError = false;
         foreach (array_keys(self::DAY_LABELS) as $day) {
             if (! ($this->isClosed[$day] ?? false) && ($this->closeTime[$day] ?? '') <= ($this->openTime[$day] ?? '')) {
-                $this->addError("closeTime.$day", 'Jam tutup harus setelah jam buka.');
+                $this->addError("closeTime.$day", __('Jam tutup harus setelah jam buka.'));
                 $hasTimeError = true;
             }
         }
@@ -126,13 +126,13 @@ class RoomOperatingHoursManager extends Component
             }
         });
 
-        session()->flash('hours_status', 'Jam operasional ruang berhasil disimpan.');
+        session()->flash('hours_status', __('Jam operasional ruang berhasil disimpan.'));
     }
 
     public function render(): View
     {
         return view('livewire.admin.room-operating-hours-manager', [
-            'dayLabels' => self::DAY_LABELS,
+            'dayLabels' => array_map(static fn (string $label): string => (string) __($label), self::DAY_LABELS),
         ]);
     }
 }

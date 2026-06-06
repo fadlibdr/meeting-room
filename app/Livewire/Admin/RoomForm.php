@@ -80,14 +80,14 @@ class RoomForm extends Component
     protected function messages(): array
     {
         return [
-            'code.required' => 'Kode ruang wajib diisi.',
-            'code.unique' => 'Kode ruang sudah digunakan.',
-            'name.required' => 'Nama ruang wajib diisi.',
-            'capacity.required' => 'Kapasitas wajib diisi.',
+            'code.required' => __('Kode ruang wajib diisi.'),
+            'code.unique' => __('Kode ruang sudah digunakan.'),
+            'name.required' => __('Nama ruang wajib diisi.'),
+            'capacity.required' => __('Kapasitas wajib diisi.'),
             'capacity.min' => 'Kapasitas minimal 1.',
-            'status.required' => 'Status wajib dipilih.',
-            'approvalMode.required' => 'Mode approval wajib dipilih.',
-            'bookingBufferMinutes.min' => 'Buffer tidak boleh negatif.',
+            'status.required' => __('Status wajib dipilih.'),
+            'approvalMode.required' => __('Mode approval wajib dipilih.'),
+            'bookingBufferMinutes.min' => __('Buffer tidak boleh negatif.'),
         ];
     }
 
@@ -123,7 +123,7 @@ class RoomForm extends Component
             }
         });
 
-        session()->flash('status', $this->isEditMode ? 'Ruang berhasil diperbarui.' : 'Ruang berhasil dibuat.');
+        session()->flash('status', $this->isEditMode ? __('Ruang berhasil diperbarui.') : __('Ruang berhasil dibuat.'));
         $this->redirectRoute('admin.rooms.index', navigate: true);
     }
 

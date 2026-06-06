@@ -56,7 +56,7 @@ class RoomList extends Component
         $room = $this->authorizedRoom($roomId, 'rooms.delete');
         $future = $this->futureBookingCount($room);
         $room->update(['status' => RoomStatus::Inactive, 'is_active' => false]);
-        $this->flashStatusChange('Ruang dinonaktifkan', $future);
+        $this->flashStatusChange(__('Ruang dinonaktifkan'), $future);
     }
 
     /** Archive (permanent retirement — Dec-06 replacement for delete). */
@@ -65,7 +65,7 @@ class RoomList extends Component
         $room = $this->authorizedRoom($roomId, 'rooms.delete');
         $future = $this->futureBookingCount($room);
         $room->update(['status' => RoomStatus::Archived, 'is_active' => false]);
-        $this->flashStatusChange('Ruang diarsipkan', $future);
+        $this->flashStatusChange(__('Ruang diarsipkan'), $future);
     }
 
     /** Reactivate an inactive/archived room. */
@@ -73,7 +73,7 @@ class RoomList extends Component
     {
         $room = $this->authorizedRoom($roomId, 'rooms.update');
         $room->update(['status' => RoomStatus::Active, 'is_active' => true]);
-        session()->flash('status', 'Ruang diaktifkan kembali.');
+        session()->flash('status', __('Ruang diaktifkan kembali.'));
     }
 
     /** Mirrors UserList: permission-based guard via User::hasPermission(). */
@@ -100,8 +100,8 @@ class RoomList extends Component
     private function flashStatusChange(string $base, int $future): void
     {
         $msg = $future > 0
-            ? "{$base}. Catatan: {$future} booking mendatang tetap berlaku dan tidak dibatalkan."
-            : "{$base}.";
+            ? __(':base. Catatan: :count booking mendatang tetap berlaku dan tidak dibatalkan.', ['base' => $base, 'count' => $future])
+            : $base.'.';
         session()->flash('status', $msg);
     }
 

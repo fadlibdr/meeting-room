@@ -1,4 +1,4 @@
-<x-app-layout title="Kelola Ruangan" subtitle="Daftar ruang rapat, status, dan mode persetujuan">
+<x-app-layout :title="__('Kelola Ruangan')" :subtitle="__('Daftar ruang rapat, status, dan mode persetujuan')">
     @if(session('status'))
         <div class="mb-6 flex items-center gap-2 rounded-xl border border-bpjs-green-200 bg-bpjs-green-50 px-4 py-3 text-sm text-bpjs-green-800 bpjs-rise">
             <x-icon name="checkCircle" :size="18" />
