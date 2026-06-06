@@ -10,6 +10,7 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BookingAttachmentController;
 use App\Http\Controllers\BookingController;
 use App\Livewire\Admin\SettingsManager;
+use App\Livewire\Admin\UtilizationDashboard;
 use App\Livewire\Approval\ApprovalInbox;
 use App\Livewire\Booking\BookingCalendar;
 use App\Livewire\Booking\BookingForm;
@@ -131,6 +132,11 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::get('room-blocks/create', [RoomBlockController::class, 'create'])
             ->middleware('permission:rooms.manage-blocks')
             ->name('room-blocks.create');
+
+        // Stage 2.1d — Room utilization analytics (read-only; gated reports.view)
+        Route::get('reports/utilization', UtilizationDashboard::class)
+            ->middleware('permission:reports.view')
+            ->name('reports.utilization');
 
         // Sprint 5 — Audit-log viewer (read-only; gated activity-logs.view)
         Route::get('logs', [ActivityLogController::class, 'index'])
