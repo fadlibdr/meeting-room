@@ -123,6 +123,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** New tables (`approval_policies`, `approval_policy_steps`, `approval_delegations`) + `rooms.approval_policy_id` / `units.approval_policy_id`. Admin CRUD UI for policies & delegations is a tracked follow-up PR.
 **Status:** Accepted (6 Jun 2026, `feat/stage3-approval-chains`).
 
+### ADR-019 · Scheduled reports are emailed; the BI feed is push (scheduled CSV dump)
+**Decision:** Stage-3 D adds **`reports:send --period=weekly|monthly`** — builds the previous complete week/month's booking XLSX (reusing `BookingXlsxExporter`), computes the utilization summary (`RoomUtilizationReport`), and queues a mail-only **`ScheduledReportNotification`** (XLSX attached from the report disk) to every active holder of `reports.view`. The **BI feed is push**, not pull: **`reports:bi-export`** writes a full bookings snapshot CSV (`BookingCsvExporter`, Jakarta-labelled times) to a configured disk/path (`bookings-latest.csv`, overwritten) for a BI tool to ingest. Scheduled weekly (Mon 07:00) / monthly (1st 07:00) / daily (06:00). The report notification is deliberately **not** gated by the per-user booking-notification opt-in — its audience is permission-resolved and it is an explicit admin-scheduled feature.
+**Context:** Push chosen over a pull endpoint to avoid a new authenticated API surface for D (a tokened pull can be added later, or via Phase C's API). Everything reuses the Stage-2.2 exporters + the mail/queue/scheduler already in place, so one column layout serves the on-demand export, the scheduled report, and the BI feed.
+**Consequence:** `config/reports.php` (recipient permission, BI/report disk + path). Files accumulate on the report disk (small, infrequent); add to a prune later if needed.
+**Status:** Accepted (6 Jun 2026, `feat/stage3-scheduled-reports`).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*
