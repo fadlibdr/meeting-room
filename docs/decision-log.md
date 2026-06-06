@@ -100,6 +100,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** `public/manifest.webmanifest`, `public/sw.js`, and `public/images/pwa/*` are committed (they live outside the gitignored `public/build`). The SW is served from the web root so its scope is `/`.
 **Status:** Accepted (6 Jun 2026, `feat/stage3-responsive-pwa`).
 
+### ADR-015 · Front-office check-in is a new permission + role, not a status change
+**Decision:** Stage-4.1 adds a **`bookings.checked_in_at`** timestamp (nullable, UTC) and a **`bookings.check-in`** permission, granted to a new **`front_office`** role (view + view-all + check-in + rooms.view) plus `ga_admin` and `super_admin`. The reception desk uses a daily view (`/front-desk`, gated `bookings.check-in`) listing the selected day's **Approved** bookings chronologically, with an idempotent manual **check-in** (stamps `checked_in_at`, logs `bookings.check-in`) and an **undo** (clears it, logs `bookings.check-in-undo`). `BookingPolicy::checkIn` allows it only for Approved bookings held by a `bookings.check-in` grantee — org-wide scope by design (the desk checks anyone in).
+**Context:** Check-in is an attendance fact, not a lifecycle transition — modelling it as a separate timestamp keeps the BookingStatus state machine (draft→submitted→approved→completed/…) untouched and avoids a new terminal status. A dedicated role matches the real persona without overloading GA Admin. The seeder’s `firstOrCreate`/`sync` keeps the new role + permission idempotent across `db:seed --force` deploys.
+**Consequence:** New migration (`bookings.checked_in_at`) and a 6th seeded role. `super_admin` picks up the new permission automatically (syncs all).
+**Status:** Accepted (6 Jun 2026, `feat/stage4-front-office-checkin`).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*

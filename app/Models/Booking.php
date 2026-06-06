@@ -34,6 +34,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $cancelled_at
  * @property Carbon|null $completed_at
  * @property Carbon|null $reminder_sent_at
+ * @property Carbon|null $checked_in_at
  * @property string|null $rejection_reason
  * @property string|null $cancellation_reason
  * @property int|null $rescheduled_from_booking_id
@@ -54,7 +55,7 @@ class Booking extends Model
         'status', 'source', 'approval_mode_snapshot',
         'current_approval_step', 'current_approver_user_id',
         'submitted_at', 'approved_at', 'rejected_at',
-        'cancelled_at', 'completed_at', 'reminder_sent_at',
+        'cancelled_at', 'completed_at', 'reminder_sent_at', 'checked_in_at',
         'rejection_reason', 'cancellation_reason',
         'rescheduled_from_booking_id', 'recurrence_group_id',
     ];
@@ -74,6 +75,7 @@ class Booking extends Model
             'cancelled_at' => 'datetime',
             'completed_at' => 'datetime',
             'reminder_sent_at' => 'datetime',
+            'checked_in_at' => 'datetime',
         ];
     }
 

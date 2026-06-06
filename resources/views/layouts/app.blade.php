@@ -74,6 +74,13 @@
                         </a>
                     @endhasPermission
 
+                    @hasPermission('bookings.check-in')
+                        <a href="{{ route('front-office.index') }}" wire:navigate
+                           class="nav__item @if(request()->routeIs('front-office.*')) active @endif">
+                            <x-icon name="checkCircle" :size="19" /> {{ __('nav.front_desk') }}
+                        </a>
+                    @endhasPermission
+
                     @hasPermission('rooms.view')
                         <a href="{{ route('rooms.index') }}" wire:navigate
                            class="nav__item @if(request()->routeIs('rooms.*') && !request()->routeIs('admin.*')) active @endif">

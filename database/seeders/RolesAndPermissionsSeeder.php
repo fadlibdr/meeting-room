@@ -18,7 +18,7 @@ class RolesAndPermissionsSeeder extends Seeder
     private function seedPermissions(): void
     {
         $matrix = [
-            'bookings' => ['view', 'view-all', 'create', 'update', 'delete', 'submit', 'approve', 'reject', 'cancel', 'override'],
+            'bookings' => ['view', 'view-all', 'create', 'update', 'delete', 'submit', 'approve', 'reject', 'cancel', 'override', 'check-in'],
             'rooms' => ['view', 'create', 'update', 'delete', 'manage-blocks'],
             'room-facilities' => ['view', 'create', 'update', 'delete'],
             'users' => ['view', 'create', 'update', 'delete'],
@@ -85,6 +85,13 @@ class RolesAndPermissionsSeeder extends Seeder
                 'scope' => 'operational',
                 'is_system' => false,
             ],
+            [
+                'code' => 'front_office',
+                'name' => 'Front Office',
+                'description' => 'Melihat jadwal harian dan melakukan check-in tamu rapat',
+                'scope' => 'operational',
+                'is_system' => false,
+            ],
         ];
 
         foreach ($roles as $role) {
@@ -118,6 +125,7 @@ class RolesAndPermissionsSeeder extends Seeder
                         'bookings.view-all',
                         'bookings.approve',
                         'bookings.reject',
+                        'bookings.check-in',
                     ]);
             })->pluck('id')
         );
@@ -148,6 +156,17 @@ class RolesAndPermissionsSeeder extends Seeder
                 'bookings.update',
                 'bookings.submit',
                 'bookings.cancel',
+                'rooms.view',
+            ])->pluck('id')
+        );
+
+        // Front Office: the reception desk — see every booking + manual check-in.
+        $frontOffice = Role::where('code', 'front_office')->firstOrFail();
+        $frontOffice->permissions()->sync(
+            Permission::whereIn('code', [
+                'bookings.view',
+                'bookings.view-all',
+                'bookings.check-in',
                 'rooms.view',
             ])->pluck('id')
         );

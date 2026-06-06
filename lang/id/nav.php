@@ -17,5 +17,6 @@ return [
     'users' => 'Pengguna',
     'units' => 'Unit',
     'activity_log' => 'Log Aktivitas',
+    'front_desk' => 'Check-in Harian',
     'settings' => 'Pengaturan',
 ];
