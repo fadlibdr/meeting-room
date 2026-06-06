@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: Meeting Room BPJS Kesehatan — Public API
+  version: "1.0"
+  description: >
+    Public REST API (v1) for the BPJS Kesehatan meeting-room booking system.
+    Authenticated with Sanctum personal access tokens (Bearer). Every endpoint
+    is rate-limited (60 req/min per token) and scoped by token ability:
+    `read` for the read endpoints, `booking:write` to create a booking. A
+    token never exceeds its owner — writes still pass the caller's permissions,
+    conflict detection, and the approval chain (the API is not a bypass).
+servers:
+  - url: https://booking.pi2.co.id/api/v1
+    description: Production (path prefix /api/v1)
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Sanctum personal access token (Authorization: Bearer &lt;token&gt;).
+  schemas:
+    Room:
+      type: object
+      properties:
+        id: { type: integer }
+        code: { type: string }
+        name: { type: string }
+        location: { type: string, nullable: true }
+        floor: { type: string, nullable: true }
+        capacity: { type: integer }
+        status: { type: string, enum: [active, inactive, archived] }
+        is_active: { type: boolean }
+    Booking:
+      type: object
+      properties:
+        id: { type: integer }
+        booking_code: { type: string }
+        subject: { type: string }
+        status: { type: string, enum: [draft, submitted, approved, rejected, cancelled, completed] }
+        room: { type: object, properties: { id: { type: integer }, name: { type: string, nullable: true } } }
+        attendee_count: { type: integer }
+        starts_at: { type: string, format: date-time, description: UTC ISO-8601 }
+        ends_at: { type: string, format: date-time, description: UTC ISO-8601 }
+        checked_in_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time, nullable: true }
+paths:
+  /user:
+    get:
+      summary: The token owner's identity
+      responses:
+        "200": { description: OK }
+        "401": { description: Unauthenticated }
+  /rooms:
+    get:
+      summary: List active rooms (ability: read)
+      responses:
+        "200":
+          description: Paginated rooms
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Room" } }
+        "403": { description: Missing read ability }
+  /rooms/{room}/availability:
+    get:
+      summary: Check a room's availability for a time window (ability: read)
+      parameters:
+        - { name: room, in: path, required: true, schema: { type: integer } }
+        - { name: starts_at, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: ends_at, in: query, required: true, schema: { type: string, format: date-time } }
+      responses:
+        "200":
+          description: Availability + any conflicts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      room_id: { type: integer }
+                      available: { type: boolean }
+                      conflicts:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type: { type: string, enum: [booking, block, operating_hours] }
+                            title: { type: string }
+        "422": { description: Validation error }
+  /bookings:
+    get:
+      summary: The token owner's bookings (ability: read)
+      responses:
+        "200":
+          description: Paginated bookings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Booking" } }
+        "403": { description: Missing read ability }
+    post:
+      summary: Create a booking (ability: booking:write)
+      description: >
+        Routes through the same submit pipeline as the web app — conflict
+        detection and the approval chain apply. Requires the caller to hold the
+        bookings.create permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [room_id, subject, attendee_count, starts_at, ends_at]
+              properties:
+                room_id: { type: integer }
+                subject: { type: string, maxLength: 150 }
+                agenda: { type: string, nullable: true }
+                attendee_count: { type: integer, minimum: 1 }
+                starts_at: { type: string, format: date-time }
+                ends_at: { type: string, format: date-time }
+      responses:
+        "201":
+          description: Created (status reflects the approval outcome)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { data: { $ref: "#/components/schemas/Booking" } }
+        "403": { description: Missing booking:write ability or bookings.create permission }
+        "422": { description: Validation error, slot conflict, or approval routing error }

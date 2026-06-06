@@ -16,6 +16,7 @@ use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
 use App\Livewire\Admin\SettingsManager;
 use App\Livewire\Admin\UtilizationDashboard;
+use App\Livewire\ApiTokenManager;
 use App\Livewire\Approval\ApprovalInbox;
 use App\Livewire\Booking\BookingCalendar;
 use App\Livewire\Booking\BookingForm;
@@ -184,6 +185,9 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     });
 
     Route::view('profile', 'profile')->middleware(['auth'])->name('profile');
+
+    // Stage 3 C — personal API token management
+    Route::get('api-tokens', ApiTokenManager::class)->name('api-tokens.index');
 });
 
 require __DIR__.'/auth.php';

@@ -129,6 +129,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** `config/reports.php` (recipient permission, BI/report disk + path). Files accumulate on the report disk (small, infrequent); add to a prune later if needed.
 **Status:** Accepted (6 Jun 2026, `feat/stage3-scheduled-reports`).
 
+### ADR-020 · Public API is Sanctum token-scoped and routes writes through the domain actions
+**Decision:** Stage-3 C1 adds a versioned **`/api/v1`** authenticated by **Sanctum personal access tokens** with **abilities** (`read`, `booking:write`) — registered as `ability:` middleware. Read endpoints (`rooms`, `rooms/{room}/availability`, `bookings` = the token owner's) require `read`; **`POST bookings`** requires `booking:write` **and** authorises the caller via `BookingPolicy::create`, then routes through **`SubmitBookingAction`** — so conflict detection and the approval chain apply identically to the web flow (the API is never a bypass, and a token never exceeds its owner). Rate-limited 60/min per token (`throttle:api`). JSON via API Resources; timestamps UTC ISO-8601 (clients localise). Users self-manage tokens at `/api-tokens` (plaintext shown once). OpenAPI spec at `docs/openapi-v1.yaml`.
+**Context:** Reusing the domain actions keeps one source of truth for booking rules across web + API. Abilities give least-privilege tokens (a read-only integration vs a booking-writer). Webhooks (C2) follow in a separate PR.
+**Consequence:** Adds `laravel/sanctum` + the `personal_access_tokens` table + API routing in `bootstrap/app.php`.
+**Status:** Accepted (6 Jun 2026, `feat/stage3-api-sanctum`). Phase C part 1 of 2 (webhooks next).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*
