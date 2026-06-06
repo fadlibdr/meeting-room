@@ -18,8 +18,9 @@ class AppSettingsSeederTest extends TestCase
     {
         $this->seed(AppSettingsSeeder::class);
 
-        // 4 original settings + 2-key `users` policy group + the 8-key `email` transport group.
-        $this->assertSame(14, AppSetting::count());
+        // 5 core settings (booking x3 + notifications + system) + 2-key `users`
+        // policy group + the 8-key `email` transport group.
+        $this->assertSame(15, AppSetting::count());
         $this->assertNotNull(AppSetting::where('key', 'booking.default_buffer_minutes')->first());
         $this->assertNotNull(AppSetting::where('key', 'booking.draft_purge_after_days')->first());
         $this->assertNotNull(AppSetting::where('key', 'notifications.send_email_default')->first());
@@ -35,7 +36,7 @@ class AppSettingsSeederTest extends TestCase
         $this->seed(AppSettingsSeeder::class);
         $this->seed(AppSettingsSeeder::class);
 
-        $this->assertSame(14, AppSetting::count());
+        $this->assertSame(15, AppSetting::count());
     }
 
     public function test_reseeding_preserves_an_admin_edited_value(): void

@@ -31,6 +31,15 @@ class AppSettingsSeeder extends Seeder
                 'is_editable' => true,
             ],
             [
+                'key' => 'booking.auto_release_grace_minutes',
+                'value' => '15',
+                'data_type' => 'integer',
+                'label' => 'Toleransi Auto-Release (menit)',
+                'description' => 'Reservasi disetujui yang sedang berlangsung namun belum check-in akan dilepas otomatis (dibatalkan, ruang dikembalikan) setelah toleransi ini sejak waktu mulai.',
+                'group' => 'booking',
+                'is_editable' => true,
+            ],
+            [
                 'key' => 'notifications.send_email_default',
                 'value' => '0',
                 'data_type' => 'boolean',
