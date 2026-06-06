@@ -8,7 +8,7 @@ use App\DataTransferObjects\ConflictItem;
 use App\Enums\BookingStatus;
 use App\Exceptions\BookingConflictException;
 use App\Models\Booking;
-use App\Models\Room;
+use App\Models\Resource;
 use App\Models\RoomBlockSchedule;
 use App\Models\RoomOperatingHour;
 use Carbon\CarbonInterface;
@@ -54,14 +54,14 @@ final class BookingConflictService
     /**
      * Find all conflicts for a proposed booking slot.
      *
-     * @param  Room  $room  The room being booked
+     * @param  resource  $room  The resource being booked (room or other type)
      * @param  CarbonInterface  $startsAt  Proposed start (UTC)
      * @param  CarbonInterface  $endsAt  Proposed end (UTC)
      * @param  ?int  $excludeBookingId  Optional booking ID to exclude (for edit case)
      * @return Collection<int, ConflictItem>
      */
     public function findConflicts(
-        Room $room,
+        Resource $room,
         CarbonInterface $startsAt,
         CarbonInterface $endsAt,
         ?int $excludeBookingId = null,
@@ -79,7 +79,7 @@ final class BookingConflictService
      * @throws BookingConflictException When conflicts exist
      */
     public function assertNoConflict(
-        Room $room,
+        Resource $room,
         CarbonInterface $startsAt,
         CarbonInterface $endsAt,
         ?int $excludeBookingId = null,
@@ -103,7 +103,7 @@ final class BookingConflictService
      * @return array<int, ConflictItem>
      */
     private function findBookingConflicts(
-        Room $room,
+        Resource $room,
         CarbonInterface $startsAt,
         CarbonInterface $endsAt,
         ?int $excludeBookingId,
@@ -141,7 +141,7 @@ final class BookingConflictService
      * @return array<int, ConflictItem>
      */
     private function findBlockConflicts(
-        Room $room,
+        Resource $room,
         CarbonInterface $startsAt,
         CarbonInterface $endsAt,
     ): array {
@@ -176,7 +176,7 @@ final class BookingConflictService
      * @return array<int, ConflictItem>
      */
     private function findOperatingHoursConflicts(
-        Room $room,
+        Resource $room,
         CarbonInterface $startsAt,
         CarbonInterface $endsAt,
     ): array {
@@ -237,7 +237,7 @@ final class BookingConflictService
      * - room.booking_buffer_minutes > 0 → use room's value
      * - room.booking_buffer_minutes = 0 → use system default from app_settings
      */
-    private function effectiveBufferMinutes(Room $room): int
+    private function effectiveBufferMinutes(Resource $room): int
     {
         if ($room->booking_buffer_minutes > 0) {
             return $room->booking_buffer_minutes;

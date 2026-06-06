@@ -10,7 +10,7 @@ use App\Enums\BookingStatus;
 use App\Enums\RoomApprovalMode;
 use App\Exceptions\ApprovalRoutingException;
 use App\Models\ApprovalPolicy;
-use App\Models\Room;
+use App\Models\Resource;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -45,7 +45,7 @@ final class ApprovalRoutingService
      *
      * @throws ApprovalRoutingException when an approver cannot be resolved
      */
-    public function resolve(User $requester, Room $room): array
+    public function resolve(User $requester, Resource $room): array
     {
         $policy = $this->resolvePolicy($room, $requester);
 
@@ -64,7 +64,7 @@ final class ApprovalRoutingService
         };
     }
 
-    private function resolvePolicy(Room $room, User $requester): ?ApprovalPolicy
+    private function resolvePolicy(Resource $room, User $requester): ?ApprovalPolicy
     {
         $policy = $room->approvalPolicy;
 
