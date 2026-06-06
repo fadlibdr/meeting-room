@@ -87,6 +87,17 @@ class Booking extends Model
         return $this->belongsTo(Room::class);
     }
 
+    /**
+     * The bookable resource (generalized; unscoped by type).
+     *
+     * Shares the `room_id` column with {@see room()} but resolves to the base
+     * {@see Resource} so non-room resources are reachable (Stage 3 E).
+     */
+    public function resource(): BelongsTo
+    {
+        return $this->belongsTo(Resource::class, 'room_id');
+    }
+
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requester_user_id');

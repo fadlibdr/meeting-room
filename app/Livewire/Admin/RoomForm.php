@@ -66,7 +66,7 @@ class RoomForm extends Component
         $roomId = $this->room?->id;
 
         return [
-            'code' => ['required', 'string', 'max:30', 'unique:rooms,code'.($roomId ? ','.$roomId : '')],
+            'code' => ['required', 'string', 'max:30', Rule::unique('resources', 'code')->where('type', 'room')->ignore($roomId)],
             'name' => ['required', 'string', 'max:150'],
             'location' => ['nullable', 'string', 'max:150'],
             'floor' => ['nullable', 'string', 'max:30'],

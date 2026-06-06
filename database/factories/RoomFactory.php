@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ResourceType;
 use App\Enums\RoomApprovalMode;
 use App\Enums\RoomStatus;
 use App\Models\Room;
@@ -17,6 +18,7 @@ class RoomFactory extends Factory
     public function definition(): array
     {
         return [
+            'type' => ResourceType::Room->value,
             'code' => 'RM-'.strtoupper($this->faker->unique()->bothify('??##')),
             'name' => $this->faker->randomElement([
                 'Ruang Garuda', 'Ruang Cendrawasih', 'Ruang Merak',
