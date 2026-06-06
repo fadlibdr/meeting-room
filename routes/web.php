@@ -17,6 +17,7 @@ use App\Livewire\Approval\ApprovalInbox;
 use App\Livewire\Booking\BookingCalendar;
 use App\Livewire\Booking\BookingForm;
 use App\Livewire\Booking\BookingList;
+use App\Livewire\FrontOffice\DailyCheckIn;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Route;
 
@@ -81,6 +82,11 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     Route::get('approvals', ApprovalInbox::class)
         ->middleware('permission:bookings.approve')
         ->name('approvals.index');
+
+    // Stage 4.1 — front-office daily view + manual check-in
+    Route::get('front-desk', DailyCheckIn::class)
+        ->middleware('permission:bookings.check-in')
+        ->name('front-office.index');
     Route::view('rooms', 'rooms.public')->name('rooms.index');
 
     // Stage 2.2 — download a queued data export (owner-only; enforced in controller)

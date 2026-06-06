@@ -198,6 +198,19 @@ class BookingPolicy
     }
 
     /**
+     * Determine whether the user can manually check in the booking (Stage 4.1).
+     *
+     * Front-office reception operation: only an Approved booking can be checked
+     * in, and only by a holder of bookings.check-in (front_office / ga_admin /
+     * super_admin). Scope is org-wide by design — the desk checks anyone in.
+     */
+    public function checkIn(User $user, Booking $booking): bool
+    {
+        return $booking->status === BookingStatus::Approved
+            && $user->hasPermission('bookings.check-in');
+    }
+
+    /**
      * Determine whether the user can approve the booking.
      *
      * Permission gate: requires bookings.approve.

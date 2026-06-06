@@ -17,5 +17,6 @@ return [
     'users' => 'Users',
     'units' => 'Units',
     'activity_log' => 'Activity Log',
+    'front_desk' => 'Daily Check-in',
     'settings' => 'Settings',
 ];
