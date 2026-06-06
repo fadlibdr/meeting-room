@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BookingAttachmentController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LocaleController;
 use App\Livewire\Admin\SettingsManager;
@@ -30,6 +31,11 @@ Route::post('locale/{locale}', [LocaleController::class, 'update'])->name('local
 
 // Stage 3.2 — PWA offline fallback (cached by the service worker).
 Route::view('offline', 'offline')->name('offline');
+
+// Stage 3 A.3 — QR self-check-in (public; the temporary signed URL is the credential).
+Route::get('bookings/{booking}/checkin', [CheckInController::class, 'checkIn'])
+    ->middleware(['signed', 'throttle:20,1'])
+    ->name('bookings.checkin');
 
 Route::middleware(['auth', 'user.active'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
