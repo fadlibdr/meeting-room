@@ -49,6 +49,26 @@ class AppSettingsSeeder extends Seeder
                 'is_editable' => true,
             ],
 
+            // ── User account policy ──
+            [
+                'key' => 'users.email_domain_restriction',
+                'value' => '1',
+                'data_type' => 'boolean',
+                'label' => 'Batasi Domain Email',
+                'description' => 'Jika aktif, email akun pengguna harus menggunakan domain yang diizinkan di bawah.',
+                'group' => 'users',
+                'is_editable' => true,
+            ],
+            [
+                'key' => 'users.email_domain',
+                'value' => 'bpjs-kesehatan.go.id',
+                'data_type' => 'string',
+                'label' => 'Domain Email yang Diizinkan',
+                'description' => 'Domain (tanpa @) yang wajib digunakan email akun pengguna saat pembatasan aktif. Contoh: bpjs-kesehatan.go.id.',
+                'group' => 'users',
+                'is_editable' => true,
+            ],
+
             // ── Email transport (managed in Settings → Email; defaults from .env at seed time) ──
             [
                 'key' => 'email.mailer',

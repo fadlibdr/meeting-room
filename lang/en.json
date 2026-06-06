@@ -122,6 +122,7 @@
     "Edit": "Edit",
     "Ekspor": "Export",
     "Email": "Email",
+    "Email harus berdomain @:domain.": "Email must use the @:domain domain.",
     "Email harus berdomain @bpjs-kesehatan.go.id.": "Email must use the @bpjs-kesehatan.go.id domain.",
     "Email sudah terdaftar.": "Email is already registered.",
     "Email uji berhasil dikirim ke :address.": "Test email sent successfully to :address.",
