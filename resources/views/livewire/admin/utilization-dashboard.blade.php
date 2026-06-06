@@ -34,7 +34,7 @@
     </div>
 
     {{-- Summary stats --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <x-bpjs.stat :eyebrow="__('Utilisasi rata-rata')" :value="$r['summary']['utilization'].'%'"
             :sub="__(':booked dari :cap jam', ['booked' => $r['summary']['booked_hours'], 'cap' => $r['summary']['capacity_hours']])"
             icon="dashboard" :tone="$r['summary']['utilization'] >= 60 ? 'green' : ($r['summary']['utilization'] >= 30 ? 'blue' : 'amber')" />
@@ -45,6 +45,9 @@
         <x-bpjs.stat :eyebrow="__('Tingkat pembatalan')" :value="$r['summary']['cancellation_rate'].'%'"
             :sub="__(':n reservasi dibatalkan', ['n' => $r['summary']['cancelled']])" icon="x"
             :tone="$r['summary']['cancellation_rate'] >= 20 ? 'red' : 'slate'" />
+        <x-bpjs.stat :eyebrow="__('Tingkat no-show')" :value="$r['summary']['no_show_rate'].'%'"
+            :sub="__(':n dilepas · :u tak terklaim', ['n' => $r['summary']['no_show'], 'u' => $r['summary']['no_show_unreclaimed']])"
+            icon="alert" :tone="$r['summary']['no_show_rate'] >= 15 ? 'red' : ($r['summary']['no_show_rate'] >= 5 ? 'amber' : 'slate')" />
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

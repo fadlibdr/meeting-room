@@ -35,6 +35,32 @@ class RoomUtilizationReportTest extends TestCase
         ]);
     }
 
+    public function test_no_show_metric_counts_auto_released_bookings(): void
+    {
+        $room = Room::factory()->create();
+        $unit = Unit::factory()->create();
+
+        // One meeting that happened (active) ...
+        $this->approvedBooking($room, $unit, '2026-06-08 02:00:00', '2026-06-08 03:00:00', 'approved');
+        // ... and one auto-released no-show (Cancelled + released_at stamped).
+        Booking::factory()->create([
+            'room_id' => $room->id,
+            'requester_unit_id' => $unit->id,
+            'status' => 'cancelled',
+            'starts_at' => '2026-06-08 05:00:00',
+            'ends_at' => '2026-06-08 06:00:00',
+            'released_at' => '2026-06-08 05:15:00',
+        ]);
+
+        $day = CarbonImmutable::parse('2026-06-08', 'Asia/Jakarta');
+        $summary = $this->report()->build($day, $day)['summary'];
+
+        $this->assertSame(1, $summary['no_show']);
+        // rate = released / (active + released) = 1 / (1 + 1) = 50%.
+        $this->assertSame(50.0, $summary['no_show_rate']);
+        $this->assertSame(0, $summary['no_show_unreclaimed']); // range is in the future
+    }
+
     public function test_per_room_utilization_uses_business_hour_capacity(): void
     {
         $room = Room::factory()->create();

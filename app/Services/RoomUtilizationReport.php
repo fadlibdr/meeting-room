@@ -52,7 +52,8 @@ class RoomUtilizationReport
      *     range: array{from: string, to: string, weekdays: int, timezone: string},
      *     summary: array{active_bookings: int, total_bookings: int, cancelled: int,
      *         cancellation_rate: float, booked_hours: float, capacity_hours: float,
-     *         utilization: float, rooms_with_activity: int},
+     *         utilization: float, rooms_with_activity: int, no_show: int,
+     *         no_show_unreclaimed: int, no_show_rate: float},
      *     rooms: array<int, array{room_id: int, code: string, name: string,
      *         bookings: int, booked_hours: float, capacity_hours: float, utilization: float}>,
      *     peak_hours: array<int, array{hour: int, label: string, hours: float}>,
@@ -75,7 +76,7 @@ class RoomUtilizationReport
         $bookings = Booking::query()
             ->whereBetween('starts_at', [$utcStart, $utcEnd])
             ->with(['room:id,code,name', 'requesterUnit:id,name'])
-            ->get(['id', 'room_id', 'requester_unit_id', 'starts_at', 'ends_at', 'status']);
+            ->get(['id', 'room_id', 'requester_unit_id', 'starts_at', 'ends_at', 'status', 'checked_in_at', 'released_at']);
 
         $active = $bookings->filter(
             fn (Booking $b): bool => in_array($b->status, self::ACTIVE_STATUSES, strict: true)
@@ -84,6 +85,19 @@ class RoomUtilizationReport
         $cancelled = $bookings->filter(
             fn (Booking $b): bool => $b->status === BookingStatus::Cancelled
         )->count();
+
+        // No-show (A.2): auto-released bookings (released_at stamped) are confirmed
+        // no-shows. "Unreclaimed" = an Approved meeting that has ended without a
+        // check-in and was never auto-released (e.g. ended inside the grace window).
+        $now = CarbonImmutable::now();
+        $noShow = $bookings->filter(fn (Booking $b): bool => $b->released_at !== null)->count();
+        $noShowUnreclaimed = $bookings->filter(
+            fn (Booking $b): bool => $b->status === BookingStatus::Approved
+                && $b->checked_in_at === null
+                && $b->released_at === null
+                && $b->ends_at < $now
+        )->count();
+        $noShowDenominator = $active->count() + $noShow;
 
         $weekdays = $this->weekdaysInRange($rangeStart, $rangeEnd);
         $capacityPerRoom = (float) ($weekdays * $this->businessHoursPerDay());
@@ -120,6 +134,11 @@ class RoomUtilizationReport
                     ? round($bookedHours / $capacityHours * 100, 1)
                     : 0.0,
                 'rooms_with_activity' => $roomsWithActivity,
+                'no_show' => $noShow,
+                'no_show_unreclaimed' => $noShowUnreclaimed,
+                'no_show_rate' => $noShowDenominator > 0
+                    ? round($noShow / $noShowDenominator * 100, 1)
+                    : 0.0,
             ],
             'rooms' => $rooms,
             'peak_hours' => $peakHours,
