@@ -313,7 +313,7 @@ class BookingCalendar extends Component
             'displayDate' => CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())
                 ->locale('id')
                 ->isoFormat('dddd, D MMMM Y'),
-        ])->layout('layouts.app', ['title' => 'Kalender', 'subtitle' => 'Jadwal penggunaan ruang rapat']);
+        ])->layout('layouts.app', ['title' => __('Kalender'), 'subtitle' => __('Jadwal penggunaan ruang rapat')]);
     }
 
     /**
