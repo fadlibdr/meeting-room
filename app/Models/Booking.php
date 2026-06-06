@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BookingStatus;
 use App\Enums\RoomApprovalMode;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +36,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $completed_at
  * @property Carbon|null $reminder_sent_at
  * @property Carbon|null $checked_in_at
+ * @property Carbon|null $released_at
  * @property string|null $rejection_reason
  * @property string|null $cancellation_reason
  * @property int|null $rescheduled_from_booking_id
@@ -55,7 +57,7 @@ class Booking extends Model
         'status', 'source', 'approval_mode_snapshot',
         'current_approval_step', 'current_approver_user_id',
         'submitted_at', 'approved_at', 'rejected_at',
-        'cancelled_at', 'completed_at', 'reminder_sent_at', 'checked_in_at',
+        'cancelled_at', 'completed_at', 'reminder_sent_at', 'checked_in_at', 'released_at',
         'rejection_reason', 'cancellation_reason',
         'rescheduled_from_booking_id', 'recurrence_group_id',
     ];
@@ -76,6 +78,7 @@ class Booking extends Model
             'completed_at' => 'datetime',
             'reminder_sent_at' => 'datetime',
             'checked_in_at' => 'datetime',
+            'released_at' => 'datetime',
         ];
     }
 
@@ -146,5 +149,22 @@ class Booking extends Model
     public function isRecurring(): bool
     {
         return $this->recurrence_group_id !== null;
+    }
+
+    public function isAutoReleased(): bool
+    {
+        return $this->released_at !== null;
+    }
+
+    /**
+     * Bookings auto-cancelled as no-shows by bookings:auto-release
+     * (released_at stamped). Drives the no-show metric (Stage 3 A.2).
+     *
+     * @param  Builder<Booking>  $query
+     * @return Builder<Booking>
+     */
+    public function scopeAutoReleased(Builder $query): Builder
+    {
+        return $query->whereNotNull('released_at');
     }
 }

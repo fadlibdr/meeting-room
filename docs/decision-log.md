@@ -106,6 +106,11 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** New migration (`bookings.checked_in_at`) and a 6th seeded role. `super_admin` picks up the new permission automatically (syncs all).
 **Status:** Accepted (6 Jun 2026, `feat/stage4-front-office-checkin`).
 
+### ADR-016 · No-show auto-release is a bounded, system-actor cancel with a distinct `released_at` signal
+**Decision:** Stage-3 A.1 adds `bookings.released_at` and a `bookings:auto-release` command (scheduled every 5 min) that cancels **ongoing** no-shows: status `Approved`, started more than `booking.auto_release_grace_minutes` (default 15, admin-tunable) ago, **not yet ended** (`now < ends_at`), never checked in, not already released. It runs through **`ReleaseNoShowBookingAction`** — a system action mirroring the cancel pipeline but with a **null actor** (the audit/history actor columns are already nullable), setting status→Cancelled + `cancelled_at` + **`released_at`** (the no-show signal that distinguishes an auto-release from a manual cancel for analytics), clearing the Dec-03 pointer, recording a `bookings.auto-release` audit row, and notifying the **requester** (`BookingAutoReleasedNotification`). A check-in (`checked_in_at`) makes a booking ineligible, so QR/manual check-in (A.3) naturally prevents release. `Booking::scopeAutoReleased()` backs the A.2 no-show metric.
+**Context:** Bounding to in-progress meetings reclaims a wasted room immediately and — critically — avoids a **retroactive mass-cancel/email blast** over historical no-shows on the first run. Cancelled is non-locking, so releasing a slot can never create a conflict; the action still `lockForUpdate`s the row for race safety against a concurrent check-in. Idempotency is the `released_at` guard.
+**Status:** Accepted (6 Jun 2026, `feat/stage3-auto-release`). Note: the brief's `stage3-auto-release.patch` was not provided, so A.1 was implemented from the spec; branched off `main` (v1.13.1) since `develop` is 67 commits stale.
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*

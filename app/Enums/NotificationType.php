@@ -11,4 +11,5 @@ enum NotificationType: string
     case BookingReminder = 'booking_reminder';
     case RoomBlockCreated = 'room_block_created';
     case ExportReady = 'export_ready';
+    case BookingAutoReleased = 'booking_auto_released';
 }
