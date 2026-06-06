@@ -85,18 +85,18 @@ class UserForm extends Component
     protected function messages(): array
     {
         return [
-            'name.required' => 'Nama wajib diisi.',
-            'name.min' => 'Nama minimal 3 karakter.',
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.ends_with' => 'Email harus berdomain @bpjs-kesehatan.go.id.',
-            'email.unique' => 'Email sudah terdaftar.',
-            'unitId.required' => 'Unit wajib dipilih.',
-            'unitId.exists' => 'Unit tidak ditemukan.',
-            'approverUserId.exists' => 'Approver tidak ditemukan.',
-            'approverUserId.not_in' => 'Pengguna tidak dapat menjadi approver bagi dirinya sendiri.',
-            'roleIds.required' => 'Minimal pilih 1 role.',
-            'roleIds.min' => 'Minimal pilih 1 role.',
+            'name.required' => __('Nama wajib diisi.'),
+            'name.min' => __('Nama minimal 3 karakter.'),
+            'email.required' => __('Email wajib diisi.'),
+            'email.email' => __('Format email tidak valid.'),
+            'email.ends_with' => __('Email harus berdomain @bpjs-kesehatan.go.id.'),
+            'email.unique' => __('Email sudah terdaftar.'),
+            'unitId.required' => __('Unit wajib dipilih.'),
+            'unitId.exists' => __('Unit tidak ditemukan.'),
+            'approverUserId.exists' => __('Approver tidak ditemukan.'),
+            'approverUserId.not_in' => __('Pengguna tidak dapat menjadi approver bagi dirinya sendiri.'),
+            'roleIds.required' => __('Minimal pilih 1 role.'),
+            'roleIds.min' => __('Minimal pilih 1 role.'),
         ];
     }
 
@@ -113,7 +113,7 @@ class UserForm extends Component
         });
 
         if ($this->isEditMode) {
-            session()->flash('status', 'Pengguna berhasil diperbarui.');
+            session()->flash('status', __('Pengguna berhasil diperbarui.'));
             $this->redirectRoute('admin.users.index', navigate: true);
         }
         // For create mode, stay on page to show generated password

@@ -51,7 +51,7 @@ class UnitList extends Component
         $unit = Unit::findOrFail($unitId);
         $unit->update(['is_active' => ! $unit->is_active]);
 
-        session()->flash('status', $unit->is_active ? 'Unit diaktifkan.' : 'Unit dinonaktifkan.');
+        session()->flash('status', $unit->is_active ? __('Unit diaktifkan.') : __('Unit dinonaktifkan.'));
     }
 
     public function render(): View

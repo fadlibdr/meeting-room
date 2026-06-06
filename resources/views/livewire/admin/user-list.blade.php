@@ -19,37 +19,37 @@
 
     {{-- Filter bar --}}
     <div class="card bpjs-rise mb-4" style="padding: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
-        <x-bpjs.field label="Cari pengguna" for="search">
+        <x-bpjs.field :label="__('Cari pengguna')" for="search">
             <input wire:model.live.debounce.300ms="search" type="text" id="search"
-                   placeholder="nama atau email" class="input" style="min-width: 240px;" />
+                   placeholder="{{ __('nama atau email') }}" class="input" style="min-width: 240px;" />
         </x-bpjs.field>
 
-        <x-bpjs.field label="Peran" for="roleFilter">
+        <x-bpjs.field :label="__('Peran')" for="roleFilter">
             <select wire:model.live="roleFilter" id="roleFilter" class="select" style="min-width: 180px;">
-                <option value="">Semua peran</option>
+                <option value="">{{ __('Semua peran') }}</option>
                 @foreach($roles as $role)
                     <option value="{{ $role->code }}">{{ $role->name }}</option>
                 @endforeach
             </select>
         </x-bpjs.field>
 
-        <x-bpjs.field label="Status" for="statusFilter">
+        <x-bpjs.field :label="__('Status')" for="statusFilter">
             <select wire:model.live="statusFilter" id="statusFilter" class="select" style="min-width: 150px;">
-                <option value="all">Semua status</option>
-                <option value="active">Aktif</option>
-                <option value="inactive">Nonaktif</option>
+                <option value="all">{{ __('Semua status') }}</option>
+                <option value="active">{{ __('Aktif') }}</option>
+                <option value="inactive">{{ __('Nonaktif') }}</option>
             </select>
         </x-bpjs.field>
 
         <button wire:click="clearFilters" type="button"
                 class="text-sm font-medium text-slate-500 hover:text-slate-800" style="padding-bottom: 10px;">
-            Reset filter
+            {{ __('Reset filter') }}
         </button>
 
         <div style="margin-left: auto;">
             @hasPermission('users.create')
                 <x-bpjs.button variant="primary" icon="plus" :href="route('admin.users.create')" wire:navigate>
-                    Tambah Pengguna
+                    {{ __('Tambah Pengguna') }}
                 </x-bpjs.button>
             @endhasPermission
         </div>
@@ -60,11 +60,11 @@
         <table class="dtable">
             <thead>
                 <tr>
-                    <th>Pengguna</th>
-                    <th>Unit Kerja</th>
-                    <th>Peran</th>
-                    <th>Status</th>
-                    <th class="text-right">Aksi</th>
+                    <th>{{ __('Pengguna') }}</th>
+                    <th>{{ __('Unit Kerja') }}</th>
+                    <th>{{ __('Peran') }}</th>
+                    <th>{{ __('Status') }}</th>
+                    <th class="text-right">{{ __('Aksi') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -94,11 +94,11 @@
                         <td>
                             @if($user->is_active)
                                 <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--bpjs-green-700); font-weight: 600;">
-                                    <span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--bpjs-green-500);"></span>Aktif
+                                    <span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--bpjs-green-500);"></span>{{ __('Aktif') }}
                                 </span>
                             @else
                                 <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--slate-400); font-weight: 600;">
-                                    <span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--slate-300);"></span>Nonaktif
+                                    <span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--slate-300);"></span>{{ __('Nonaktif') }}
                                 </span>
                             @endif
                         </td>
@@ -106,18 +106,18 @@
                             @hasPermission('users.update')
                                 <div style="display: inline-flex; gap: 6px;">
                                     <x-bpjs.button variant="ghost" :href="route('admin.users.edit', $user->id)" wire:navigate
-                                                   class="!px-3 !py-1.5 !text-xs !rounded-lg">Edit</x-bpjs.button>
+                                                   class="!px-3 !py-1.5 !text-xs !rounded-lg">{{ __('Edit') }}</x-bpjs.button>
                                     <x-bpjs.button :variant="$user->is_active ? 'danger' : 'success'"
                                                    wire:click="toggleActive({{ $user->id }})"
-                                                   wire:confirm="{{ $user->is_active ? 'Nonaktifkan ' : 'Aktifkan ' }}{{ $user->name }}?"
+                                                   wire:confirm="{{ $user->is_active ? __('Nonaktifkan :name?', ['name' => $user->name]) : __('Aktifkan :name?', ['name' => $user->name]) }}"
                                                    type="button"
-                                                   class="!px-3 !py-1.5 !text-xs !rounded-lg">{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</x-bpjs.button>
+                                                   class="!px-3 !py-1.5 !text-xs !rounded-lg">{{ $user->is_active ? __('Nonaktifkan') : __('Aktifkan') }}</x-bpjs.button>
                                 </div>
                             @endhasPermission
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="text-center text-slate-400" style="padding: 48px;">Tidak ada pengguna yang cocok.</td></tr>
+                    <tr><td colspan="5" class="text-center text-slate-400" style="padding: 48px;">{{ __('Tidak ada pengguna yang cocok.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -56,7 +56,7 @@ class UserList extends Component
 
         // Prevent self-deactivation as a safety guard
         if ($target->id === $authUser->id) {
-            session()->flash('error', 'Anda tidak dapat menonaktifkan akun sendiri.');
+            session()->flash('error', __('Anda tidak dapat menonaktifkan akun sendiri.'));
 
             return;
         }
