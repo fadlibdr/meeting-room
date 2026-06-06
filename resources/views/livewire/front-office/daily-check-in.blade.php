@@ -62,6 +62,10 @@
                                 {{ __('Batalkan') }}
                             </button>
                         @else
+                            <div title="{{ __('Pindai untuk check-in mandiri') }}"
+                                 style="width: 84px; height: 84px; background: #fff; padding: 4px; border-radius: 8px; flex-shrink: 0;">
+                                {!! app(\App\Support\BookingCheckInLink::class)->qrSvg($booking, 84) !!}
+                            </div>
                             <x-bpjs.button variant="success" type="button" icon="check"
                                 wire:click="checkIn({{ $booking->id }})" wire:loading.attr="disabled">
                                 {{ __('Check-in') }}

@@ -111,6 +111,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Context:** Bounding to in-progress meetings reclaims a wasted room immediately and — critically — avoids a **retroactive mass-cancel/email blast** over historical no-shows on the first run. Cancelled is non-locking, so releasing a slot can never create a conflict; the action still `lockForUpdate`s the row for race safety against a concurrent check-in. Idempotency is the `released_at` guard.
 **Status:** Accepted (6 Jun 2026, `feat/stage3-auto-release`). Note: the brief's `stage3-auto-release.patch` was not provided, so A.1 was implemented from the spec; branched off `main` (v1.13.1) since `develop` is 67 commits stale.
 
+### ADR-017 · QR self-check-in is a temporary-signed public route through the shared check-in action
+**Decision:** Stage-3 A.3 adds a per-booking **QR** encoding a **temporary signed URL** (`URL::temporarySignedRoute('bookings.checkin', $booking->ends_at, …)`) — the signature is the credential, so the route is **public** (no login); the `signed` middleware 403s tampered or expired links (TTL = the meeting end). The controller then enforces the **window** (no earlier than 30 min before start, not after end) and booking state (Approved, not released, idempotent if already checked in), and stamps the check-in via a new shared **`CheckInBookingAction`** — the single check-in path now used by both the front-office daily view (Stage 4.1) and QR. A check-in makes the booking ineligible for no-show auto-release (A.1). Result is a standalone bilingual confirmation page (the booking page needs auth, which a guest scanner lacks). The QR (inline SVG via `simplesoftwareio/simple-qrcode`, no GD needed) renders on the **booking detail page** (for the requester) and the **front-office screen** (per pending meeting).
+**Context:** Possession of a short-lived signed link is a reasonable self-service credential for an on-prem reception flow; identity can't be proven by a QR scan alone, so the signature + window + state checks are the security model. Extracting `CheckInBookingAction` keeps the desk and QR paths byte-identical (idempotent stamp + `bookings.check-in` audit row with a `via: desk|qr` marker).
+**Consequence:** Adds the `simplesoftwareio/simple-qrcode` dependency.
+**Status:** Accepted (6 Jun 2026, `feat/stage3-qr-checkin`). Closes Phase A (A.1 + A.2 + A.3).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*

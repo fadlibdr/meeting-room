@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\FrontOffice;
 
+use App\Actions\CheckInBookingAction;
 use App\Models\Booking;
 use App\Services\ActivityLogger;
 use Carbon\CarbonImmutable;
@@ -40,15 +41,8 @@ class DailyCheckIn extends Component
         $booking = Booking::findOrFail($bookingId);
         $this->authorize('checkIn', $booking);
 
-        // Idempotent: never overwrite an existing check-in timestamp.
-        if ($booking->checked_in_at === null) {
-            $booking->forceFill(['checked_in_at' => now()])->save();
-
-            app(ActivityLogger::class)->log('bookings', 'check-in', $booking, [
-                'description' => sprintf('Check-in tamu untuk reservasi %s.', $booking->booking_code),
-                'context' => ['booking_code' => $booking->booking_code],
-            ]);
-        }
+        // Shared, idempotent check-in path (also used by QR self-check-in).
+        app(CheckInBookingAction::class)->execute($booking, auth()->user());
 
         $this->feedback = __('Check-in berhasil dicatat.');
     }

@@ -76,6 +76,27 @@
             @endif
         </x-bpjs.card>
 
+        {{-- QR check-in (Stage 3 A.3) --}}
+        @if ($booking->checked_in_at !== null)
+            <x-bpjs.card :title="__('Check-in')" rise>
+                <div class="flex items-center gap-2.5" style="font-size: 13.5px; color: var(--bpjs-green-700); font-weight: 600;">
+                    <x-icon name="checkCircle" :size="18" />
+                    {{ __('Sudah check-in pada') }} <span class="mono">@displayDateTime($booking->checked_in_at)</span>
+                </div>
+            </x-bpjs.card>
+        @elseif ($booking->status === \App\Enums\BookingStatus::Approved && $booking->released_at === null)
+            <x-bpjs.card :title="__('QR Check-in')" rise>
+                <div class="flex flex-col sm:flex-row items-center gap-5">
+                    <div style="width: 156px; height: 156px; flex-shrink: 0; background: #fff; padding: 6px; border-radius: 10px;">
+                        {!! app(\App\Support\BookingCheckInLink::class)->qrSvg($booking, 156) !!}
+                    </div>
+                    <p style="font-size: 13px; color: var(--slate-600); line-height: 1.55;">
+                        {{ __('Pindai untuk check-in mandiri saat tiba di ruang rapat. Check-in mencegah pelepasan otomatis ruangan (no-show).') }}
+                    </p>
+                </div>
+            </x-bpjs.card>
+        @endif
+
         {{-- Lampiran --}}
         <x-bpjs.card :title="__('Lampiran')" rise>
             @if (session('status'))
