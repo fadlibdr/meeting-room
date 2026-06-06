@@ -10,7 +10,7 @@ use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\BookingApproval;
 use App\Models\BookingStatusHistory;
-use App\Models\Room;
+use App\Models\Resource;
 use App\Models\User;
 use App\Services\BookingConflictService;
 use DomainException;
@@ -86,8 +86,8 @@ final class UpdateBookingAction
     private function performUpdate(Booking $booking, User $actor, array $data): Booking
     {
         // 1. Lock the target room (the edit may move the booking to a new room).
-        /** @var Room $room */
-        $room = Room::query()
+        /** @var \App\Models\Resource $room */
+        $room = Resource::query()
             ->lockForUpdate()
             ->findOrFail($data['room_id']);
 

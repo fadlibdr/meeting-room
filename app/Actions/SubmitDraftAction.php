@@ -10,7 +10,7 @@ use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\BookingApproval;
 use App\Models\BookingStatusHistory;
-use App\Models\Room;
+use App\Models\Resource;
 use App\Models\User;
 use App\Notifications\BookingSubmittedNotification;
 use App\Services\ApprovalRoutingService;
@@ -82,8 +82,8 @@ final class SubmitDraftAction
     private function performSubmit(Booking $booking, User $actor): Booking
     {
         // 1. Lock the room and the booking rows.
-        /** @var Room $room */
-        $room = Room::query()
+        /** @var \App\Models\Resource $room */
+        $room = Resource::query()
             ->lockForUpdate()
             ->findOrFail($booking->room_id);
 
