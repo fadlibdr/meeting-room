@@ -66,6 +66,22 @@ class ShowBookingTest extends TestCase
             ->assertSee($booking->booking_code);
     }
 
+    public function test_show_page_is_translated_to_english(): void
+    {
+        $owner = $this->userWithRole('requester');
+        $owner->update(['locale' => 'en']);
+        $booking = Booking::factory()->create([
+            'requester_user_id' => $owner->id,
+            'status' => BookingStatus::Approved,
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('bookings.show', $booking))
+            ->assertOk()
+            ->assertSee('Reservation Code')
+            ->assertDontSee('Kode Reservasi');
+    }
+
     public function test_assigned_approver_can_view_the_booking(): void
     {
         $owner = $this->userWithRole('requester');
