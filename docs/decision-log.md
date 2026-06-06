@@ -82,6 +82,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 - [ ] UAT 30-scenario result (link / file in `docs/`):
 - [ ] Architecture sign-off (link / file in `docs/`):
 
+### ADR-012 · Large data exports are queued to disk, not streamed in-request
+**Decision:** Bookings export now supports **CSV and XLSX** (openspout, streamed to a file so memory stays flat). A single `BookingExportRowMapper` owns the column layout so the two formats never drift, and a single `BookingExportQuery` builds the scoped+filtered query so the **on-screen list, the synchronous stream, and the queued job all apply identical scope/filters**. Exports **at or below `config('exports.sync_row_limit')` (default 1000)** stream directly in the request; larger ones create an `exports` row (`pending`), dispatch **`GenerateBookingExportJob`** (`ShouldQueue`), and the user gets an **`ExportReadyNotification`** (database always; mail gated by the global toggle + per-user opt-in, per ADR-010) with a download link. Files live on the **`local_private`** disk for **24h**, served by an **owner-only** `exports.download` route (404 — not 403 — for non-owners / pending / expired, so existence isn't leaked) and reaped hourly by **`exports:prune`**.
+**Context:** Stage-2.2. Streaming a large XLSX inside the Livewire request risks timeouts/memory; XLSX is a zip and can't stream to `php://output` incrementally, so it is written to a temp/disk file either way. The row-count threshold keeps the common small export instant while making the large one reliable. Reuses the queue worker + jobs table from ADR-009.
+**Consequence:** Adds the `exports` table (new migration) and the `openspout/openspout` dependency; the worker and hourly scheduler are now load-bearing for exports too.
+**Status:** Accepted (6 Jun 2026, `feat/stage2-export-xlsx`). Builds on ADR-009 (worker) and ADR-010 (notification gating).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*

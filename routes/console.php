@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('bookings:send-reminders')->hourly();
 Schedule::command('system:health-check')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('exports:prune')->hourly()->withoutOverlapping();

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BookingAttachmentController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\ExportController;
 use App\Livewire\Admin\SettingsManager;
 use App\Livewire\Admin\UtilizationDashboard;
 use App\Livewire\Approval\ApprovalInbox;
@@ -74,6 +75,10 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         ->middleware('permission:bookings.approve')
         ->name('approvals.index');
     Route::view('rooms', 'rooms.public')->name('rooms.index');
+
+    // Stage 2.2 — download a queued data export (owner-only; enforced in controller)
+    Route::get('exports/{export}/download', [ExportController::class, 'download'])
+        ->name('exports.download');
 
     // Admin
     Route::prefix('admin')->name('admin.')->group(function () {
