@@ -526,13 +526,15 @@ class BookingPolicyTest extends TestCase
         $this->assertFalse($this->policy->reschedule($user, $booking));
     }
 
-    public function test_ga_admin_cannot_reschedule_others_approved(): void
+    public function test_ga_admin_can_reschedule_others_approved(): void
     {
+        // Stage 2.1.3: a GA Admin (bookings.view-all, no bookings.cancel) may now
+        // reschedule another user's approved booking on their behalf.
         $owner = $this->userWithRole('requester');
         $admin = $this->userWithRole('ga_admin');
         $booking = $this->makeBooking($owner, BookingStatus::Approved);
 
-        $this->assertFalse($this->policy->reschedule($admin, $booking));
+        $this->assertTrue($this->policy->reschedule($admin, $booking));
     }
 
     public function test_super_admin_can_reschedule_others_approved(): void
