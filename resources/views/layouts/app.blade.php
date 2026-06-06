@@ -137,6 +137,17 @@
                             </a>
                         @endhasPermission
 
+                        @hasPermission('app-settings.update')
+                            <a href="{{ route('admin.approval-policies.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.approval-policies.*')) active @endif">
+                                <x-icon name="checkCircle" :size="19" /> {{ __('nav.approval_policies') }}
+                            </a>
+                            <a href="{{ route('admin.approval-delegations.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.approval-delegations.*')) active @endif">
+                                <x-icon name="users" :size="19" /> {{ __('nav.approval_delegations') }}
+                            </a>
+                        @endhasPermission
+
                         @hasPermission('app-settings.view')
                             <a href="{{ route('admin.settings.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.settings.*')) active @endif">

@@ -23,6 +23,17 @@
                             @endforeach
                         </select>
                     </x-bpjs.field>
+
+                    <x-bpjs.field :label="__('Kebijakan Persetujuan')" for="approvalPolicyId"
+                        :hint="__('Opsional. Berlaku untuk reservasi anggota unit ini bila ruangan tidak punya kebijakan sendiri.')"
+                        :error="$errors->first('approvalPolicyId')">
+                        <select wire:model="approvalPolicyId" id="approvalPolicyId" class="select @error('approvalPolicyId') input--err @enderror">
+                            <option value="">{{ __('— Tanpa kebijakan —') }}</option>
+                            @foreach($approvalPolicies as $policy)
+                                <option value="{{ $policy->id }}">{{ $policy->name }}</option>
+                            @endforeach
+                        </select>
+                    </x-bpjs.field>
                 </div>
 
                 <label class="flex items-center cursor-pointer gap-2">
