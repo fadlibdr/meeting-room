@@ -66,11 +66,11 @@ class UnitForm extends Component
     protected function messages(): array
     {
         return [
-            'code.required' => 'Kode unit wajib diisi.',
-            'code.unique' => 'Kode unit sudah digunakan.',
-            'name.required' => 'Nama unit wajib diisi.',
-            'parentId.not_in' => 'Unit tidak dapat menjadi induk dari dirinya sendiri atau sub-unitnya.',
-            'parentId.exists' => 'Unit induk tidak ditemukan.',
+            'code.required' => __('Kode unit wajib diisi.'),
+            'code.unique' => __('Kode unit sudah digunakan.'),
+            'name.required' => __('Nama unit wajib diisi.'),
+            'parentId.not_in' => __('Unit tidak dapat menjadi induk dari dirinya sendiri atau sub-unitnya.'),
+            'parentId.exists' => __('Unit induk tidak ditemukan.'),
         ];
     }
 
@@ -100,7 +100,7 @@ class UnitForm extends Component
             }
         });
 
-        session()->flash('status', $this->isEditMode ? 'Unit berhasil diperbarui.' : 'Unit berhasil dibuat.');
+        session()->flash('status', $this->isEditMode ? __('Unit berhasil diperbarui.') : __('Unit berhasil dibuat.'));
         $this->redirectRoute('admin.units.index', navigate: true);
     }
 
