@@ -4,7 +4,7 @@
         @if ($startsAt === '' || $endsAt === '')
             <div class="flex items-center gap-2 rounded-[10px] px-3.5 py-2.5 text-sm text-slate-600" style="background: var(--slate-50); border: 1px solid var(--slate-200);">
                 <span class="text-slate-400 flex-shrink-0"><x-icon name="clock" :size="16" /></span>
-                <span><span class="font-semibold text-slate-700">Pilih waktu mulai dan selesai</span> di atas untuk melihat ketersediaan setiap ruangan.</span>
+                <span><span class="font-semibold text-slate-700">{{ __('Pilih waktu mulai dan selesai') }}</span> {{ __('di atas untuk melihat ketersediaan setiap ruangan.') }}</span>
             </div>
         @endif
 
@@ -42,7 +42,7 @@
                             @if ($room->floor || $room->location)
                                 {{ trim(($room->floor ?? '').($room->floor && $room->location ? ' · ' : '').($room->location ?? '')) }} ·
                             @endif
-                            Kapasitas {{ $room->capacity }}
+                            {{ __('Kapasitas') }} {{ $room->capacity }}
                         </p>
 
                         {{-- Facility / info pills --}}
@@ -53,28 +53,28 @@
                             @if ($room->floor)
                                 <span class="pill pill--slate">{{ $room->floor }}</span>
                             @endif
-                            <span class="pill pill--blue">{{ $room->capacity }} orang</span>
+                            <span class="pill pill--blue">{{ $room->capacity }} {{ __('orang') }}</span>
                         </div>
 
                         {{-- Availability badge --}}
                         <div class="mt-3 flex items-center gap-1.5">
                             @if ($isAvailable)
                                 <span class="pill pill--green">
-                                    <x-icon name="check" :size="12" :stroke="3" /> Tersedia
+                                    <x-icon name="check" :size="12" :stroke="3" /> {{ __('Tersedia') }}
                                 </span>
                             @elseif ($isUnavailable)
                                 <span class="pill pill--amber">
-                                    <x-icon name="alert" :size="12" /> Tidak Tersedia
+                                    <x-icon name="alert" :size="12" /> {{ __('Tidak Tersedia') }}
                                 </span>
                             @else
-                                <span class="pill pill--slate">Belum Diperiksa</span>
+                                <span class="pill pill--slate">{{ __('Belum Diperiksa') }}</span>
                             @endif
                         </div>
 
                         {{-- Conflict reason (when unavailable) --}}
                         @if ($isUnavailable && $state['conflictTitle'] !== null)
                             <p class="mt-2 text-[11px] text-amber-700 line-clamp-2" title="{{ $state['conflictTitle'] }}">
-                                Bentrok: {{ $state['conflictTitle'] }}
+                                {{ __('Bentrok:') }} {{ $state['conflictTitle'] }}
                             </p>
                         @endif
 
@@ -82,7 +82,7 @@
                         @if ($state['exceedsCapacity'] && $attendeeCount > 0)
                             <p class="mt-2 text-[11px] text-bpjs-blue-700 flex items-start gap-1">
                                 <span class="flex-shrink-0 mt-px"><x-icon name="info" :size="13" /></span>
-                                <span>Peserta ({{ $attendeeCount }}) melebihi kapasitas ruangan</span>
+                                <span>{{ __('Peserta (:n) melebihi kapasitas ruangan', ['n' => $attendeeCount]) }}</span>
                             </p>
                         @endif
                     </div>
@@ -93,7 +93,7 @@
         @if (count($rooms) === 0)
             <div class="card card--pad text-center" style="background: var(--slate-50);">
                 <p class="text-sm text-slate-500">
-                    Tidak ada ruangan aktif yang tersedia.
+                    {{ __('Tidak ada ruangan aktif yang tersedia.') }}
                 </p>
             </div>
         @endif

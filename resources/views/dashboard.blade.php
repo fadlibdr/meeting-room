@@ -107,7 +107,7 @@
                         </div>
                     </div>
                 @empty
-                    <p style="font-size: 13px; color: var(--slate-500);">Belum ada ruangan aktif.</p>
+                    <p style="font-size: 13px; color: var(--slate-500);">{{ __('Belum ada ruangan aktif.') }}</p>
                 @endforelse
                 <p class="mt-1" style="font-size: 11.5px; color: var(--slate-400);">
                     Total reservasi aktif hari ini: <span class="font-mono">{{ (int) $usageByRoom->sum() }}</span>
