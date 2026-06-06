@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
+use App\Models\ApprovalPolicy;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,8 @@ class UnitForm extends Component
 
     public bool $isActive = true;
 
+    public ?int $approvalPolicyId = null;
+
     public function mount(?Unit $unit = null): void
     {
         if ($unit && $unit->exists) {
@@ -35,6 +38,7 @@ class UnitForm extends Component
             $this->name = $unit->name;
             $this->parentId = $unit->parent_id;
             $this->isActive = $unit->is_active;
+            $this->approvalPolicyId = $unit->approval_policy_id;
         }
     }
 
@@ -57,6 +61,7 @@ class UnitForm extends Component
             'name' => ['required', 'string', 'max:150'],
             'parentId' => $parentRule,
             'isActive' => ['boolean'],
+            'approvalPolicyId' => ['nullable', 'integer', 'exists:approval_policies,id'],
         ];
     }
 
@@ -91,6 +96,7 @@ class UnitForm extends Component
                 'name' => $validated['name'],
                 'parent_id' => $validated['parentId'] ?? null,
                 'is_active' => $validated['isActive'] ?? true,
+                'approval_policy_id' => $validated['approvalPolicyId'] ?: null,
             ];
 
             if ($this->isEditMode && $this->unit instanceof Unit) {
@@ -113,6 +119,7 @@ class UnitForm extends Component
                 ->when($forbidden !== [], fn ($q) => $q->whereNotIn('id', $forbidden))
                 ->orderBy('name')
                 ->get(),
+            'approvalPolicies' => ApprovalPolicy::where('is_active', true)->orderBy('name')->get(),
             'isEditMode' => $this->isEditMode,
         ]);
     }

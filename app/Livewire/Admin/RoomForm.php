@@ -6,6 +6,7 @@ namespace App\Livewire\Admin;
 
 use App\Enums\RoomApprovalMode;
 use App\Enums\RoomStatus;
+use App\Models\ApprovalPolicy;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +34,8 @@ class RoomForm extends Component
 
     public string $approvalMode = 'unit_approver';
 
+    public ?int $approvalPolicyId = null;
+
     public int $bookingBufferMinutes = 0;
 
     public string $description = '';
@@ -49,6 +52,7 @@ class RoomForm extends Component
             $this->capacity = $room->capacity;
             $this->status = $room->status->value;
             $this->approvalMode = $room->approval_mode->value;
+            $this->approvalPolicyId = $room->approval_policy_id;
             $this->bookingBufferMinutes = $room->booking_buffer_minutes;
             $this->description = $room->description ?? '';
         }
@@ -69,6 +73,7 @@ class RoomForm extends Component
             'capacity' => ['required', 'integer', 'min:1', 'max:65535'],
             'status' => ['required', Rule::enum(RoomStatus::class)],
             'approvalMode' => ['required', Rule::enum(RoomApprovalMode::class)],
+            'approvalPolicyId' => ['nullable', 'integer', 'exists:approval_policies,id'],
             'bookingBufferMinutes' => ['required', 'integer', 'min:0', 'max:240'],
             'description' => ['nullable', 'string', 'max:2000'],
         ];
@@ -111,6 +116,7 @@ class RoomForm extends Component
                 'capacity' => $validated['capacity'],
                 'status' => $validated['status'],
                 'approval_mode' => $validated['approvalMode'],
+                'approval_policy_id' => $validated['approvalPolicyId'] ?: null,
                 'booking_buffer_minutes' => $validated['bookingBufferMinutes'],
                 'description' => $validated['description'] ?: null,
                 'is_active' => RoomStatus::from($validated['status'])->isBookable(),
@@ -132,6 +138,7 @@ class RoomForm extends Component
         return view('livewire.admin.room-form', [
             'statuses' => RoomStatus::cases(),
             'approvalModes' => RoomApprovalMode::cases(),
+            'approvalPolicies' => ApprovalPolicy::where('is_active', true)->orderBy('name')->get(),
             'isEditMode' => $this->isEditMode,
         ]);
     }

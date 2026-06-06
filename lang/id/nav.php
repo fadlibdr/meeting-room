@@ -18,5 +18,7 @@ return [
     'units' => 'Unit',
     'activity_log' => 'Log Aktivitas',
     'front_desk' => 'Check-in Harian',
+    'approval_policies' => 'Kebijakan Persetujuan',
+    'approval_delegations' => 'Delegasi Persetujuan',
     'settings' => 'Pengaturan',
 ];

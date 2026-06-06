@@ -50,6 +50,17 @@
                             @endforeach
                         </select>
                     </x-bpjs.field>
+
+                    <x-bpjs.field :label="__('Kebijakan Persetujuan')" for="approvalPolicyId"
+                                  :hint="__('Opsional. Jika dipilih, menggantikan Mode Approval dengan rantai multi-langkah.')"
+                                  :error="$errors->first('approvalPolicyId')">
+                        <select wire:model="approvalPolicyId" id="approvalPolicyId" class="select @error('approvalPolicyId') input--err @enderror">
+                            <option value="">{{ __('— Gunakan Mode Approval —') }}</option>
+                            @foreach($approvalPolicies as $policy)
+                                <option value="{{ $policy->id }}">{{ $policy->name }}</option>
+                            @endforeach
+                        </select>
+                    </x-bpjs.field>
                 </div>
 
                 <x-bpjs.field :label="__('Deskripsi')" for="description" :error="$errors->first('description')">

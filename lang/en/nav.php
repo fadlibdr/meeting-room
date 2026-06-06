@@ -18,5 +18,7 @@ return [
     'units' => 'Units',
     'activity_log' => 'Activity Log',
     'front_desk' => 'Daily Check-in',
+    'approval_policies' => 'Approval Policies',
+    'approval_delegations' => 'Approval Delegations',
     'settings' => 'Settings',
 ];

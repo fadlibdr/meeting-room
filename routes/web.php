@@ -12,6 +12,8 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LocaleController;
+use App\Livewire\Admin\ApprovalDelegationManager;
+use App\Livewire\Admin\ApprovalPolicyManager;
 use App\Livewire\Admin\SettingsManager;
 use App\Livewire\Admin\UtilizationDashboard;
 use App\Livewire\Approval\ApprovalInbox;
@@ -166,6 +168,14 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::get('logs', [ActivityLogController::class, 'index'])
             ->middleware('permission:activity-logs.view')
             ->name('logs.index');
+
+        // Stage 3 B — approval policy + delegation management
+        Route::get('approval-policies', ApprovalPolicyManager::class)
+            ->middleware('permission:app-settings.update')
+            ->name('approval-policies.index');
+        Route::get('approval-delegations', ApprovalDelegationManager::class)
+            ->middleware('permission:app-settings.update')
+            ->name('approval-delegations.index');
 
         // App settings - runtime configuration editor
         Route::get('settings', SettingsManager::class)
