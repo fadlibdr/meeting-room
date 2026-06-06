@@ -60,7 +60,7 @@ class FacilityList extends Component
         $facility = RoomFacility::findOrFail($facilityId);
         $facility->update(['is_active' => ! $facility->is_active]);
 
-        session()->flash('status', $facility->is_active ? 'Fasilitas diaktifkan.' : 'Fasilitas dinonaktifkan.');
+        session()->flash('status', $facility->is_active ? __('Fasilitas diaktifkan.') : __('Fasilitas dinonaktifkan.'));
     }
 
     public function render(): View

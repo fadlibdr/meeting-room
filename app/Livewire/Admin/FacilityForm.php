@@ -63,10 +63,10 @@ class FacilityForm extends Component
     protected function messages(): array
     {
         return [
-            'code.required' => 'Kode fasilitas wajib diisi.',
-            'code.unique' => 'Kode fasilitas sudah digunakan.',
-            'name.required' => 'Nama fasilitas wajib diisi.',
-            'category.in' => 'Kategori tidak valid.',
+            'code.required' => __('Kode fasilitas wajib diisi.'),
+            'code.unique' => __('Kode fasilitas sudah digunakan.'),
+            'name.required' => __('Nama fasilitas wajib diisi.'),
+            'category.in' => __('Kategori tidak valid.'),
         ];
     }
 
@@ -97,7 +97,7 @@ class FacilityForm extends Component
             }
         });
 
-        session()->flash('status', $this->isEditMode ? 'Fasilitas berhasil diperbarui.' : 'Fasilitas berhasil dibuat.');
+        session()->flash('status', $this->isEditMode ? __('Fasilitas berhasil diperbarui.') : __('Fasilitas berhasil dibuat.'));
         $this->redirectRoute('admin.facilities.index', navigate: true);
     }
 

@@ -1,4 +1,4 @@
-<x-app-layout title="Blokir Ruangan" subtitle="Tutup ruangan untuk pemeliharaan atau acara.">
+<x-app-layout :title="__('Blokir Ruangan')" :subtitle="__('Tutup ruangan untuk pemeliharaan atau acara.')">
     @if(session('status'))
         <div class="card card--pad bpjs-rise mb-4 flex items-center gap-2.5"
              style="border-color: var(--bpjs-green-200); background: var(--bpjs-green-50);">

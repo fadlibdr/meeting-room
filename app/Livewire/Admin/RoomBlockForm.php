@@ -81,10 +81,10 @@ class RoomBlockForm extends Component
     {
         return [
             'roomId.required' => 'Pilih ruang terlebih dahulu.',
-            'title.required' => 'Judul blokir wajib diisi.',
-            'startsAt.required' => 'Waktu mulai wajib diisi.',
-            'endsAt.required' => 'Waktu selesai wajib diisi.',
-            'endsAt.after' => 'Waktu selesai harus setelah waktu mulai.',
+            'title.required' => __('Judul blokir wajib diisi.'),
+            'startsAt.required' => __('Waktu mulai wajib diisi.'),
+            'endsAt.required' => __('Waktu selesai wajib diisi.'),
+            'endsAt.after' => __('Waktu selesai harus setelah waktu mulai.'),
         ];
     }
 
@@ -120,7 +120,7 @@ class RoomBlockForm extends Component
             );
 
             if ($series['created']->isEmpty()) {
-                $this->addError('conflict', 'Tidak ada jadwal blokir yang dapat dibuat — semua bentrok dengan reservasi. Centang opsi di bawah untuk membatalkan booking, lalu simpan kembali.');
+                $this->addError('conflict', __('Tidak ada jadwal blokir yang dapat dibuat — semua bentrok dengan reservasi. Centang opsi di bawah untuk membatalkan booking, lalu simpan kembali.'));
 
                 return;
             }
@@ -147,12 +147,12 @@ class RoomBlockForm extends Component
                 cancelConflictingBookings: $this->cancelConflicting,
             );
         } catch (RoomBlockConflictException) {
-            $this->addError('conflict', 'Ada booking yang bentrok dengan jadwal blokir ini. Centang opsi di bawah untuk membatalkan booking tersebut, lalu simpan kembali.');
+            $this->addError('conflict', __('Ada booking yang bentrok dengan jadwal blokir ini. Centang opsi di bawah untuk membatalkan booking tersebut, lalu simpan kembali.'));
 
             return;
         }
 
-        session()->flash('status', 'Blokir ruang berhasil dibuat.');
+        session()->flash('status', __('Blokir ruang berhasil dibuat.'));
         $this->redirectRoute('admin.room-blocks.index', navigate: true);
     }
 

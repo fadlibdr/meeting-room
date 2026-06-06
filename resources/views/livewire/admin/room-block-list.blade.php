@@ -1,18 +1,18 @@
 <div>
     {{-- Filter bar --}}
     <div class="card bpjs-rise mb-4" style="padding: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
-        <x-bpjs.field label="Status" for="statusFilter">
+        <x-bpjs.field :label="__('Status')" for="statusFilter">
             <select wire:model.live="statusFilter" id="statusFilter" class="select" style="min-width: 180px;">
-                <option value="active">Aktif</option>
-                <option value="cancelled">Dibatalkan</option>
-                <option value="all">Semua</option>
+                <option value="active">{{ __('Aktif') }}</option>
+                <option value="cancelled">{{ __('Dibatalkan') }}</option>
+                <option value="all">{{ __('Semua') }}</option>
             </select>
         </x-bpjs.field>
 
         <div style="margin-left: auto;">
             @hasPermission('rooms.manage-blocks')
                 <x-bpjs.button variant="primary" icon="plus" :href="route('admin.room-blocks.create')" wire:navigate>
-                    Blokir Ruangan
+                    {{ __('Blokir Ruangan') }}
                 </x-bpjs.button>
             @endhasPermission
         </div>
@@ -23,12 +23,12 @@
         <table class="dtable">
             <thead>
                 <tr>
-                    <th>Ruangan</th>
-                    <th>Jenis</th>
-                    <th>Judul</th>
-                    <th>Waktu</th>
-                    <th>Status</th>
-                    <th class="text-right">Aksi</th>
+                    <th>{{ __('Ruangan') }}</th>
+                    <th>{{ __('Jenis') }}</th>
+                    <th>{{ __('Judul') }}</th>
+                    <th>{{ __('Waktu') }}</th>
+                    <th>{{ __('Status') }}</th>
+                    <th class="text-right">{{ __('Aksi') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,7 +44,7 @@
                             <span class="inline-flex items-center gap-2">
                                 {{ $block->title }}
                                 @if($block->recurrence_group_id !== null)
-                                    <x-bpjs.pill variant="blue">Berulang</x-bpjs.pill>
+                                    <x-bpjs.pill variant="blue">{{ __('Berulang') }}</x-bpjs.pill>
                                 @endif
                             </span>
                         </td>
@@ -53,9 +53,9 @@
                         </td>
                         <td>
                             @if($block->cancelled_at !== null)
-                                <x-bpjs.pill variant="slate">Dibatalkan</x-bpjs.pill>
+                                <x-bpjs.pill variant="slate">{{ __('Dibatalkan') }}</x-bpjs.pill>
                             @else
-                                <x-bpjs.pill variant="amber">Aktif</x-bpjs.pill>
+                                <x-bpjs.pill variant="amber">{{ __('Aktif') }}</x-bpjs.pill>
                             @endif
                         </td>
                         <td class="text-right">
@@ -63,12 +63,12 @@
                                 @hasPermission('rooms.manage-blocks')
                                     <div class="inline-flex items-center justify-end gap-2">
                                         <x-bpjs.button variant="danger" wire:click="cancel({{ $block->id }})"
-                                                       wire:confirm="Batalkan blokir &quot;{{ $block->title }}&quot;?" type="button"
-                                                       class="!px-3 !py-1.5 !text-xs !rounded-lg">Batalkan</x-bpjs.button>
+                                                       wire:confirm="{{ __('Batalkan blokir :title?', ['title' => $block->title]) }}" type="button"
+                                                       class="!px-3 !py-1.5 !text-xs !rounded-lg">{{ __('Batalkan') }}</x-bpjs.button>
                                         @if($block->recurrence_group_id !== null)
                                             <x-bpjs.button variant="solid-danger" wire:click="cancelSeries({{ $block->id }})"
-                                                           wire:confirm="Batalkan SEMUA jadwal aktif dalam seri ini?" type="button"
-                                                           class="!px-3 !py-1.5 !text-xs !rounded-lg">Batalkan Seri</x-bpjs.button>
+                                                           wire:confirm="{{ __('Batalkan SEMUA jadwal aktif dalam seri ini?') }}" type="button"
+                                                           class="!px-3 !py-1.5 !text-xs !rounded-lg">{{ __('Batalkan Seri') }}</x-bpjs.button>
                                         @endif
                                     </div>
                                 @endhasPermission
@@ -78,7 +78,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center text-slate-400" style="padding: 48px;">Tidak ada blokir ruangan.</td></tr>
+                    <tr><td colspan="6" class="text-center text-slate-400" style="padding: 48px;">{{ __('Tidak ada blokir ruangan.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

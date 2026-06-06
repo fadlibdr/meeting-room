@@ -38,9 +38,9 @@ class RoomBlockList extends Component
 
         try {
             app(CancelRoomBlockAction::class)->execute($block, $authUser);
-            session()->flash('status', 'Blokir ruang berhasil dibatalkan.');
+            session()->flash('status', __('Blokir ruang berhasil dibatalkan.'));
         } catch (DomainException) {
-            session()->flash('status', 'Blokir ruang sudah dibatalkan sebelumnya.');
+            session()->flash('status', __('Blokir ruang sudah dibatalkan sebelumnya.'));
         }
     }
 
@@ -54,7 +54,7 @@ class RoomBlockList extends Component
         $block = RoomBlockSchedule::findOrFail($blockId);
         $count = app(CancelRecurringRoomBlockAction::class)->execute($block, $authUser);
 
-        session()->flash('status', "Seri blokir dibatalkan: {$count} jadwal.");
+        session()->flash('status', __('Seri blokir dibatalkan: :count jadwal.', ['count' => $count]));
     }
 
     public function render(): View
