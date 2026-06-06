@@ -72,8 +72,15 @@
                         </a>
                     @endhasPermission
 
-                    @if($u->hasPermission('rooms.create') || $u->hasPermission('rooms.update') || $u->hasPermission('rooms.manage-blocks') || $u->hasPermission('users.view') || $u->hasPermission('activity-logs.view') || $u->hasPermission('app-settings.view'))
+                    @if($u->hasPermission('reports.view') || $u->hasPermission('rooms.create') || $u->hasPermission('rooms.update') || $u->hasPermission('rooms.manage-blocks') || $u->hasPermission('users.view') || $u->hasPermission('activity-logs.view') || $u->hasPermission('app-settings.view'))
                         <div class="nav__label">Administrasi</div>
+
+                        @hasPermission('reports.view')
+                            <a href="{{ route('admin.reports.utilization') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.reports.*')) active @endif">
+                                <x-icon name="dashboard" :size="19" /> Laporan Utilisasi
+                            </a>
+                        @endhasPermission
 
                         @hasPermission('rooms.create')
                             <a href="{{ route('admin.rooms.index') }}" wire:navigate
