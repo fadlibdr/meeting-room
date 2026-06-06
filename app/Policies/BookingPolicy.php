@@ -185,7 +185,16 @@ class BookingPolicy
             return false;
         }
 
-        return $this->cancel($user, $booking);
+        // Owner path (existing): reuses the cancel gate (status + bookings.cancel + ownership).
+        if ($this->cancel($user, $booking)) {
+            return true;
+        }
+
+        // Admin path (Stage 2.1.3): a manager with org-wide booking visibility
+        // (e.g. GA Admin) may reschedule others' approved bookings, even without
+        // the bookings.cancel permission.
+        return $user->hasPermission('bookings.view-all')
+            || $user->hasPermission('bookings.override');
     }
 
     /**
