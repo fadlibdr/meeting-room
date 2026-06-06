@@ -79,6 +79,27 @@ class LocaleTest extends TestCase
             ->assertSee('lang="en"', false);
     }
 
+    public function test_chrome_renders_english_strings_under_en_locale(): void
+    {
+        $user = User::factory()->create(['locale' => 'en']);
+
+        // common.language short-key renders "Language" in the user dropdown.
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Language');
+    }
+
+    public function test_chrome_renders_indonesian_by_default(): void
+    {
+        $user = User::factory()->create(['locale' => 'id']);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Bahasa');
+    }
+
     public function test_profile_form_saves_locale(): void
     {
         $user = User::factory()->create(['locale' => 'id']);

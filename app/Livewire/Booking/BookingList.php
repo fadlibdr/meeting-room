@@ -187,7 +187,7 @@ class BookingList extends Component
             'canViewAll' => $canViewAll,
             'canCreate' => $user->hasPermission('bookings.create'),
             'statuses' => BookingStatus::cases(),
-        ])->layout('layouts.app', ['title' => 'Reservasi', 'subtitle' => 'Daftar pemesanan ruang rapat']);
+        ])->layout('layouts.app', ['title' => __('Reservasi'), 'subtitle' => __('Daftar pemesanan ruang rapat')]);
     }
 
     /**
