@@ -21,7 +21,7 @@ class Unit extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code', 'name', 'parent_id', 'is_active'];
+    protected $fillable = ['code', 'name', 'parent_id', 'is_active', 'approval_policy_id'];
 
     protected function casts(): array
     {
@@ -33,6 +33,14 @@ class Unit extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    /**
+     * @return BelongsTo<ApprovalPolicy, $this>
+     */
+    public function approvalPolicy(): BelongsTo
+    {
+        return $this->belongsTo(ApprovalPolicy::class);
     }
 
     public function children(): HasMany

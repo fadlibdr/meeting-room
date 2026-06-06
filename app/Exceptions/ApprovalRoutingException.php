@@ -36,4 +36,12 @@ class ApprovalRoutingException extends DomainException
             .'Silakan hubungi Super Admin.'
         );
     }
+
+    public static function unresolvableStep(int $policyId, int $sequenceNo): self
+    {
+        return new self(
+            "Kebijakan persetujuan #{$policyId} langkah {$sequenceNo} tidak dapat menentukan approver "
+            .'(approver atau peran tidak valid / tidak ada pengguna aktif). Silakan perbaiki konfigurasi kebijakan.'
+        );
+    }
 }

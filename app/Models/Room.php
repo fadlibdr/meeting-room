@@ -6,6 +6,7 @@ use App\Enums\RoomApprovalMode;
 use App\Enums\RoomStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -18,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property int $capacity
  * @property RoomStatus $status
  * @property RoomApprovalMode $approval_mode
+ * @property int|null $approval_policy_id
  * @property int $booking_buffer_minutes
  * @property string|null $description
  * @property bool $is_active
@@ -30,7 +32,7 @@ class Room extends Model
 
     protected $fillable = [
         'code', 'name', 'location', 'floor', 'capacity',
-        'status', 'approval_mode', 'booking_buffer_minutes',
+        'status', 'approval_mode', 'approval_policy_id', 'booking_buffer_minutes',
         'description', 'is_active',
     ];
 
@@ -53,6 +55,14 @@ class Room extends Model
     public function operatingHours(): HasMany
     {
         return $this->hasMany(RoomOperatingHour::class);
+    }
+
+    /**
+     * @return BelongsTo<ApprovalPolicy, $this>
+     */
+    public function approvalPolicy(): BelongsTo
+    {
+        return $this->belongsTo(ApprovalPolicy::class);
     }
 
     public function blockSchedules(): HasMany
