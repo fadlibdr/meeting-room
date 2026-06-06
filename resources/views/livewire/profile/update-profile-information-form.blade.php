@@ -11,6 +11,7 @@ new class extends Component
     public string $name = '';
     public string $email = '';
     public bool $emailNotifications = true;
+    public string $locale = '';
 
     /**
      * Mount the component.
@@ -20,6 +21,7 @@ new class extends Component
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
         $this->emailNotifications = (bool) Auth::user()->email_notifications;
+        $this->locale = Auth::user()->locale ?? (string) config('app.locale', 'id');
     }
 
     /**
@@ -32,6 +34,7 @@ new class extends Component
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'locale' => ['required', 'string', Rule::in(array_keys(config('app.available_locales', [])))],
         ]);
 
         $user->fill($validated);
@@ -42,6 +45,9 @@ new class extends Component
         }
 
         $user->save();
+
+        // Apply the language choice to the current session immediately.
+        Session::put('locale', $user->locale);
 
         $this->dispatch('profile-updated', name: $user->name);
     }
@@ -87,6 +93,14 @@ new class extends Component
             <input wire:model="email" id="email" name="email" type="email"
                    class="input font-mono @error('email') input--err @enderror"
                    required autocomplete="username" />
+        </x-bpjs.field>
+
+        <x-bpjs.field :label="__('common.language')" for="locale" :error="$errors->first('locale')">
+            <select wire:model="locale" id="locale" name="locale" class="select">
+                @foreach(config('app.available_locales', []) as $code => $label)
+                    <option value="{{ $code }}">{{ $label }}</option>
+                @endforeach
+            </select>
         </x-bpjs.field>
 
         <div class="pt-1">

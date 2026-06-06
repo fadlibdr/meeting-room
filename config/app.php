@@ -79,11 +79,21 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    // Stage 3.1: the app is Indonesian-first; English is the alternate UI language.
+    'locale' => env('APP_LOCALE', 'id'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'id'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+
+    /*
+    | Locales a user may switch the UI to (SetLocale middleware + profile switch).
+    | Keys are locale codes; values are the native display names.
+    */
+    'available_locales' => [
+        'id' => 'Bahasa Indonesia',
+        'en' => 'English',
+    ],
 
     /*
     |--------------------------------------------------------------------------

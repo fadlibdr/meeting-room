@@ -88,6 +88,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Adds the `exports` table (new migration) and the `openspout/openspout` dependency; the worker and hourly scheduler are now load-bearing for exports too.
 **Status:** Accepted (6 Jun 2026, `feat/stage2-export-xlsx`). Builds on ADR-009 (worker) and ADR-010 (notification gating).
 
+### ADR-013 · Internationalization is Indonesian-first with an opt-in English UI
+**Decision:** The UI supports **`id` (default) and `en`**. A `SetLocale` middleware (appended to the `web` group) resolves the active locale by precedence **authenticated user's `users.locale` → guest session `locale` → `config('app.locale')`**, honouring only codes in `config('app.available_locales')`. Users switch via a **profile language select** (persisted) or a **header/login pill toggle** (`POST locale/{locale}`, session + persisted when authed). Translation mechanism is **two-track**: structured chrome uses PHP short-keys (`lang/{id,en}/nav.php`, `common.php`); body content keeps the existing **`__('Indonesian string')`** pattern with a single **`lang/en.json`** providing the English — so under the default `id` locale `__()` returns the Indonesian key verbatim (no `id.json` needed) and only `en` does a lookup.
+**Context:** Stage-3.1. The app was built Indonesian-first with hardcoded strings; the JSON-string track lets the remaining ~75 views be internationalized incrementally (wrap a raw string in `__()`, add one `en.json` line) without a risky big-bang refactor. This PR delivers the full locale infrastructure + switchers and translates the global chrome, auth, profile, and dashboard; remaining admin/booking views follow in subsequent Q-locked PRs.
+**Consequence — REQUIRED prod env change:** `APP_LOCALE` and `APP_FALLBACK_LOCALE` must be **`id`** (set in `.env`, `.env.example`, `phpunit.xml`). **If prod leaves `APP_LOCALE=en`, shipping `en.json` would flip the entire default UI to English.** The deploy of this release MUST set `APP_LOCALE=id` (and re-run `config:cache`) before/with the code rollout.
+**Status:** Accepted (6 Jun 2026, `feat/stage3-i18n-foundation`).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*
