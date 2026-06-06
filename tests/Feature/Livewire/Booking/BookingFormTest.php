@@ -61,6 +61,18 @@ class BookingFormTest extends TestCase
             ->assertSee('Judul Rapat');
     }
 
+    public function test_time_inputs_force_24_hour_format(): void
+    {
+        $user = $this->userWithRole('requester');
+
+        // lang="id" on the datetime-local inputs forces a 24-hour picker in
+        // Chromium regardless of the UI language.
+        Livewire::actingAs($user)
+            ->test(BookingForm::class)
+            ->assertOk()
+            ->assertSeeHtml('type="datetime-local" lang="id"');
+    }
+
     public function test_unauthenticated_route_redirects_to_login(): void
     {
         $this->get('/bookings/new')->assertRedirect('/login');

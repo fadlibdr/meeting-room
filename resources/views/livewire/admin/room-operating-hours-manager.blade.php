@@ -32,12 +32,12 @@
                                 <td class="text-slate-400" colspan="2">{{ __('Tutup sepanjang hari') }}</td>
                             @else
                                 <td>
-                                    <input type="time" wire:model="openTime.{{ $day }}"
+                                    <input type="time" lang="id" wire:model="openTime.{{ $day }}"
                                            class="input @error('openTime.'.$day) input--err @enderror" style="width: 150px;" />
                                     @error('openTime.'.$day) <p class="field__err">{{ $message }}</p> @enderror
                                 </td>
                                 <td>
-                                    <input type="time" wire:model="closeTime.{{ $day }}"
+                                    <input type="time" lang="id" wire:model="closeTime.{{ $day }}"
                                            class="input @error('closeTime.'.$day) input--err @enderror" style="width: 150px;" />
                                     @error('closeTime.'.$day) <p class="field__err">{{ $message }}</p> @enderror
                                 </td>
