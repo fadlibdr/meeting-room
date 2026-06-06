@@ -55,7 +55,7 @@ class RoomBlockForm extends Component
     protected function rules(): array
     {
         $rules = [
-            'roomId' => ['required', 'integer', Rule::exists('rooms', 'id')],
+            'roomId' => ['required', 'integer', Rule::exists('resources', 'id')->where('type', 'room')],
             'blockType' => ['required', Rule::enum(RoomBlockType::class)],
             'title' => ['required', 'string', 'max:150'],
             'reason' => ['nullable', 'string', 'max:2000'],

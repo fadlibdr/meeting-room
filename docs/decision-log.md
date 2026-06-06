@@ -141,6 +141,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Adds two tables + wiring lines in Submit/Approve/Reject/Cancel/Release/CheckIn actions. Completes Phase C.
 **Status:** Accepted (6 Jun 2026, `feat/stage3-webhooks`). Phase C part 2 of 2.
 
+### ADR-022 · Rooms generalize into bookable `resources`, rolled out in stages behind a type-scoped `Room`
+**Decision:** Stage-3 E adopts the **full resources abstraction** (vs extending `rooms` with a type column): the `rooms` table is renamed to **`resources`** with a **`type`** discriminator (`room` default + `equipment`/`vehicle`/`desk`, see `ResourceType`) and a per-type **`metadata`** JSON bag, and a general **`Resource`** model owns the schedulable behaviour. To keep the rename safe across a ~215-reference room-centric codebase, it ships in stages, suite green at each: **E1 (this PR)** — table rename + `Resource` model + `ResourceType`; the legacy **`Room` becomes a subclass of `Resource`** with a global scope (`type = room`) and a `creating` stamp, so every existing query, relation, factory, controller and test behaves identically. `bookings.room_id` is **retained** (MySQL auto-repoints the FK at the renamed table) and gains a `Booking::resource()` accessor for unscoped (any-type) access. **E2** — generalize `ConflictService`/availability/calendar to `Resource` (widen `Room` hints to `Resource`; `Room` is-a `Resource`), a generic resource admin UI, and booking of non-room types. **E3 (optional)** — the `room_id` → `resource_id` column rename + reference sweep.
+**Context:** The `metadata` column avoids Eloquent's reserved internal `$attributes`. Staging behind the `Room` subclass means the highest-blast-radius structural change lands with zero behavioural churn — the abstraction exists end-to-end (a non-room `Resource` can be created, typed, and carry metadata) before any subsystem is asked to consume it.
+**Consequence:** Renames `rooms`→`resources` (+ `type`, `metadata`); adds `App\Models\Resource`, `App\Enums\ResourceType`, `ResourceFactory`, `Booking::resource()`. Child tables keep their `room_id` columns (now referencing `resources`) until E2/E3.
+**Status:** Accepted (6 Jun 2026, `feat/stage3-resource-abstraction`). Phase E part 1 of 2–3.
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*

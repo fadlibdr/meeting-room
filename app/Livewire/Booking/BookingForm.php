@@ -20,6 +20,7 @@ use App\Services\RecurrenceExpander;
 use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
@@ -241,12 +242,12 @@ class BookingForm extends Component
     }
 
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, mixed>|string>
      */
     protected function rules(): array
     {
         $rules = [
-            'roomId' => ['required', 'integer', 'exists:rooms,id'],
+            'roomId' => ['required', 'integer', Rule::exists('resources', 'id')->where('type', 'room')],
             'subject' => ['required', 'string', 'min:3', 'max:150'],
             'agenda' => ['nullable', 'string', 'max:5000'],
             'attendeeCount' => ['required', 'integer', 'min:1'],

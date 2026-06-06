@@ -14,6 +14,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\Rule;
 
 /**
  * Public API (v1) — the token owner's bookings (read) + create (booking:write).
@@ -47,7 +48,7 @@ class BookingController extends Controller
         }
 
         $validated = $request->validate([
-            'room_id' => ['required', 'integer', 'exists:rooms,id'],
+            'room_id' => ['required', 'integer', Rule::exists('resources', 'id')->where('type', 'room')],
             'subject' => ['required', 'string', 'max:150'],
             'agenda' => ['nullable', 'string', 'max:5000'],
             'attendee_count' => ['required', 'integer', 'min:1'],
