@@ -148,6 +148,13 @@
                             </a>
                         @endhasPermission
 
+                        @hasPermission('app-settings.update')
+                            <a href="{{ route('admin.webhooks.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.webhooks.*')) active @endif">
+                                <x-icon name="arrowRight" :size="19" /> {{ __('nav.webhooks') }}
+                            </a>
+                        @endhasPermission
+
                         @hasPermission('app-settings.view')
                             <a href="{{ route('admin.settings.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.settings.*')) active @endif">

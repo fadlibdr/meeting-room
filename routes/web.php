@@ -16,6 +16,7 @@ use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
 use App\Livewire\Admin\SettingsManager;
 use App\Livewire\Admin\UtilizationDashboard;
+use App\Livewire\Admin\WebhookSubscriptionManager;
 use App\Livewire\ApiTokenManager;
 use App\Livewire\Approval\ApprovalInbox;
 use App\Livewire\Booking\BookingCalendar;
@@ -177,6 +178,11 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::get('approval-delegations', ApprovalDelegationManager::class)
             ->middleware('permission:app-settings.update')
             ->name('approval-delegations.index');
+
+        // Stage 3 C2 — outbound webhook subscriptions
+        Route::get('webhooks', WebhookSubscriptionManager::class)
+            ->middleware('permission:app-settings.update')
+            ->name('webhooks.index');
 
         // App settings - runtime configuration editor
         Route::get('settings', SettingsManager::class)

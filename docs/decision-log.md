@@ -135,6 +135,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Adds `laravel/sanctum` + the `personal_access_tokens` table + API routing in `bootstrap/app.php`.
 **Status:** Accepted (6 Jun 2026, `feat/stage3-api-sanctum`). Phase C part 1 of 2 (webhooks next).
 
+### ADR-021 · Webhooks are HMAC-signed, queued, retried, and fired post-commit from the actions
+**Decision:** Stage-3 C2 adds outbound webhooks. **`webhook_subscriptions`** (url + per-subscription secret + subscribed events + active flag) and **`webhook_deliveries`** (one row per (subscription, event) dispatch, updated across retries). On a booking lifecycle event, **`WebhookDispatcher`** — called from each action's **post-commit** section (alongside the notifications, so a rolled-back transaction never emits) — fans out to active subscriptions `listeningFor` that event and queues a **`SendWebhookJob`** (`afterCommit`). The job signs the exact JSON body with **HMAC-SHA256** (`X-Webhook-Signature: sha256=…`), POSTs with a 10s timeout, records the response, and on non-2xx **throws to retry** (`tries=4`, backoff 10/60/300s); `failed()` marks the delivery `failed` after the final attempt. Events: `booking.{submitted,approved,rejected,cancelled,auto_released,checked_in}`. Managed at `/admin/webhooks` (app-settings.update); the secret is shown once.
+**Context:** Explicit post-commit dispatch from the actions (vs a model observer) keeps emission aligned with the same point notifications fire and avoids double-firing on coupled column changes (e.g. release sets both status=cancelled and released_at). Signing the byte-exact body lets receivers verify integrity. Reuses the existing queue worker.
+**Consequence:** Adds two tables + wiring lines in Submit/Approve/Reject/Cancel/Release/CheckIn actions. Completes Phase C.
+**Status:** Accepted (6 Jun 2026, `feat/stage3-webhooks`). Phase C part 2 of 2.
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*

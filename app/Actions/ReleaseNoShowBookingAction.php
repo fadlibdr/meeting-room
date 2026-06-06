@@ -6,11 +6,13 @@ namespace App\Actions;
 
 use App\Console\Commands\AutoReleaseBookings;
 use App\Enums\BookingStatus;
+use App\Enums\WebhookEvent;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\BookingStatusHistory;
 use App\Models\User;
 use App\Notifications\BookingAutoReleasedNotification;
+use App\Services\WebhookDispatcher;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -45,6 +47,7 @@ final class ReleaseNoShowBookingAction
         if ($result['released']) {
             User::find($released->requester_user_id)
                 ?->notify(new BookingAutoReleasedNotification($released));
+            app(WebhookDispatcher::class)->dispatch(WebhookEvent::BookingAutoReleased, $released);
         }
 
         return $released;

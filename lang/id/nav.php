@@ -20,5 +20,6 @@ return [
     'front_desk' => 'Check-in Harian',
     'approval_policies' => 'Kebijakan Persetujuan',
     'approval_delegations' => 'Delegasi Persetujuan',
+    'webhooks' => 'Webhook',
     'settings' => 'Pengaturan',
 ];

@@ -20,5 +20,6 @@ return [
     'front_desk' => 'Daily Check-in',
     'approval_policies' => 'Approval Policies',
     'approval_delegations' => 'Approval Delegations',
+    'webhooks' => 'Webhooks',
     'settings' => 'Settings',
 ];

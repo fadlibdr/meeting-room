@@ -7,6 +7,7 @@ namespace App\Actions;
 use App\Enums\BookingStatus;
 use App\Enums\RoomApprovalMode;
 use App\Enums\RoomStatus;
+use App\Enums\WebhookEvent;
 use App\Http\Requests\Booking\StoreBookingRequest;
 use App\Models\ActivityLog;
 use App\Models\Booking;
@@ -18,6 +19,7 @@ use App\Notifications\BookingSubmittedNotification;
 use App\Policies\BookingPolicy;
 use App\Services\ApprovalRoutingService;
 use App\Services\BookingConflictService;
+use App\Services\WebhookDispatcher;
 use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Support\Carbon;
@@ -77,6 +79,11 @@ final class SubmitBookingAction
             User::findOrFail($booking->current_approver_user_id)
                 ->notify(new BookingSubmittedNotification($booking));
         }
+
+        app(WebhookDispatcher::class)->dispatch(
+            $booking->status === BookingStatus::Approved ? WebhookEvent::BookingApproved : WebhookEvent::BookingSubmitted,
+            $booking,
+        );
 
         return $booking;
     }
