@@ -1,3 +1,3 @@
-<x-app-layout title="Log Aktivitas" subtitle="Riwayat aktivitas sistem">
+<x-app-layout :title="__('Log Aktivitas')" :subtitle="__('Riwayat aktivitas sistem')">
     <livewire:admin.activity-log-viewer />
 </x-app-layout>

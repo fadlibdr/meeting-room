@@ -85,8 +85,8 @@ class UtilizationDashboard extends Component
     {
         return view('livewire.admin.utilization-dashboard')
             ->layout('layouts.app', [
-                'title' => 'Laporan Utilisasi',
-                'subtitle' => 'Tingkat pemanfaatan ruang rapat',
+                'title' => __('Laporan Utilisasi'),
+                'subtitle' => __('Tingkat pemanfaatan ruang rapat'),
             ]);
     }
 

@@ -31,7 +31,7 @@
                                     {{ $setting->label }}
                                 </h3>
                                 @if(!$setting->is_editable)
-                                    <x-bpjs.pill variant="slate">Sistem</x-bpjs.pill>
+                                    <x-bpjs.pill variant="slate">{{ __('Sistem') }}</x-bpjs.pill>
                                 @endif
                             </div>
 
@@ -63,14 +63,14 @@
                                                 <span aria-hidden="true" style="position: absolute; inset: 0; border-radius: 9999px; background: var(--slate-300); transition: background .15s;" class="peer-checked:!bg-[var(--bpjs-green-500)] peer-focus-visible:[box-shadow:var(--bpjs-ring)]"></span>
                                                 <span aria-hidden="true" style="position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 9999px; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.2); transition: transform .15s;" class="peer-checked:translate-x-5"></span>
                                             </span>
-                                            <span style="font-size: 13.5px; font-weight: 500; color: var(--slate-700);">Aktif</span>
+                                            <span style="font-size: 13.5px; font-weight: 500; color: var(--slate-700);">{{ __('Aktif') }}</span>
                                         </label>
                                     @elseif($setting->data_type === 'encrypted')
                                         <input
                                             type="password"
                                             wire:model="editValue"
                                             autocomplete="new-password"
-                                            placeholder="Kosongkan untuk tidak mengubah"
+                                            placeholder="{{ __('Kosongkan untuk tidak mengubah') }}"
                                             class="input"
                                             style="max-width: 320px;"
                                         />
@@ -84,27 +84,27 @@
 
                                     <div class="flex gap-2">
                                         <x-bpjs.button variant="primary" icon="check" wire:click="save">
-                                            Simpan
+                                            {{ __('Simpan') }}
                                         </x-bpjs.button>
                                         <x-bpjs.button variant="ghost" wire:click="cancelEdit">
-                                            Batal
+                                            {{ __('Batal') }}
                                         </x-bpjs.button>
                                     </div>
                                 </div>
                             @else
                                 <div class="mt-2 flex items-center gap-2" style="font-size: 13px;">
-                                    <span style="font-weight: 600; color: var(--slate-600);">Nilai saat ini:</span>
+                                    <span style="font-weight: 600; color: var(--slate-600);">{{ __('Nilai saat ini:') }}</span>
                                     @if($setting->data_type === 'boolean')
                                         @if($setting->getCastedValue())
-                                            <x-bpjs.pill variant="green">Aktif</x-bpjs.pill>
+                                            <x-bpjs.pill variant="green">{{ __('Aktif') }}</x-bpjs.pill>
                                         @else
-                                            <x-bpjs.pill variant="slate">Nonaktif</x-bpjs.pill>
+                                            <x-bpjs.pill variant="slate">{{ __('Nonaktif') }}</x-bpjs.pill>
                                         @endif
                                     @elseif($setting->data_type === 'encrypted')
                                         @if($setting->value !== null && $setting->value !== '')
-                                            <x-bpjs.pill variant="green">Tersimpan</x-bpjs.pill>
+                                            <x-bpjs.pill variant="green">{{ __('Tersimpan') }}</x-bpjs.pill>
                                         @else
-                                            <x-bpjs.pill variant="slate">Belum diatur</x-bpjs.pill>
+                                            <x-bpjs.pill variant="slate">{{ __('Belum diatur') }}</x-bpjs.pill>
                                         @endif
                                     @else
                                         <span class="font-mono" style="color: var(--slate-900);">{{ $setting->value }}</span>
@@ -116,7 +116,7 @@
                             @if($setting->updated_at && $setting->updated_by_user_id)
                                 <p class="mt-2 flex items-center gap-1.5" style="font-size: 11.5px; color: var(--slate-400);">
                                     <x-icon name="clock" :size="13" />
-                                    Diperbarui {{ $setting->updated_at->diffForHumans() }}
+                                    {{ __('Diperbarui :time', ['time' => $setting->updated_at->diffForHumans()]) }}
                                 </p>
                             @endif
                         </div>
@@ -125,10 +125,10 @@
                         @if($editingId !== $setting->id)
                             @if($setting->is_editable)
                                 <x-bpjs.button variant="ghost" icon="settings" wire:click="startEdit({{ $setting->id }})">
-                                    Edit
+                                    {{ __('Edit') }}
                                 </x-bpjs.button>
                             @else
-                                <span class="italic" style="font-size: 11.5px; color: var(--slate-400);">Tidak dapat diedit</span>
+                                <span class="italic" style="font-size: 11.5px; color: var(--slate-400);">{{ __('Tidak dapat diedit') }}</span>
                             @endif
                         @endif
                     </div>
@@ -137,15 +137,15 @@
 
             @if($group === 'email')
                 <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--slate-100);">
-                    <h3 style="font-size: 13.5px; font-weight: 600; color: var(--slate-800);">Kirim Email Uji</h3>
+                    <h3 style="font-size: 13.5px; font-weight: 600; color: var(--slate-800);">{{ __('Kirim Email Uji') }}</h3>
                     <p style="font-size: 12px; color: var(--slate-500); margin-top: 2px;">
-                        Kirim email percobaan memakai konfigurasi tersimpan, untuk memverifikasi sebelum mengaktifkan notifikasi email.
+                        {{ __('Kirim email percobaan memakai konfigurasi tersimpan, untuk memverifikasi sebelum mengaktifkan notifikasi email.') }}
                     </p>
                     <div class="flex flex-wrap items-center gap-2.5" style="margin-top: 12px;">
-                        <input type="email" wire:model="testEmailAddress" placeholder="nama@bpjs-kesehatan.go.id"
+                        <input type="email" wire:model="testEmailAddress" placeholder="{{ __('nama@bpjs-kesehatan.go.id') }}"
                                class="input" style="max-width: 280px;" />
                         <x-bpjs.button variant="success" icon="arrowRight" wire:click="sendTestEmail" wire:loading.attr="disabled" wire:target="sendTestEmail">
-                            Kirim Email Uji
+                            {{ __('Kirim Email Uji') }}
                         </x-bpjs.button>
                     </div>
                 </div>
@@ -154,7 +154,7 @@
     @empty
         <x-bpjs.card>
             <div class="text-center" style="padding: 24px; font-size: 13.5px; color: var(--slate-500);">
-                Belum ada pengaturan yang tersedia.
+                {{ __('Belum ada pengaturan yang tersedia.') }}
             </div>
         </x-bpjs.card>
     @endforelse

@@ -76,7 +76,7 @@ class SettingsManager extends Component
 
         // Write-only secret: a blank encrypted field keeps the stored value.
         if ($setting->data_type === 'encrypted' && ($this->editValue === null || $this->editValue === '')) {
-            $this->successMessage = "Pengaturan '{$setting->label}' tidak diubah.";
+            $this->successMessage = __("Pengaturan ':label' tidak diubah.", ['label' => $setting->label]);
             $this->editingId = null;
             $this->editValue = null;
 
@@ -85,7 +85,7 @@ class SettingsManager extends Component
 
         try {
             $service->set($setting->key, $this->editValue, auth()->id());
-            $this->successMessage = "Pengaturan '{$setting->label}' berhasil diperbarui.";
+            $this->successMessage = __("Pengaturan ':label' berhasil diperbarui.", ['label' => $setting->label]);
             $this->editingId = null;
             $this->editValue = null;
         } catch (\RuntimeException $e) {
@@ -131,7 +131,7 @@ class SettingsManager extends Component
         $address = trim($this->testEmailAddress);
         if ($address === '' || ! filter_var($address, FILTER_VALIDATE_EMAIL)) {
             $this->successMessage = null;
-            $this->errorMessage = 'Alamat email tujuan tidak valid.';
+            $this->errorMessage = __('Alamat email tujuan tidak valid.');
 
             return;
         }
@@ -145,10 +145,10 @@ class SettingsManager extends Component
                 },
             );
             $this->errorMessage = null;
-            $this->successMessage = "Email uji berhasil dikirim ke {$address}.";
+            $this->successMessage = __('Email uji berhasil dikirim ke :address.', ['address' => $address]);
         } catch (\Throwable $e) {
             $this->successMessage = null;
-            $this->errorMessage = 'Gagal mengirim email uji: '.$e->getMessage();
+            $this->errorMessage = __('Gagal mengirim email uji:').' '.$e->getMessage();
         }
     }
 
@@ -168,6 +168,6 @@ class SettingsManager extends Component
     {
         return view('livewire.admin.settings-manager', [
             'groupedSettings' => $this->getGroupedSettings($service),
-        ])->layout('layouts.app', ['title' => 'Pengaturan', 'subtitle' => 'Konfigurasi sistem reservasi']);
+        ])->layout('layouts.app', ['title' => __('Pengaturan'), 'subtitle' => __('Konfigurasi sistem reservasi')]);
     }
 }
