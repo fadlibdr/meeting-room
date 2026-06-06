@@ -10,6 +10,7 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BookingAttachmentController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\LocaleController;
 use App\Livewire\Admin\SettingsManager;
 use App\Livewire\Admin\UtilizationDashboard;
 use App\Livewire\Approval\ApprovalInbox;
@@ -22,6 +23,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 })->name('welcome');
+
+// Stage 3.1 — UI language switch (guests via session, users persisted to profile).
+Route::post('locale/{locale}', [LocaleController::class, 'update'])->name('locale.update');
 
 Route::middleware(['auth', 'user.active'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');

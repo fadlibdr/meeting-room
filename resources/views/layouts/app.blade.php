@@ -36,31 +36,31 @@
                 </div>
 
                 <nav class="nav">
-                    <div class="nav__label">Menu</div>
+                    <div class="nav__label">{{ __('nav.menu') }}</div>
 
                     <a href="{{ route('dashboard') }}" wire:navigate
                        class="nav__item @if(request()->routeIs('dashboard')) active @endif">
-                        <x-icon name="dashboard" :size="19" /> Dashboard
+                        <x-icon name="dashboard" :size="19" /> {{ __('nav.dashboard') }}
                     </a>
 
                     @hasPermission('bookings.view')
                         <a href="{{ route('calendar.index') }}" wire:navigate
                            class="nav__item @if(request()->routeIs('calendar.*') || request()->routeIs('bookings.new')) active @endif">
-                            <x-icon name="calendar" :size="19" /> Kalender
+                            <x-icon name="calendar" :size="19" /> {{ __('nav.calendar') }}
                         </a>
                     @endhasPermission
 
                     @if($u->hasPermission('bookings.view') || $u->hasPermission('bookings.view-all'))
                         <a href="{{ route('bookings.index') }}" wire:navigate
                            class="nav__item @if(request()->routeIs('bookings.*') && !request()->routeIs('bookings.new')) active @endif">
-                            <x-icon name="doc" :size="19" /> Reservasi
+                            <x-icon name="doc" :size="19" /> {{ __('nav.reservations') }}
                         </a>
                     @endif
 
                     @hasPermission('bookings.approve')
                         <a href="{{ route('approvals.index') }}" wire:navigate
                            class="nav__item @if(request()->routeIs('approvals.*')) active @endif">
-                            <x-icon name="inbox" :size="19" /> Persetujuan
+                            <x-icon name="inbox" :size="19" /> {{ __('nav.approvals') }}
                             @if($pendingCount > 0)<span class="count">{{ $pendingCount }}</span>@endif
                         </a>
                     @endhasPermission
@@ -68,63 +68,63 @@
                     @hasPermission('rooms.view')
                         <a href="{{ route('rooms.index') }}" wire:navigate
                            class="nav__item @if(request()->routeIs('rooms.*') && !request()->routeIs('admin.*')) active @endif">
-                            <x-icon name="building" :size="19" /> Ruangan
+                            <x-icon name="building" :size="19" /> {{ __('nav.rooms') }}
                         </a>
                     @endhasPermission
 
                     @if($u->hasPermission('reports.view') || $u->hasPermission('rooms.create') || $u->hasPermission('rooms.update') || $u->hasPermission('rooms.manage-blocks') || $u->hasPermission('users.view') || $u->hasPermission('activity-logs.view') || $u->hasPermission('app-settings.view'))
-                        <div class="nav__label">Administrasi</div>
+                        <div class="nav__label">{{ __('nav.administration') }}</div>
 
                         @hasPermission('reports.view')
                             <a href="{{ route('admin.reports.utilization') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.reports.*')) active @endif">
-                                <x-icon name="dashboard" :size="19" /> Laporan Utilisasi
+                                <x-icon name="dashboard" :size="19" /> {{ __('nav.utilization_report') }}
                             </a>
                         @endhasPermission
 
                         @hasPermission('rooms.create')
                             <a href="{{ route('admin.rooms.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.rooms.*')) active @endif">
-                                <x-icon name="building" :size="19" /> Kelola Ruangan
+                                <x-icon name="building" :size="19" /> {{ __('nav.manage_rooms') }}
                             </a>
                         @endhasPermission
 
                         @hasPermission('rooms.update')
                             <a href="{{ route('admin.facilities.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.facilities.*')) active @endif">
-                                <x-icon name="panelLeft" :size="19" /> Fasilitas
+                                <x-icon name="panelLeft" :size="19" /> {{ __('nav.facilities') }}
                             </a>
                         @endhasPermission
 
                         @hasPermission('rooms.manage-blocks')
                             <a href="{{ route('admin.room-blocks.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.room-blocks.*')) active @endif">
-                                <x-icon name="clock" :size="19" /> Blokir Ruangan
+                                <x-icon name="clock" :size="19" /> {{ __('nav.block_rooms') }}
                             </a>
                         @endhasPermission
 
                         @hasPermission('users.view')
                             <a href="{{ route('admin.users.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.users.*')) active @endif">
-                                <x-icon name="users" :size="19" /> Pengguna
+                                <x-icon name="users" :size="19" /> {{ __('nav.users') }}
                             </a>
                             <a href="{{ route('admin.units.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.units.*')) active @endif">
-                                <x-icon name="building" :size="19" /> Unit
+                                <x-icon name="building" :size="19" /> {{ __('nav.units') }}
                             </a>
                         @endhasPermission
 
                         @hasPermission('activity-logs.view')
                             <a href="{{ route('admin.logs.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.logs.*')) active @endif">
-                                <x-icon name="doc" :size="19" /> Log Aktivitas
+                                <x-icon name="doc" :size="19" /> {{ __('nav.activity_log') }}
                             </a>
                         @endhasPermission
 
                         @hasPermission('app-settings.view')
                             <a href="{{ route('admin.settings.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.settings.*')) active @endif">
-                                <x-icon name="settings" :size="19" /> Pengaturan
+                                <x-icon name="settings" :size="19" /> {{ __('nav.settings') }}
                             </a>
                         @endhasPermission
                     @endif
@@ -140,7 +140,7 @@
                         </div>
                         <form method="POST" action="{{ route('logout') }}" class="ml-auto flex">
                             @csrf
-                            <button type="submit" class="lo" title="Keluar"><x-icon name="logout" :size="17" /></button>
+                            <button type="submit" class="lo" title="{{ __('common.logout') }}"><x-icon name="logout" :size="17" /></button>
                         </form>
                     </div>
                 </div>
@@ -149,7 +149,7 @@
             {{-- ============ MAIN COLUMN ============ --}}
             <div class="main">
                 <header class="topbar">
-                    <button class="iconbtn" @click="nav = !nav" aria-label="Tampilkan / sembunyikan menu" style="margin-right: 4px;">
+                    <button class="iconbtn" @click="nav = !nav" aria-label="{{ __('common.toggle_menu') }}" style="margin-right: 4px;">
                         <x-icon name="menu" :size="20" />
                     </button>
 
@@ -168,7 +168,7 @@
 
                     <x-dropdown align="right" width="56">
                         <x-slot name="trigger">
-                            <button class="profilebtn" aria-label="Profil pengguna">
+                            <button class="profilebtn" aria-label="{{ __('common.user_profile') }}">
                                 <span class="ava">{{ $initials ?: '—' }}</span>
                                 <x-icon name="chevronDown" :size="15" />
                             </button>
@@ -179,17 +179,32 @@
                                 @if($primaryRole)<div class="text-xs text-slate-500 truncate">{{ $primaryRole }}</div>@endif
                             </div>
                             <x-dropdown-link :href="route('profile')" wire:navigate>
-                                {{ __('Profil Saya') }}
+                                {{ __('common.my_profile') }}
                             </x-dropdown-link>
                             @hasPermission('app-settings.view')
                                 <x-dropdown-link :href="route('admin.settings.index')" wire:navigate>
-                                    {{ __('Pengaturan') }}
+                                    {{ __('common.settings') }}
                                 </x-dropdown-link>
                             @endhasPermission
-                            <form method="POST" action="{{ route('logout') }}">
+                            <div class="px-4 py-2 border-t border-slate-100">
+                                <div class="text-xs text-slate-400 mb-1.5">{{ __('common.language') }}</div>
+                                <div class="flex gap-1.5">
+                                    @foreach(config('app.available_locales', []) as $code => $label)
+                                        <form method="POST" action="{{ route('locale.update', $code) }}">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="pill {{ app()->getLocale() === $code ? 'pill--blue' : '' }}"
+                                                    style="font-size: 11px; cursor: pointer;"
+                                                    @if(app()->getLocale() === $code) aria-current="true" @endif
+                                                    title="{{ $label }}">{{ strtoupper($code) }}</button>
+                                        </form>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <form method="POST" action="{{ route('logout') }}" class="border-t border-slate-100">
                                 @csrf
                                 <button type="submit" class="w-full text-start">
-                                    <x-dropdown-link class="text-red-600">{{ __('Keluar') }}</x-dropdown-link>
+                                    <x-dropdown-link class="text-red-600">{{ __('common.logout') }}</x-dropdown-link>
                                 </button>
                             </form>
                         </x-slot>

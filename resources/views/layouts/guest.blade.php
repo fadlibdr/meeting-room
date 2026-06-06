@@ -55,6 +55,17 @@
             <div class="login-form flex flex-col justify-center items-center bg-white px-6 py-12"
                  style="flex: 0 0 480px; max-width: 480px;">
                 <div class="w-full" style="max-width: 360px;">
+                    <div class="flex justify-end gap-1.5 mb-4">
+                        @foreach(config('app.available_locales', []) as $code => $label)
+                            <form method="POST" action="{{ route('locale.update', $code) }}">
+                                @csrf
+                                <button type="submit"
+                                        class="pill {{ app()->getLocale() === $code ? 'pill--blue' : '' }}"
+                                        style="font-size: 11px; cursor: pointer;"
+                                        title="{{ $label }}">{{ strtoupper($code) }}</button>
+                            </form>
+                        @endforeach
+                    </div>
                     <div class="mb-8 text-center" style="display: none;" x-data x-init="if (window.innerWidth <= 820) $el.style.display = 'block'">
                         <img src="{{ asset('images/bpjs/bpjs-kesehatan-logo.png') }}" alt="BPJS Kesehatan" class="inline-block" style="height: 30px;">
                     </div>

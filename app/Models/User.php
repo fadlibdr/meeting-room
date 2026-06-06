@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $approver_user_id
  * @property bool $is_active
  * @property string|null $timezone
+ * @property string|null $locale
  * @property bool $email_notifications
  * @property Carbon|null $last_login_at
  * @property int $failed_login_attempts
@@ -52,6 +53,7 @@ class User extends Authenticatable
         'approver_user_id',
         'is_active',
         'timezone',
+        'locale',
         'email_notifications',
     ];
 
