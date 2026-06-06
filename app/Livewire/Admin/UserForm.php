@@ -7,6 +7,7 @@ namespace App\Livewire\Admin;
 use App\Models\Role;
 use App\Models\Unit;
 use App\Models\User;
+use App\Support\EmailDomainPolicy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -68,7 +69,7 @@ class UserForm extends Component
             'email' => [
                 'required',
                 'email',
-                'ends_with:@bpjs-kesehatan.go.id',
+                ...app(EmailDomainPolicy::class)->rules(),
                 'unique:users,email'.($userId ? ','.$userId : ''),
             ],
             'unitId' => ['required', 'integer', 'exists:units,id'],
@@ -89,7 +90,7 @@ class UserForm extends Component
             'name.min' => __('Nama minimal 3 karakter.'),
             'email.required' => __('Email wajib diisi.'),
             'email.email' => __('Format email tidak valid.'),
-            'email.ends_with' => __('Email harus berdomain @bpjs-kesehatan.go.id.'),
+            'email.ends_with' => app(EmailDomainPolicy::class)->message(),
             'email.unique' => __('Email sudah terdaftar.'),
             'unitId.required' => __('Unit wajib dipilih.'),
             'unitId.exists' => __('Unit tidak ditemukan.'),
