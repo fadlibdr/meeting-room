@@ -12,40 +12,25 @@ use App\Models\Booking;
  * Writing to an injected handle (rather than returning a string) keeps the
  * export memory-safe when driven by a query cursor over large result sets,
  * and keeps the formatting independently unit-testable (write to php://temp,
- * read it back). Timestamps render in the supplied display timezone.
+ * read it back). Column layout is owned by BookingExportRowMapper so CSV and
+ * XLSX stay in lockstep. Timestamps render in the supplied display timezone.
  */
 final class BookingCsvExporter
 {
+    public function __construct(
+        private readonly BookingExportRowMapper $mapper = new BookingExportRowMapper,
+    ) {}
+
     /**
      * @param  resource  $handle
      * @param  iterable<Booking>  $bookings
      */
     public function writeCsv($handle, iterable $bookings, string $timezone): void
     {
-        fputcsv($handle, [
-            'Kode Booking',
-            'Ruang',
-            'Pemohon',
-            'Unit',
-            'Subjek',
-            'Jumlah Peserta',
-            'Mulai',
-            'Selesai',
-            'Status',
-        ]);
+        fputcsv($handle, $this->mapper->header());
 
         foreach ($bookings as $booking) {
-            fputcsv($handle, [
-                $booking->booking_code,
-                data_get($booking, 'room.name', ''),
-                data_get($booking, 'requester.name', ''),
-                data_get($booking, 'requesterUnit.name', ''),
-                $booking->subject,
-                $booking->attendee_count,
-                $booking->starts_at->copy()->setTimezone($timezone)->format('Y-m-d H:i'),
-                $booking->ends_at->copy()->setTimezone($timezone)->format('Y-m-d H:i'),
-                $booking->status->label(),
-            ]);
+            fputcsv($handle, $this->mapper->row($booking, $timezone));
         }
     }
 }

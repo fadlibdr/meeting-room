@@ -5,17 +5,23 @@ declare(strict_types=1);
 namespace App\Livewire\Booking;
 
 use App\Enums\BookingStatus;
+use App\Enums\ExportFormat;
+use App\Enums\ExportStatus;
+use App\Jobs\GenerateBookingExportJob;
 use App\Models\Booking;
+use App\Models\Export;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\BookingCsvExporter;
+use App\Services\BookingExportQuery;
+use App\Services\BookingXlsxExporter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -32,6 +38,9 @@ class BookingList extends Component
     use WithPagination;
 
     public const DISPLAY_TIMEZONE_FALLBACK = 'Asia/Jakarta';
+
+    /** Exports above this row count are generated off-cycle via a queued job. */
+    public const SYNC_EXPORT_LIMIT = 1000;
 
     #[Url(as: 'status', except: '')]
     public string $statusFilter = '';
@@ -76,49 +85,95 @@ class BookingList extends Component
         $this->resetPage();
     }
 
-    public function export(ActivityLogger $logger, BookingCsvExporter $exporter): StreamedResponse
-    {
+    public function export(
+        string $format,
+        ActivityLogger $logger,
+        BookingCsvExporter $csv,
+        BookingXlsxExporter $xlsx,
+    ): StreamedResponse|BinaryFileResponse|null {
         $this->authorize('viewAny', Booking::class);
+
+        $exportFormat = ExportFormat::tryFrom($format) ?? ExportFormat::Csv;
 
         /** @var User $user */
         $user = auth()->user();
         $canViewAll = $user->hasPermission('bookings.view-all');
         $timezone = $this->resolveTimezone();
+        $filters = $this->exportFilters();
 
         $rowCount = $this->baseQuery($user, $canViewAll)->count();
 
         $logger->log('bookings', 'export', null, [
-            'description' => sprintf('%s mengekspor %d data booking ke CSV.', $user->name, $rowCount),
+            'description' => sprintf('%s mengekspor %d data booking ke %s.', $user->name, $rowCount, strtoupper($exportFormat->value)),
             'context' => [
-                'format' => 'csv',
+                'format' => $exportFormat->value,
                 'row_count' => $rowCount,
                 'scope' => $canViewAll ? 'all' : 'own',
-                'filters' => array_filter([
-                    'status' => $this->statusFilter,
-                    'search' => $this->search,
-                    'date_from' => $this->dateFrom,
-                    'date_to' => $this->dateTo,
-                ], static fn (string $value): bool => $value !== ''),
+                'mode' => $rowCount > $this->syncRowLimit() ? 'queued' : 'sync',
+                'filters' => array_filter($filters, static fn (string $value): bool => $value !== ''),
             ],
         ]);
 
-        $filename = 'bookings-export-'.now()->format('Ymd-His').'.csv';
-        $bookings = $this->baseQuery($user, $canViewAll)
-            ->with('requesterUnit')
-            ->cursor();
+        // Large exports run off the request cycle; the user is notified when ready.
+        if ($rowCount > $this->syncRowLimit()) {
+            $export = Export::create([
+                'user_id' => $user->id,
+                'type' => 'bookings',
+                'format' => $exportFormat,
+                'status' => ExportStatus::Pending,
+                'scope' => $canViewAll ? 'all' : 'own',
+                'filters' => $filters,
+            ]);
+            GenerateBookingExportJob::dispatch($export);
+
+            session()->flash('status', sprintf(
+                'Ekspor %d data sedang diproses. Anda akan menerima notifikasi saat berkas siap diunduh.',
+                $rowCount,
+            ));
+
+            return null;
+        }
+
+        $bookings = $this->baseQuery($user, $canViewAll)->cursor();
+        $filename = 'bookings-export-'.now()->format('Ymd-His').'.'.$exportFormat->extension();
+
+        if ($exportFormat === ExportFormat::Xlsx) {
+            $tmp = tempnam(sys_get_temp_dir(), 'export');
+            if ($tmp === false) {
+                abort(500, 'Tidak dapat membuat berkas sementara.');
+            }
+            $xlsx->writeToFile($tmp, $bookings, $timezone);
+
+            return response()
+                ->download($tmp, $filename, ['Content-Type' => $exportFormat->mimeType()])
+                ->deleteFileAfterSend(true);
+        }
 
         return response()->streamDownload(
-            function () use ($exporter, $bookings, $timezone): void {
+            function () use ($csv, $bookings, $timezone): void {
                 $handle = fopen('php://output', 'w');
                 if ($handle === false) {
                     return;
                 }
-                $exporter->writeCsv($handle, $bookings, $timezone);
+                $csv->writeCsv($handle, $bookings, $timezone);
                 fclose($handle);
             },
             $filename,
-            ['Content-Type' => 'text/csv; charset=UTF-8'],
+            ['Content-Type' => $exportFormat->mimeType()],
         );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function exportFilters(): array
+    {
+        return [
+            'status' => $this->statusFilter,
+            'search' => $this->search,
+            'date_from' => $this->dateFrom,
+            'date_to' => $this->dateTo,
+        ];
     }
 
     public function render(): View
@@ -144,48 +199,15 @@ class BookingList extends Component
     }
 
     /**
-     * Scope + filter logic shared by the list (render) and the CSV export.
-     * Returns the query builder pre-pagination.
+     * Scope + filter logic shared by the list (render) and the export. Delegates
+     * to BookingExportQuery so the on-screen list and the (sync/queued) export
+     * always apply identical scope and filters.
      *
      * @return Builder<Booking>
      */
     private function baseQuery(User $user, bool $canViewAll): Builder
     {
-        $query = Booking::query()
-            ->with(['room', 'requester'])
-            ->orderByDesc('starts_at');
-
-        if (! $canViewAll) {
-            $query->where('requester_user_id', $user->id);
-        }
-
-        if ($this->statusFilter !== '') {
-            $query->where('status', $this->statusFilter);
-        }
-
-        if ($this->search !== '') {
-            $term = '%'.$this->search.'%';
-            $query->where(function ($q) use ($term): void {
-                $q->where('subject', 'like', $term)
-                    ->orWhere('booking_code', 'like', $term);
-            });
-        }
-
-        if ($this->dateFrom !== '') {
-            $from = $this->tryParse($this->dateFrom);
-            if ($from !== null) {
-                $query->where('starts_at', '>=', $from->startOfDay());
-            }
-        }
-
-        if ($this->dateTo !== '') {
-            $to = $this->tryParse($this->dateTo);
-            if ($to !== null) {
-                $query->where('starts_at', '<=', $to->endOfDay());
-            }
-        }
-
-        return $query;
+        return app(BookingExportQuery::class)->build($user, $canViewAll, $this->exportFilters());
     }
 
     public function displayDateTime(Booking $booking): string
@@ -198,13 +220,9 @@ class BookingList extends Component
             .$start->format('H:i').'–'.$end->format('H:i');
     }
 
-    private function tryParse(string $value): ?Carbon
+    private function syncRowLimit(): int
     {
-        try {
-            return Carbon::parse($value);
-        } catch (\Throwable) {
-            return null;
-        }
+        return (int) config('exports.sync_row_limit', self::SYNC_EXPORT_LIMIT);
     }
 
     private function resolveTimezone(): string

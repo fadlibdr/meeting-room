@@ -1,4 +1,8 @@
 <div>
+    @if(session('status'))
+        <p class="bpjs-fade" style="margin-bottom: 12px; border: 1px solid var(--bpjs-blue-200); background: var(--bpjs-blue-50); color: var(--bpjs-blue-700); border-radius: 10px; padding: 10px 12px; font-size: 13px;">{{ session('status') }}</p>
+    @endif
+
     {{-- Filter bar --}}
     <x-bpjs.card :pad="false" class="bpjs-rise" style="padding: 16px; margin-bottom: 16px;">
         <div class="flex gap-3 flex-wrap items-end">
@@ -23,8 +27,10 @@
                 <input wire:model.live.debounce.300ms="search" type="text" id="search" placeholder="kata kunci" class="input" style="min-width: 220px;" />
             </x-bpjs.field>
 
-            <div class="flex gap-2" style="margin-left: auto;">
-                <x-bpjs.button variant="ghost" icon="download" wire:click="export">Ekspor</x-bpjs.button>
+            <div class="flex gap-2 items-center" style="margin-left: auto;">
+                <span class="text-sm text-slate-400">Ekspor:</span>
+                <x-bpjs.button variant="ghost" icon="download" wire:click="export('csv')" wire:loading.attr="disabled">CSV</x-bpjs.button>
+                <x-bpjs.button variant="ghost" icon="download" wire:click="export('xlsx')" wire:loading.attr="disabled">Excel</x-bpjs.button>
                 @if($canCreate)
                     <x-bpjs.button :href="route('bookings.new')" icon="plus" wire:navigate>Tambah</x-bpjs.button>
                 @endif
