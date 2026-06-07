@@ -15,6 +15,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LocaleController;
 use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
+use App\Livewire\Admin\ResourceManager;
 use App\Livewire\Admin\SettingsManager;
 use App\Livewire\Admin\UtilizationDashboard;
 use App\Livewire\Admin\WebhookSubscriptionManager;
@@ -142,6 +143,12 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::get('rooms/{roomId}/edit', [RoomController::class, 'edit'])
             ->middleware('permission:rooms.update')
             ->name('rooms.edit');
+
+        // Stage 3 E2b — non-room bookable resources (equipment/vehicles/desks),
+        // reuse rooms.* permissions; rooms keep their dedicated admin above.
+        Route::get('resources', ResourceManager::class)
+            ->middleware('permission:rooms.update')
+            ->name('resources.index');
 
         // Sprint 2 — Facilities (reuse rooms.* permissions — Dec-19)
         Route::get('facilities', [FacilityController::class, 'index'])

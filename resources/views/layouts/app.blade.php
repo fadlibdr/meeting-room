@@ -106,6 +106,10 @@
                         @endhasPermission
 
                         @hasPermission('rooms.update')
+                            <a href="{{ route('admin.resources.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('admin.resources.*')) active @endif">
+                                <x-icon name="panelLeft" :size="19" /> {{ __('nav.resources') }}
+                            </a>
                             <a href="{{ route('admin.facilities.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.facilities.*')) active @endif">
                                 <x-icon name="panelLeft" :size="19" /> {{ __('nav.facilities') }}
