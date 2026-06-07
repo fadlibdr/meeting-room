@@ -159,4 +159,19 @@ class User extends Authenticatable
         // TODO Sprint 1: replace with PermissionCacheService::userHas($this, $permission)
         return app(PermissionCacheService::class)->userHas($this, $permission);
     }
+
+    /**
+     * Stage 4 (4e) — a platform operator: super-admin of the default (platform)
+     * tenant. Only they manage tenants in the provider console.
+     */
+    public function isPlatformAdmin(): bool
+    {
+        $defaultId = Tenant::query()->where('is_default', true)->value('id');
+
+        if ($defaultId === null || (int) $this->tenant_id !== (int) $defaultId) {
+            return false;
+        }
+
+        return $this->roles()->where('code', 'super_admin')->exists();
+    }
 }
