@@ -3,6 +3,7 @@
 use App\Http\Middleware\CorrelationId;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -30,6 +31,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SetLocale::class,
         ]);
+
+        // Stage 4a P2b: resolve the tenant from the host before anything else (web + api).
+        $middleware->web(prepend: [ResolveTenant::class]);
+        $middleware->api(prepend: [ResolveTenant::class]);
 
         // Cross-cutting 1.4: request/correlation id + actor in log context (web + api).
         $middleware->web(append: [CorrelationId::class]);
