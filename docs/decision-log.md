@@ -195,6 +195,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Adds `app/Http/Middleware/CorrelationId.php` + group registration + a `json` logging channel. No schema change, no new dependency.
 **Status:** Accepted (7 Jun 2026, `feat/crosscut-observability`).
 
+### ADR-029 · Stage 4a multi-tenancy — row-level isolation, spike-first (design only)
+**Decision:** Productization is GO. 4a (multi-tenancy) is scoped as its own project; the design is in `docs/stage4a-multi-tenancy-design.md`. **Isolation model: row-level (`tenant_id` + `BelongsToTenant` global scope + subdomain/custom-domain resolution), with DB-per-tenant offered as a per-customer option** for data-residency-bound clients. Leakage controls are a hard gate: default-deny global scope on every tenant model, a 2-tenant cross-tenant test harness over every list/show/export/API path, re-audit of every raw query / `withoutGlobalScopes` / conflict-engine / webhook / report / calendar-job, and the full suite re-run under tenancy. Rollout is phased P0–P4, starting with a **timeboxed spike (P0)** on one vertical that must prove the harness catches a deliberate leak before any schema work (P1).
+**Context:** Highest-blast-radius change in the project (≈25 of 29 tables get `tenant_id` + composite unique keys; backfill into a "BPJS" tenant). The brief mandates design-first, no one-pass retrofit. **No tenancy code is written in this ADR** — it gates the spike. 4b/4c/4e depend on 4a; 4d uses a billing provider (Stripe/Midtrans); 4f already shipped (ADR-027).
+**Consequence:** Adds `docs/stage4a-multi-tenancy-design.md`. Next unit of work on approval: P0 spike.
+**Status:** Proposed — awaiting approval of §1 + §4 before P0 (7 Jun 2026).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*
