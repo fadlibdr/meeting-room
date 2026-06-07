@@ -39,6 +39,40 @@ jobs:
       - name: Run PHPStan (static analysis)
         run: ./vendor/bin/phpstan analyse --no-progress
 
+  sca:
+    name: Dependency audit (SCA)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, curl, zip, bcmath, intl, pdo_mysql
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Composer audit (PHP advisories)
+        run: composer audit --no-interaction
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: npm audit (high+ advisories)
+        run: npm audit --audit-level=high
+
   test:
     name: PHPUnit
     runs-on: ubuntu-latest
