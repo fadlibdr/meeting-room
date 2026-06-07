@@ -12,6 +12,7 @@ use App\Notifications\ExportReadyNotification;
 use App\Services\BookingCsvExporter;
 use App\Services\BookingExportQuery;
 use App\Services\BookingXlsxExporter;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -46,6 +47,16 @@ class GenerateBookingExportJob implements ShouldQueue
     ) {}
 
     public function handle(
+        BookingExportQuery $queryBuilder,
+        BookingXlsxExporter $xlsx,
+        BookingCsvExporter $csv,
+        TenantContext $tenant,
+    ): void {
+        // Run within the export's tenant so the rebuilt booking query is scoped.
+        $tenant->runFor((int) $this->export->tenant_id, fn () => $this->process($queryBuilder, $xlsx, $csv));
+    }
+
+    private function process(
         BookingExportQuery $queryBuilder,
         BookingXlsxExporter $xlsx,
         BookingCsvExporter $csv,

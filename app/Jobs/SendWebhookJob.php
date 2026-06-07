@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Models\WebhookDelivery;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -37,6 +38,11 @@ class SendWebhookJob implements ShouldQueue
     ) {}
 
     public function handle(): void
+    {
+        app(TenantContext::class)->runFor((int) $this->delivery->tenant_id, fn () => $this->deliver());
+    }
+
+    private function deliver(): void
     {
         $delivery = $this->delivery->fresh('subscription');
         if ($delivery === null || $delivery->subscription === null) {
