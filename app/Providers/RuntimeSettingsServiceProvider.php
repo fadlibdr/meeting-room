@@ -53,6 +53,14 @@ class RuntimeSettingsServiceProvider extends ServiceProvider
                 return;
             }
 
+            // Platform flag FIRST, read UNSCOPED — it gates tenancy itself, so it
+            // must not be tenant-scoped. Stored on the platform (default) tenant.
+            $tenancyFlag = AppSetting::query()->withoutGlobalScope('tenant')
+                ->where('key', 'system.tenancy_enabled')->first();
+            if ($tenancyFlag !== null) {
+                config(['tenancy.enabled' => (bool) $tenancyFlag->getCastedValue()]);
+            }
+
             /** @var Collection<string, AppSetting> $settings */
             $settings = AppSetting::query()
                 ->whereIn('group', ['sso', 'calendar', 'system'])
