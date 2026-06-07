@@ -68,7 +68,9 @@ class QueueTenantContextTest extends TestCase
             return Booking::factory()->approved()->create(['requester_user_id' => $user->id])->id;
         });
 
-        // Run the job with NO ambient context — it must set the booking's tenant itself.
+        // Run the job with NO ambient context (a real queue worker's clean slate)
+        // — it must resolve + set the booking's tenant itself.
+        $context->forget();
         (new SyncBookingToCalendarsJob($bookingId, CalendarSyncService::UPSERT))
             ->handle(app(CalendarSyncService::class), $context);
 
