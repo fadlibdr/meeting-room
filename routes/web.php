@@ -10,6 +10,7 @@ use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BookingAttachmentController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CalendarConnectController;
 use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\ExportController;
@@ -211,6 +212,11 @@ Route::middleware(['auth', 'user.active'])->group(function () {
 
     // Stage 3 F.2a — manage the personal calendar (.ics) subscription URL
     Route::get('calendar-subscription', CalendarSubscription::class)->name('calendar-subscription.index');
+
+    // Stage 3 F.2 (activation) — per-user OAuth connect flow for two-way sync
+    Route::get('calendar/connect/{provider}', [CalendarConnectController::class, 'redirect'])->name('calendar.connect');
+    Route::get('calendar/connect/{provider}/callback', [CalendarConnectController::class, 'callback'])->name('calendar.connect.callback');
+    Route::delete('calendar/connect/{provider}', [CalendarConnectController::class, 'disconnect'])->name('calendar.disconnect');
 });
 
 // Stage 3 F.2a — public, tokened .ics subscription feed (no session; token is the credential)
