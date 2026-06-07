@@ -20,7 +20,8 @@
         <title>{{ config('app.name', 'BPJS Kesehatan') }}</title>
 
         {{-- PWA --}}
-        <meta name="theme-color" content="#005490">
+        <meta name="theme-color" content="{{ $branding['color'] ?? '#005490' }}">
+        <style>:root{ --brand-color: {{ $branding['color'] ?? '#005490' }}; }</style>
         <link rel="manifest" href="/manifest.webmanifest">
         <link rel="apple-touch-icon" href="/images/pwa/icon-192.png">
         <meta name="apple-mobile-web-app-capable" content="yes">
@@ -40,7 +41,11 @@
             <aside class="sidebar">
                 <div class="sidebar__brand">
                     <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center">
-                        <img src="{{ asset('images/bpjs/bpjs-kesehatan-logo-white.png') }}" alt="BPJS Kesehatan">
+                        @if(!empty($branding['logo_url']))
+                            <img src="{{ $branding['logo_url'] }}" alt="{{ $branding['name'] ?? 'Logo' }}" style="max-height: 28px;">
+                        @else
+                            <img src="{{ asset('images/bpjs/bpjs-kesehatan-logo-white.png') }}" alt="{{ $branding['name'] ?? 'BPJS Kesehatan' }}">
+                        @endif
                     </a>
                 </div>
 
