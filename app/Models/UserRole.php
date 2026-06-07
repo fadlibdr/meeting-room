@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use App\Observers\UserRoleObserver;
 use App\Services\PermissionCacheService;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -23,6 +24,7 @@ use Illuminate\Support\Carbon;
 #[ObservedBy([UserRoleObserver::class])]
 class UserRole extends Model
 {
+    use BelongsToTenant;
     use HasFactory;
 
     protected $fillable = [

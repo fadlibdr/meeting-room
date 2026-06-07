@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use App\Observers\UserObserver;
 use App\Services\PermissionCacheService;
 use Database\Factories\UserFactory;
@@ -40,6 +41,8 @@ use Laravel\Sanctum\HasApiTokens;
 #[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
+    use BelongsToTenant;
+
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use App\Services\PermissionCacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,7 @@ use Illuminate\Support\Carbon;
  */
 class RolePermission extends Model
 {
+    use BelongsToTenant;
     use HasFactory;
 
     protected $fillable = ['role_id', 'permission_id'];
