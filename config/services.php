@@ -43,4 +43,11 @@ return [
         'tenant' => env('AZURE_TENANT_ID'),
     ],
 
+    // Stage 3 F.2c — Google (calendar connect flow).
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
 ];

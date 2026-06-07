@@ -171,6 +171,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Adds `calendar_connections` + `booking_calendar_events` (migrations), `config/calendar.php`, the provider contract + 2 drivers, `CalendarSyncService`/`CalendarSyncDispatcher`/`SyncBookingToCalendarsJob`, and three post-commit dispatch lines. No new Composer dependency. Phase F part 2b/2c (scaffold).
 **Status:** Accepted (7 Jun 2026, `feat/stage3-calendar-twoway`). Activation is config + connect-flow follow-up.
 
+### ADR-025b · Calendar two-way activation — per-user OAuth connect flow + token refresh
+**Decision:** Completes the F.2b/c delegated path. A `CalendarConnectController` adds per-user **connect / callback / disconnect** routes: clicking "Hubungkan" runs a Socialite OAuth (azure with `offline_access` + `Calendars.ReadWrite`; google with `calendar.events` + `access_type=offline&prompt=consent`) on a dedicated redirect URI, and the callback stores an encrypted `CalendarConnection` (access + refresh token + expiry). `CalendarSyncService` now **refreshes an expired token** via the provider token endpoint (using the stored refresh token) before each push. The "Langganan Kalender" page shows connect/disconnect buttons + status for every enabled provider. Routes 404 unless sync + that provider are enabled.
+**Context:** This is the activation layer over ADR-025's engine. Still mock-tested only (Socialite stubbed, token endpoint `Http::fake`d) — live validation needs a real Entra/GCP app, but the delegated path is now end-to-end: connect → store → refresh → write → update/delete.
+**Consequence:** Adds `CalendarConnectController` + three routes, `services.google` config, token-refresh in `CalendarSyncService`, connect/disconnect UI, `GOOGLE_REDIRECT_URI`. No schema change (uses the existing `calendar_connections`).
+**Status:** Accepted (7 Jun 2026, `feat/calendar-connect-flow`).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*
