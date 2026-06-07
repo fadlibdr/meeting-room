@@ -18,9 +18,12 @@ class AppSettingsSeederTest extends TestCase
     {
         $this->seed(AppSettingsSeeder::class);
 
-        // 5 core settings (booking x3 + notifications + system) + 2-key `users`
-        // policy group + the 8-key `email` transport group.
-        $this->assertSame(15, AppSetting::count());
+        // 15 base (booking x3 + notifications + system + users x2 + email x8)
+        // + Stage 3: system max-duration, sso x6, calendar x6 = 28.
+        $this->assertSame(28, AppSetting::count());
+        $this->assertNotNull(AppSetting::where('key', 'sso.enabled')->first());
+        $this->assertNotNull(AppSetting::where('key', 'calendar.sync_enabled')->first());
+        $this->assertSame('encrypted', AppSetting::where('key', 'sso.azure_client_secret')->value('data_type'));
         $this->assertNotNull(AppSetting::where('key', 'booking.default_buffer_minutes')->first());
         $this->assertNotNull(AppSetting::where('key', 'booking.draft_purge_after_days')->first());
         $this->assertNotNull(AppSetting::where('key', 'notifications.send_email_default')->first());
@@ -36,7 +39,7 @@ class AppSettingsSeederTest extends TestCase
         $this->seed(AppSettingsSeeder::class);
         $this->seed(AppSettingsSeeder::class);
 
-        $this->assertSame(15, AppSetting::count());
+        $this->assertSame(28, AppSetting::count());
     }
 
     public function test_reseeding_preserves_an_admin_edited_value(): void
