@@ -13,6 +13,8 @@ use App\Models\BookingStatusHistory;
 use App\Models\User;
 use App\Notifications\BookingCancelledNotification;
 use App\Policies\BookingPolicy;
+use App\Services\Calendar\CalendarSyncDispatcher;
+use App\Services\Calendar\CalendarSyncService;
 use App\Services\WebhookDispatcher;
 use DomainException;
 use Illuminate\Support\Carbon;
@@ -107,6 +109,7 @@ final class CancelBookingAction
         }
 
         app(WebhookDispatcher::class)->dispatch(WebhookEvent::BookingCancelled, $cancelled);
+        app(CalendarSyncDispatcher::class)->dispatch($cancelled, CalendarSyncService::DELETE);
 
         return $cancelled;
     }
