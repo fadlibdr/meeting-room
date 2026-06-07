@@ -177,6 +177,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Adds `CalendarConnectController` + three routes, `services.google` config, token-refresh in `CalendarSyncService`, connect/disconnect UI, `GOOGLE_REDIRECT_URI`. No schema change (uses the existing `calendar_connections`).
 **Status:** Accepted (7 Jun 2026, `feat/calendar-connect-flow`).
 
+### ADR-026 · Cross-cutting hardening 1.1 — baseline security headers (CSP Report-Only) + CI SCA
+**Decision:** A global `SecurityHeaders` middleware sets `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera/mic/geo/FLoC off), and HSTS (1y, only over HTTPS so local http is untouched). The CSP ships as **`Content-Security-Policy-Report-Only`**, NOT enforcing — a strict CSP breaks Livewire/Alpine/Vite (inline + eval), so we collect reports, tune, then promote. CI gains an **SCA job** (`composer audit` + `npm audit --audit-level=high`) alongside Pint/PHPStan/tests. Headers apply to web + API (registered via `$middleware->append`).
+**Context:** Part 1 of the cross-cutting brief. The referenced `crosscut-hardening.patch` was not provided, so this was built from the spec. Enforcing CSP, the pen-test (D-12), load-test run (D-8, `docs/loadtest.js` exists — needs staging), UAT/architecture sign-offs (D-4), and offsite backups (D-3) remain tracked-open ops items requiring infra/third-parties, not app code.
+**Consequence:** Adds `app/Http/Middleware/SecurityHeaders.php` + global registration + a CI `sca` job. No schema change, no new dependency.
+**Status:** Accepted (7 Jun 2026, `feat/crosscut-security`).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*
