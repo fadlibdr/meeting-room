@@ -32,4 +32,25 @@ class TenantContext
     {
         $this->tenantId = null;
     }
+
+    /**
+     * Run a callback within a specific tenant context (console/queue), restoring
+     * the previous context afterwards. Use when there is no host to resolve from.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $callback
+     * @return T
+     */
+    public function runFor(int $tenantId, callable $callback): mixed
+    {
+        $previous = $this->tenantId;
+        $this->tenantId = $tenantId;
+
+        try {
+            return $callback();
+        } finally {
+            $this->tenantId = $previous;
+        }
+    }
 }
