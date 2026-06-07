@@ -153,6 +153,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Migration `rename_bookings_room_id_to_resource_id`; OpenAPI fields updated; `room_id` retained as a deprecated input alias only.
 **Status:** Accepted (7 Jun 2026, `feat/stage3-resource-id-rename`). Phase E complete.
 
+### ADR-023 · SSO is Entra ID (Azure AD) OIDC via Socialite, feature-flagged with JIT provisioning
+**Decision:** Stage-3 F.1 adds **Microsoft Entra ID (Azure AD) OIDC** login using `laravel/socialite` + `socialiteproviders/microsoft-azure`. It is **off by default** (`config/sso.php` `enabled`, env `SSO_ENABLED`) — the redirect/callback routes 404 and the login page hides the SSO button until the Entra app credentials (`AZURE_TENANT_ID/CLIENT_ID/CLIENT_SECRET/REDIRECT_URI`) are set and the flag is on; email/password remains the fallback. On callback, **`SsoUserProvisioner`** matches by email and **JIT-provisions** unknown users (when `auto_provision`) with an unusable random local password (SSO-only accounts). Roles derive from the token's `groups` claim via `config('sso.group_role_map')` (Entra group object-id → role code): **when groups are present they are authoritative** (synced every login); otherwise a brand-new user gets `default_role` and existing users keep their roles (no clobber). Inactive users are refused.
+**Context:** Chosen over SAML/LDAP (smaller, OIDC fits M365). Socialite keeps the flow standard + mockable — tests stub `Socialite::driver('azure')->user()` so the whole path (provision, group-map, login, inactive-refusal, flag-off 404) is covered without live credentials. Group-as-authoritative-only-when-present avoids wiping locally-granted admin roles for users whose token omits groups.
+**Consequence:** Adds `laravel/socialite` + the Azure provider, `config/sso.php`, `config/services.php` azure block, `App\Services\Sso\SsoUserProvisioner`, `App\Http\Controllers\Auth\AzureSsoController`, two guest routes, a login button, and `.env.example` keys. No schema change. Activation is config-only (set AZURE_* + SSO_ENABLED in prod). Phase F part 1.
+**Status:** Accepted (7 Jun 2026, `feat/stage3-sso-oidc`).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*

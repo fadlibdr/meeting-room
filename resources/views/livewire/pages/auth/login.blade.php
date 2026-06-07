@@ -69,4 +69,17 @@ new #[Layout('layouts.guest')] class extends Component
             {{ __('Masuk') }}
         </x-bpjs.button>
     </form>
+
+    @if(config('sso.enabled'))
+        <div class="mt-6 flex items-center gap-3" aria-hidden="true">
+            <span class="h-px flex-1" style="background: var(--slate-200);"></span>
+            <span class="text-xs text-slate-400">{{ __('atau') }}</span>
+            <span class="h-px flex-1" style="background: var(--slate-200);"></span>
+        </div>
+        <a href="{{ route('sso.azure.redirect') }}"
+           class="mt-4 flex w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+            <svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+            {{ __('Masuk dengan Microsoft') }}
+        </a>
+    @endif
 </div>
