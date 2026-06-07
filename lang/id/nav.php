@@ -12,6 +12,7 @@ return [
     'administration' => 'Administrasi',
     'utilization_report' => 'Laporan Utilisasi',
     'manage_rooms' => 'Kelola Ruangan',
+    'tenants' => 'Penyewa',
     'resources' => 'Sumber Daya',
     'facilities' => 'Fasilitas',
     'block_rooms' => 'Blokir Ruangan',

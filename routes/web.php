@@ -18,6 +18,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LocaleController;
 use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
+use App\Livewire\Admin\ProviderTenantManager;
 use App\Livewire\Admin\ResourceManager;
 use App\Livewire\Admin\SettingsManager;
 use App\Livewire\Admin\UtilizationDashboard;
@@ -203,6 +204,12 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::get('webhooks', WebhookSubscriptionManager::class)
             ->middleware('permission:app-settings.update')
             ->name('webhooks.index');
+
+        // Stage 4 (4e) — provider console: platform tenant management (gated to
+        // platform admins inside the component).
+        Route::get('tenants', ProviderTenantManager::class)
+            ->middleware('platform.admin')
+            ->name('tenants.index');
 
         // App settings - runtime configuration editor
         Route::get('settings', SettingsManager::class)
