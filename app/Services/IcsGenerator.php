@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Booking;
-use App\Models\Room;
+use App\Models\Resource;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 
@@ -21,12 +21,52 @@ final class IcsGenerator
 {
     public function forBooking(Booking $booking): string
     {
-        $lines = [
+        return $this->wrap($this->vevent($booking));
+    }
+
+    /**
+     * A subscribable feed (RFC 5545) of many bookings — one VEVENT each.
+     *
+     * @param  iterable<Booking>  $bookings
+     */
+    public function forFeed(iterable $bookings, string $calendarName): string
+    {
+        $events = [];
+        foreach ($bookings as $booking) {
+            array_push($events, ...$this->vevent($booking));
+        }
+
+        return $this->wrap($events, $calendarName);
+    }
+
+    /**
+     * @param  list<string>  $eventLines
+     */
+    private function wrap(array $eventLines, ?string $calendarName = null): string
+    {
+        $head = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
             'PRODID:-//BPJS Kesehatan//Meeting Room//ID',
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
+        ];
+
+        if ($calendarName !== null) {
+            $head[] = 'X-WR-CALNAME:'.$this->escape($calendarName);
+        }
+
+        $lines = [...$head, ...$eventLines, 'END:VCALENDAR'];
+
+        return implode("\r\n", array_map(fn (string $line): string => $this->fold($line), $lines))."\r\n";
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function vevent(Booking $booking): array
+    {
+        return [
             'BEGIN:VEVENT',
             'UID:'.$this->uid($booking),
             'DTSTAMP:'.$this->utc(Carbon::now()),
@@ -37,10 +77,7 @@ final class IcsGenerator
             'LOCATION:'.$this->escape($this->location($booking)),
             'STATUS:CONFIRMED',
             'END:VEVENT',
-            'END:VCALENDAR',
         ];
-
-        return implode("\r\n", array_map(fn (string $line): string => $this->fold($line), $lines))."\r\n";
     }
 
     public function filename(Booking $booking): string
@@ -72,12 +109,12 @@ final class IcsGenerator
 
     private function location(Booking $booking): string
     {
-        $room = $booking->room;
-        if (! $room instanceof Room) {
+        $resource = $booking->resource;
+        if (! $resource instanceof Resource) {
             return '-';
         }
 
-        return trim($room->name.($room->location !== null && $room->location !== '' ? ' — '.$room->location : ''));
+        return trim($resource->name.($resource->location !== null && $resource->location !== '' ? ' — '.$resource->location : ''));
     }
 
     /**

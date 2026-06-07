@@ -159,6 +159,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Adds `laravel/socialite` + the Azure provider, `config/sso.php`, `config/services.php` azure block, `App\Services\Sso\SsoUserProvisioner`, `App\Http\Controllers\Auth\AzureSsoController`, two guest routes, a login button, and `.env.example` keys. No schema change. Activation is config-only (set AZURE_* + SSO_ENABLED in prod). Phase F part 1.
 **Status:** Accepted (7 Jun 2026, `feat/stage3-sso-oidc`).
 
+### ADR-024 · Calendar sync starts as a tokened, one-way .ics subscription feed
+**Decision:** Stage-3 F.2a ships calendar sync as an **outbound, one-way .ics subscription** (no OAuth, no provider credentials, works with Outlook/Google/Apple). `IcsGenerator` is extended with `forFeed(iterable<Booking>, name)` (multi-VEVENT, reusing the existing escape/fold/UTC logic; the single-booking output is byte-unchanged). Each user gets a rotatable secret `users.calendar_feed_token`; the public route **`/calendar/feed/{token}.ics`** (no session — the token *is* the credential) returns that user's active (submitted/approved) bookings from the past week onward. A `/calendar-subscription` page (linked in the user menu) shows the URL, copy button, per-app instructions, and a token-rotation action that invalidates the old URL. `IcsGenerator::location()` now reads the unscoped `resource` relation so non-room bookings carry a name (E-aware).
+**Context:** Chosen as the F.2 starting point over two-way Graph/Google (ADR pending) because it delivers calendar visibility immediately with zero credentials/admin-consent and minimal risk. Two-way M365/Google sync builds on this as separate, flag-gated work once an Entra/GCP app + consent model is provided.
+**Consequence:** Adds `users.calendar_feed_token` (migration), `CalendarFeedController`, `CalendarSubscription` Livewire page, two routes, a menu link. No new dependency. Phase F part 2a.
+**Status:** Accepted (7 Jun 2026, `feat/stage3-calendar-ics-feed`).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*
