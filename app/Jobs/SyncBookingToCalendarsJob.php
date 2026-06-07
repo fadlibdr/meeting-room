@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Models\Booking;
 use App\Services\Calendar\CalendarSyncService;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -27,11 +28,14 @@ class SyncBookingToCalendarsJob implements ShouldQueue
         public string $action,
     ) {}
 
-    public function handle(CalendarSyncService $service): void
+    public function handle(CalendarSyncService $service, TenantContext $tenant): void
     {
         $booking = Booking::find($this->bookingId);
-        if ($booking !== null) {
-            $service->sync($booking, $this->action);
+        if ($booking === null) {
+            return;
         }
+
+        // Run within the booking's tenant so connection/event lookups are scoped.
+        $tenant->runFor((int) $booking->tenant_id, fn () => $service->sync($booking, $this->action));
     }
 }

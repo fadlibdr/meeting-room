@@ -8,6 +8,7 @@ use App\Actions\ReleaseNoShowBookingAction;
 use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Services\SettingsService;
+use App\Support\Tenancy\RunsPerTenant;
 use Illuminate\Console\Command;
 
 /**
@@ -26,6 +27,8 @@ use Illuminate\Console\Command;
  */
 class AutoReleaseBookings extends Command
 {
+    use RunsPerTenant;
+
     protected $signature = 'bookings:auto-release';
 
     protected $description = 'Auto-release approved bookings whose attendees never checked in (ongoing no-shows).';
@@ -33,6 +36,15 @@ class AutoReleaseBookings extends Command
     private const DEFAULT_GRACE_MINUTES = 15;
 
     public function handle(SettingsService $settings, ReleaseNoShowBookingAction $action): int
+    {
+        $this->eachTenant(function () use ($settings, $action): void {
+            $this->releaseForCurrentTenant($settings, $action);
+        });
+
+        return self::SUCCESS;
+    }
+
+    private function releaseForCurrentTenant(SettingsService $settings, ReleaseNoShowBookingAction $action): void
     {
         $grace = (int) $settings->get('booking.auto_release_grace_minutes', self::DEFAULT_GRACE_MINUTES);
         $grace = max(0, $grace);
@@ -56,7 +68,5 @@ class AutoReleaseBookings extends Command
         }
 
         $this->info("Auto-released {$released} no-show booking(s).");
-
-        return self::SUCCESS;
     }
 }

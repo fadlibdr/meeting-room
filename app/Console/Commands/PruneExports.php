@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Export;
+use App\Support\Tenancy\RunsPerTenant;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
@@ -17,11 +18,20 @@ use Illuminate\Support\Facades\Storage;
  */
 class PruneExports extends Command
 {
+    use RunsPerTenant;
+
     protected $signature = 'exports:prune';
 
     protected $description = 'Delete expired export files and records.';
 
     public function handle(): int
+    {
+        $this->eachTenant(fn () => $this->pruneForCurrentTenant());
+
+        return self::SUCCESS;
+    }
+
+    private function pruneForCurrentTenant(): void
     {
         $disk = Storage::disk(Export::DISK);
         $pruned = 0;
@@ -35,7 +45,5 @@ class PruneExports extends Command
         });
 
         $this->info("Pruned {$pruned} expired export(s).");
-
-        return self::SUCCESS;
     }
 }
