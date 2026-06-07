@@ -25,14 +25,16 @@ class TenancySpikeTest extends TestCase
         app(TenantContext::class)->set($tenant->id);
     }
 
-    public function test_tenancy_off_is_a_complete_noop(): void
+    public function test_tenancy_off_falls_back_to_the_default_tenant(): void
     {
         config(['tenancy.enabled' => false]);
 
-        // No context, scope off → behaves like single-tenant; tenant_id stays null.
+        // No context + scope off → single-tenant: the row lands in the default
+        // tenant via the DB column default (P1), and nothing is scoped out.
         $resource = Resource::factory()->create();
 
-        $this->assertNull($resource->tenant_id);
+        $defaultId = Tenant::where('is_default', true)->value('id');
+        $this->assertSame($defaultId, $resource->fresh()->tenant_id);
         $this->assertSame(1, Resource::count());
     }
 
