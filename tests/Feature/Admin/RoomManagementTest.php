@@ -209,7 +209,7 @@ class RoomManagementTest extends TestCase
         $room = Room::factory()->create(['status' => RoomStatus::Active, 'is_active' => true]);
         $requester = $this->userWithRole('requester');
         $booking = Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $requester->id,
             'status' => BookingStatus::Approved,
             'starts_at' => now()->addDays(3),

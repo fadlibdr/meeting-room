@@ -18,12 +18,12 @@ class CreateRecurringBookingActionTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * @return array{room_id:int, subject:string, agenda:null, attendee_count:int, starts_at:string, ends_at:string}
+     * @return array{resource_id:int, subject:string, agenda:null, attendee_count:int, starts_at:string, ends_at:string}
      */
     private function input(Room $room): array
     {
         return [
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => 'Rapat Mingguan',
             'agenda' => null,
             'attendee_count' => 3,
@@ -72,7 +72,7 @@ class CreateRecurringBookingActionTest extends TestCase
 
         // Pre-existing approved booking overlapping the 2nd weekly occurrence.
         Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'status' => 'approved',
             'starts_at' => '2026-06-15 10:00:00',
             'ends_at' => '2026-06-15 11:00:00',

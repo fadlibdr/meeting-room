@@ -166,7 +166,7 @@ class BookingCalendar extends Component
 
         return Booking::query()
             ->with(['room:id,name', 'requester:id,name'])
-            ->whereIn('room_id', $roomIds)
+            ->whereIn('resource_id', $roomIds)
             ->whereIn('status', [BookingStatus::Submitted->value, BookingStatus::Approved->value])
             ->where(function ($q) use ($start, $end): void {
                 // Booking overlaps the day if it starts before day end AND ends after day start

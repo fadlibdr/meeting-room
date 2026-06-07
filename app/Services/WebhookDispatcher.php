@@ -53,7 +53,7 @@ final class WebhookDispatcher
                 'booking_code' => $booking->booking_code,
                 'subject' => $booking->subject,
                 'status' => $booking->status->value,
-                'room_id' => $booking->room_id,
+                'resource_id' => $booking->resource_id,
                 'requester_user_id' => $booking->requester_user_id,
                 'starts_at' => $booking->starts_at->toIso8601String(),
                 'ends_at' => $booking->ends_at->toIso8601String(),

@@ -25,7 +25,7 @@ class BookingFactory extends Factory
 
         return [
             'booking_code' => "BKG-{$datePart}-".str_pad((string) $this->faker->unique()->randomNumber(4), 4, '0', STR_PAD_LEFT),
-            'room_id' => Room::factory(),
+            'resource_id' => Room::factory(),
             'requester_user_id' => User::factory(),
             'requester_unit_id' => Unit::factory(),
             'created_by_user_id' => User::factory(),

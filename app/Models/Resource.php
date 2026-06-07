@@ -83,6 +83,6 @@ class Resource extends Model
 
     public function bookings(): HasMany
     {
-        return $this->hasMany(Booking::class, 'room_id');
+        return $this->hasMany(Booking::class, 'resource_id');
     }
 }

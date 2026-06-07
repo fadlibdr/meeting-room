@@ -72,7 +72,7 @@ final class BookingReminderNotification extends Notification implements ShouldQu
             'type' => NotificationType::BookingReminder->value,
             'booking_id' => $this->booking->id,
             'booking_code' => $this->booking->booking_code,
-            'room_id' => $this->booking->room_id,
+            'resource_id' => $this->booking->resource_id,
             'starts_at' => $this->booking->starts_at->toIso8601String(),
             'message' => sprintf(
                 'Pengingat: reservasi %s akan dimulai pada %s.',

@@ -76,7 +76,7 @@ class RoomUtilizationReport
         $bookings = Booking::query()
             ->whereBetween('starts_at', [$utcStart, $utcEnd])
             ->with(['room:id,code,name', 'requesterUnit:id,name'])
-            ->get(['id', 'room_id', 'requester_unit_id', 'starts_at', 'ends_at', 'status', 'checked_in_at', 'released_at']);
+            ->get(['id', 'resource_id', 'requester_unit_id', 'starts_at', 'ends_at', 'status', 'checked_in_at', 'released_at']);
 
         $active = $bookings->filter(
             fn (Booking $b): bool => in_array($b->status, self::ACTIVE_STATUSES, strict: true)
@@ -156,7 +156,7 @@ class RoomUtilizationReport
         $acc = [];
 
         foreach ($active as $booking) {
-            $roomId = (int) $booking->room_id;
+            $roomId = (int) $booking->resource_id;
             if (! isset($acc[$roomId])) {
                 $room = $booking->room;
                 $acc[$roomId] = [

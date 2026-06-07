@@ -22,12 +22,12 @@ class ResourceBookingTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * @return array{room_id: int, subject: string, attendee_count: int, starts_at: string, ends_at: string}
+     * @return array{resource_id: int, subject: string, attendee_count: int, starts_at: string, ends_at: string}
      */
     private function slot(Resource $resource, string $start, string $end): array
     {
         return [
-            'room_id' => $resource->id,
+            'resource_id' => $resource->id,
             'subject' => 'Pinjam '.$resource->name,
             'attendee_count' => 1,
             'starts_at' => $start,
@@ -48,11 +48,11 @@ class ResourceBookingTest extends TestCase
 
         // approval_mode None on the resource → auto-approved.
         $this->assertSame(BookingStatus::Approved, $booking->status);
-        $this->assertSame($vehicle->id, $booking->room_id);
+        $this->assertSame($vehicle->id, $booking->resource_id);
         $this->assertSame(ResourceType::Vehicle, $booking->resource->type);
         $this->assertDatabaseHas('bookings', [
             'id' => $booking->id,
-            'room_id' => $vehicle->id,
+            'resource_id' => $vehicle->id,
             'status' => BookingStatus::Approved->value,
         ]);
     }

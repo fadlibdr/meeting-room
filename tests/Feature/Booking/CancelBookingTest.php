@@ -86,7 +86,7 @@ class CancelBookingTest extends TestCase
 
         $attributes = [
             'booking_code' => 'BKG-20260506-'.strtoupper($status->value),
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $owner->id,
             'requester_unit_id' => $owner->unit_id,
             'created_by_user_id' => $owner->id,

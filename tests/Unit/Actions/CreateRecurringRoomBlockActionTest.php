@@ -53,7 +53,7 @@ class CreateRecurringRoomBlockActionTest extends TestCase
 
         // Approved booking inside the 2nd weekly block window (2026-06-15 08:00–10:00).
         Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'status' => 'approved',
             'starts_at' => '2026-06-15 09:00:00',
             'ends_at' => '2026-06-15 09:30:00',
@@ -81,7 +81,7 @@ class CreateRecurringRoomBlockActionTest extends TestCase
         $actor = User::factory()->create();
 
         $booking = Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'status' => 'approved',
             'starts_at' => '2026-06-15 09:00:00',
             'ends_at' => '2026-06-15 09:30:00',

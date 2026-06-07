@@ -127,7 +127,7 @@
                     {{-- Booking blocks overlay (using @php() one-liners) --}}
                     @foreach ($bookings as $booking)
                         @php($position = $this->bookingGridPosition($booking))
-                        @php($roomIndex = $rooms->search(fn ($r) => $r->id === $booking->room_id))
+                        @php($roomIndex = $rooms->search(fn ($r) => $r->id === $booking->resource_id))
                         @php($isApproved = $booking->status->value === 'approved')
                         @if ($position !== null && $roomIndex !== false)
                             <div wire:key="booking-block-{{ $booking->id }}" @class([
@@ -160,7 +160,7 @@
             </x-bpjs.button>
 
             @foreach ($rooms as $room)
-                @php($roomBookings = $bookings->where('room_id', $room->id)->sortBy('starts_at')->values())
+                @php($roomBookings = $bookings->where('resource_id', $room->id)->sortBy('starts_at')->values())
                 <x-bpjs.card wire:key="room-mobile-{{ $room->id }}" class="overflow-hidden">
                     <header class="border-b border-slate-100 bg-slate-50 px-4 py-3">
                         <h3 class="h-display truncate text-sm font-semibold text-slate-900">

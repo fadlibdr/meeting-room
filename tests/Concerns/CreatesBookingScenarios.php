@@ -87,7 +87,7 @@ trait CreatesBookingScenarios
         string $status = 'approved',
     ): Booking {
         $factory = Booking::factory()->state([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'starts_at' => $this->utc($startsAt),
             'ends_at' => $this->utc($endsAt),
         ]);

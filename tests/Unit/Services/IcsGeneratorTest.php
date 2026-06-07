@@ -22,7 +22,7 @@ class IcsGeneratorTest extends TestCase
         $room = Room::factory()->create(['name' => 'Ruang Garuda', 'location' => 'Gedung A']);
 
         return Booking::factory()->create(array_merge([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'booking_code' => 'BKG-20260606-TEST',
             'subject' => 'Rapat',
             'starts_at' => '2026-06-08 03:00:00', // stored UTC

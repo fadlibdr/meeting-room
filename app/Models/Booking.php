@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property string $booking_code
- * @property int $room_id
+ * @property int $resource_id
  * @property int $requester_user_id
  * @property int|null $requester_unit_id
  * @property int $created_by_user_id
@@ -49,7 +49,7 @@ class Booking extends Model
     use HasFactory;
 
     protected $fillable = [
-        'booking_code', 'room_id',
+        'booking_code', 'resource_id',
         'requester_user_id', 'requester_unit_id',
         'created_by_user_id', 'updated_by_user_id',
         'subject', 'agenda', 'attendee_count',
@@ -84,18 +84,18 @@ class Booking extends Model
 
     public function room(): BelongsTo
     {
-        return $this->belongsTo(Room::class);
+        return $this->belongsTo(Room::class, 'resource_id');
     }
 
     /**
      * The bookable resource (generalized; unscoped by type).
      *
-     * Shares the `room_id` column with {@see room()} but resolves to the base
-     * {@see Resource} so non-room resources are reachable (Stage 3 E).
+     * Shares the `resource_id` column with {@see room()} but resolves to the
+     * base {@see Resource} so non-room resources are reachable (Stage 3 E).
      */
     public function resource(): BelongsTo
     {
-        return $this->belongsTo(Resource::class, 'room_id');
+        return $this->belongsTo(Resource::class, 'resource_id');
     }
 
     public function requester(): BelongsTo

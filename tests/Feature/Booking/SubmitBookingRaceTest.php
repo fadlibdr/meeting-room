@@ -49,7 +49,7 @@ class SubmitBookingRaceTest extends TestCase
         $bob = User::factory()->create();
 
         $input = [
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => 'Rapat Koordinasi',
             'attendee_count' => 5,
             'starts_at' => '2026-06-01 09:00:00',
@@ -71,6 +71,6 @@ class SubmitBookingRaceTest extends TestCase
         }
 
         $this->assertTrue($secondRejected, 'Second submit for the same slot must be rejected.');
-        $this->assertSame(1, Booking::query()->where('room_id', $room->id)->count());
+        $this->assertSame(1, Booking::query()->where('resource_id', $room->id)->count());
     }
 }

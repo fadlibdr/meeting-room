@@ -136,7 +136,7 @@ class BookingFormTest extends TestCase
             ->assertRedirect(route('calendar.index'));
 
         $this->assertDatabaseHas('bookings', [
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $user->id,
             'subject' => 'Rapat Test M1-G',
             'attendee_count' => 5,

@@ -36,7 +36,7 @@ class BookingCalendarDownloadTest extends TestCase
         $room = Room::factory()->create(['name' => 'Ruang Garuda']);
 
         return Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $owner->id,
             'status' => 'approved',
             'starts_at' => '2026-06-08 03:00:00',

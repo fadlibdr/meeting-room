@@ -20,10 +20,10 @@ class CancelRecurringBookingActionTest extends TestCase
         $room = Room::factory()->create(['is_active' => true, 'status' => 'active']);
         $actor = User::factory()->create();
 
-        $anchor = Booking::factory()->create(['room_id' => $room->id, 'status' => 'approved']);
+        $anchor = Booking::factory()->create(['resource_id' => $room->id, 'status' => 'approved']);
         $anchor->update(['recurrence_group_id' => $anchor->id]);
-        $draft = Booking::factory()->create(['room_id' => $room->id, 'status' => 'draft', 'recurrence_group_id' => $anchor->id]);
-        $alreadyCancelled = Booking::factory()->create(['room_id' => $room->id, 'status' => 'cancelled', 'recurrence_group_id' => $anchor->id]);
+        $draft = Booking::factory()->create(['resource_id' => $room->id, 'status' => 'draft', 'recurrence_group_id' => $anchor->id]);
+        $alreadyCancelled = Booking::factory()->create(['resource_id' => $room->id, 'status' => 'cancelled', 'recurrence_group_id' => $anchor->id]);
 
         $count = app(CancelRecurringBookingAction::class)->execute($anchor, $actor, 'Rapat tidak jadi');
 
@@ -38,8 +38,8 @@ class CancelRecurringBookingActionTest extends TestCase
         $room = Room::factory()->create(['is_active' => true, 'status' => 'active']);
         $actor = User::factory()->create();
 
-        $solo = Booking::factory()->create(['room_id' => $room->id, 'status' => 'draft', 'recurrence_group_id' => null]);
-        $other = Booking::factory()->create(['room_id' => $room->id, 'status' => 'draft', 'recurrence_group_id' => null]);
+        $solo = Booking::factory()->create(['resource_id' => $room->id, 'status' => 'draft', 'recurrence_group_id' => null]);
+        $other = Booking::factory()->create(['resource_id' => $room->id, 'status' => 'draft', 'recurrence_group_id' => null]);
 
         $count = app(CancelRecurringBookingAction::class)->execute($solo, $actor, 'Batal');
 

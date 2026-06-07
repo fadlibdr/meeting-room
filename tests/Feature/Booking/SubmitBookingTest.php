@@ -86,7 +86,7 @@ class SubmitBookingTest extends TestCase
     private function validPayload(Room $room): array
     {
         return [
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => 'Rapat Mingguan Tim',
             'agenda' => 'Review sprint progress dan planning sprint berikutnya.',
             'attendee_count' => 5,
@@ -114,7 +114,7 @@ class SubmitBookingTest extends TestCase
         $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('bookings', [
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $requester->id,
             'status' => BookingStatus::Approved->value,
             'subject' => 'Rapat Mingguan Tim',
@@ -172,7 +172,7 @@ class SubmitBookingTest extends TestCase
 
         // Pre-existing approved booking 10:00–11:00
         Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'status' => BookingStatus::Approved->value,
             'starts_at' => '2026-05-05 10:00:00',
             'ends_at' => '2026-05-05 11:00:00',
@@ -185,7 +185,7 @@ class SubmitBookingTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHasErrors(['starts_at']);
-        $response->assertSessionDoesntHaveErrors(['room_id']);
+        $response->assertSessionDoesntHaveErrors(['resource_id']);
 
         // No new booking written
         $this->assertSame($bookingsBefore, Booking::count());
@@ -206,9 +206,9 @@ class SubmitBookingTest extends TestCase
             ->post(route('bookings.store'), $this->validPayload($room));
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors(['room_id']);
+        $response->assertSessionHasErrors(['resource_id']);
 
-        $errors = session('errors')->get('room_id');
+        $errors = session('errors')->get('resource_id');
         $this->assertStringContainsString('approver', strtolower($errors[0]));
 
         $this->assertDatabaseCount('bookings', 0);

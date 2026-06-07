@@ -85,7 +85,7 @@ final class SubmitDraftAction
         /** @var \App\Models\Resource $room */
         $room = Resource::query()
             ->lockForUpdate()
-            ->findOrFail($booking->room_id);
+            ->findOrFail($booking->resource_id);
 
         /** @var Booking $locked */
         $locked = Booking::query()
@@ -179,7 +179,7 @@ final class SubmitDraftAction
             ),
             'context' => [
                 'approval_mode' => $room->approval_mode->value,
-                'room_id' => $room->id,
+                'resource_id' => $room->id,
                 'from_status' => BookingStatus::Draft->value,
             ],
         ]);

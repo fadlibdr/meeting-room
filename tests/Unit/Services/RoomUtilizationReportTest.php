@@ -27,7 +27,7 @@ class RoomUtilizationReportTest extends TestCase
     private function approvedBooking(Room $room, Unit $unit, string $utcStart, string $utcEnd, string $status = 'approved'): Booking
     {
         return Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_unit_id' => $unit->id,
             'status' => $status,
             'starts_at' => $utcStart,
@@ -44,7 +44,7 @@ class RoomUtilizationReportTest extends TestCase
         $this->approvedBooking($room, $unit, '2026-06-08 02:00:00', '2026-06-08 03:00:00', 'approved');
         // ... and one auto-released no-show (Cancelled + released_at stamped).
         Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_unit_id' => $unit->id,
             'status' => 'cancelled',
             'starts_at' => '2026-06-08 05:00:00',

@@ -31,7 +31,7 @@ class BlockRoomActionTest extends TestCase
     private function bookingAt(Room $room, string $start, string $end, BookingStatus $status): Booking
     {
         return Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'status' => $status,
             'starts_at' => Carbon::parse($start),
             'ends_at' => Carbon::parse($end),
@@ -112,7 +112,7 @@ class BlockRoomActionTest extends TestCase
         $actor = User::factory()->create();
         $requester = User::factory()->create();
         $booking = Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $requester->id,
             'status' => BookingStatus::Approved,
             'starts_at' => Carbon::parse('2026-06-01 10:00:00'),

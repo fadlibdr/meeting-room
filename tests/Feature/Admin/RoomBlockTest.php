@@ -41,7 +41,7 @@ class RoomBlockTest extends TestCase
     private function overlappingApprovedBooking(Room $room, string $subject = 'Rapat'): Booking
     {
         return Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => $subject,
             'status' => BookingStatus::Approved,
             'starts_at' => Carbon::parse('2026-06-01 10:00:00'),

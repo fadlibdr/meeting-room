@@ -90,7 +90,7 @@ class RescheduleBookingTest extends TestCase
 
         $booking = Booking::create([
             'booking_code' => 'BKG-'.Carbon::now()->format('Ymd').'-'.Str::upper(Str::random(6)),
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $owner->id,
             'requester_unit_id' => $owner->unit_id,
             'created_by_user_id' => $owner->id,
@@ -125,7 +125,7 @@ class RescheduleBookingTest extends TestCase
 
         return Booking::create([
             'booking_code' => 'BKG-'.Carbon::now()->format('Ymd').'-'.Str::upper(Str::random(6)),
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $owner->id,
             'requester_unit_id' => $owner->unit_id,
             'created_by_user_id' => $owner->id,
@@ -162,7 +162,7 @@ class RescheduleBookingTest extends TestCase
         Livewire::test(BookingForm::class, ['booking' => $booking, 'reschedule' => true])
             ->assertSet('mode', 'reschedule')
             ->assertSet('bookingId', $booking->id)
-            ->assertSet('roomId', (string) $booking->room_id)
+            ->assertSet('roomId', (string) $booking->resource_id)
             ->assertSet('subject', 'Rapat Awal')
             ->assertSet('attendeeCount', 4)
             ->assertSet('startsAt', '2026-05-12T10:00');

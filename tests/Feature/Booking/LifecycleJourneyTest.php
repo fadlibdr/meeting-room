@@ -82,7 +82,7 @@ class LifecycleJourneyTest extends TestCase
     {
         return Booking::create([
             'booking_code' => 'BKG-'.Carbon::now()->format('Ymd').'-'.Str::upper(Str::random(6)),
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $owner->id,
             'requester_unit_id' => $owner->unit_id,
             'created_by_user_id' => $owner->id,
@@ -98,12 +98,12 @@ class LifecycleJourneyTest extends TestCase
     }
 
     /**
-     * @return array{room_id: int, subject: string, agenda: string, attendee_count: int, starts_at: string, ends_at: string}
+     * @return array{resource_id: int, subject: string, agenda: string, attendee_count: int, starts_at: string, ends_at: string}
      */
     private function editPayload(Room $room, string $agenda): array
     {
         return [
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => 'Rapat Koordinasi',
             'agenda' => $agenda,
             'attendee_count' => 4,

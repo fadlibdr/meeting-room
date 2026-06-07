@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Api\V1;
 
 use App\Models\Booking;
-use App\Models\Room;
+use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -26,9 +26,9 @@ class BookingResource extends JsonResource
             'booking_code' => $this->booking_code,
             'subject' => $this->subject,
             'status' => $this->status->value,
-            'room' => [
-                'id' => $this->room_id,
-                'name' => $this->whenLoaded('room', fn () => $this->room instanceof Room ? $this->room->name : null),
+            'resource' => [
+                'id' => $this->resource_id,
+                'name' => $this->whenLoaded('resource', fn () => $this->resource instanceof Resource ? $this->resource->name : null),
             ],
             'attendee_count' => $this->attendee_count,
             'starts_at' => $this->starts_at->toIso8601String(),

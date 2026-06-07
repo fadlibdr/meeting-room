@@ -104,7 +104,7 @@ class BookingNotificationsTest extends TestCase
 
         $booking = Booking::create([
             'booking_code' => 'BKG-20260505-NOTIF',
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $requester->id,
             'requester_unit_id' => $unit->id,
             'created_by_user_id' => $requester->id,
@@ -295,7 +295,7 @@ class BookingNotificationsTest extends TestCase
     {
         $this->setEmailDefault(false);
         $ctx = $this->makeSubmittedBooking();
-        $block = RoomBlockSchedule::factory()->create(['room_id' => $ctx['booking']->room_id]);
+        $block = RoomBlockSchedule::factory()->create(['room_id' => $ctx['booking']->resource_id]);
 
         foreach ($this->allNotifications($ctx['booking'], $block) as $notification) {
             $this->assertInstanceOf(ShouldQueue::class, $notification);
@@ -307,7 +307,7 @@ class BookingNotificationsTest extends TestCase
     {
         $this->setEmailDefault(true);
         $ctx = $this->makeSubmittedBooking();
-        $block = RoomBlockSchedule::factory()->create(['room_id' => $ctx['booking']->room_id]);
+        $block = RoomBlockSchedule::factory()->create(['room_id' => $ctx['booking']->resource_id]);
 
         foreach ($this->allNotifications($ctx['booking'], $block) as $notification) {
             $this->assertSame(['database', 'mail'], $notification->via($ctx['requester']));
@@ -412,7 +412,7 @@ class BookingNotificationsTest extends TestCase
     {
         $ctx = $this->makeSubmittedBooking();
         $booking = $ctx['booking'];
-        $block = RoomBlockSchedule::factory()->create(['room_id' => $booking->room_id]);
+        $block = RoomBlockSchedule::factory()->create(['room_id' => $booking->resource_id]);
 
         $mail = (new RoomBlockCreatedNotification($block, $booking))->toMail($ctx['requester']);
 
@@ -427,7 +427,7 @@ class BookingNotificationsTest extends TestCase
         $this->setEmailDefault(true);
         $ctx = $this->makeSubmittedBooking();
         $ctx['requester']->update(['email_notifications' => false]);
-        $block = RoomBlockSchedule::factory()->create(['room_id' => $ctx['booking']->room_id]);
+        $block = RoomBlockSchedule::factory()->create(['room_id' => $ctx['booking']->resource_id]);
         $user = $ctx['requester']->fresh();
 
         foreach ($this->allNotifications($ctx['booking'], $block) as $notification) {

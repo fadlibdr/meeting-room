@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Booking;
 
 use App\Models\Booking;
-use App\Models\Room;
+use App\Models\Resource;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -37,12 +37,22 @@ class StoreBookingRequest extends FormRequest
     }
 
     /**
+     * Accept the deprecated `room_id` field as an alias for `resource_id` (E3).
+     */
+    protected function prepareForValidation(): void
+    {
+        if (! $this->has('resource_id') && $this->has('room_id')) {
+            $this->merge(['resource_id' => $this->input('room_id')]);
+        }
+    }
+
+    /**
      * @return array<string, array<int, mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'room_id' => ['required', 'integer', Rule::exists('resources', 'id')->where('type', 'room')],
+            'resource_id' => ['required', 'integer', Rule::exists('resources', 'id')],
             'subject' => ['required', 'string', 'max:150'],
             'agenda' => ['nullable', 'string', 'max:5000'],
             'attendee_count' => ['required', 'integer', 'min:1'],
@@ -57,9 +67,9 @@ class StoreBookingRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'room_id.required' => 'Ruangan wajib dipilih.',
-            'room_id.integer' => 'ID ruangan tidak valid.',
-            'room_id.exists' => 'Ruangan yang dipilih tidak ditemukan.',
+            'resource_id.required' => 'Ruangan wajib dipilih.',
+            'resource_id.integer' => 'ID ruangan tidak valid.',
+            'resource_id.exists' => 'Ruangan yang dipilih tidak ditemukan.',
             'subject.required' => 'Judul rapat wajib diisi.',
             'subject.string' => 'Judul rapat harus berupa teks.',
             'subject.max' => 'Judul rapat maksimal 150 karakter.',
@@ -107,14 +117,14 @@ class StoreBookingRequest extends FormRequest
 
     private function validateRoomActiveAndCapacity(Validator $validator): void
     {
-        $roomId = $this->input('room_id');
+        $roomId = $this->input('resource_id');
         $attendeeCount = (int) $this->input('attendee_count', 0);
 
         if (! is_numeric($roomId)) {
             return;
         }
 
-        $room = Room::find($roomId);
+        $room = Resource::find($roomId);
 
         if ($room === null) {
             return;
@@ -122,7 +132,7 @@ class StoreBookingRequest extends FormRequest
 
         if (! $room->is_active) {
             $validator->errors()->add(
-                'room_id',
+                'resource_id',
                 'Ruangan yang dipilih tidak aktif.'
             );
 
