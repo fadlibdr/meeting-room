@@ -12,6 +12,7 @@ return [
     'administration' => 'Administration',
     'utilization_report' => 'Utilization Report',
     'manage_rooms' => 'Manage Rooms',
+    'resources' => 'Resources',
     'facilities' => 'Facilities',
     'block_rooms' => 'Block Rooms',
     'users' => 'Users',
