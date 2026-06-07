@@ -7,7 +7,24 @@
         </div>
     @endif
 
-    @if($editingId)
+    @if($editingFeaturesId)
+        <form wire:submit="saveFeatures" class="card bpjs-rise">
+            <div class="card--pad space-y-3">
+                <h3 class="text-sm font-semibold text-slate-800">{{ __('Fitur Penyewa') }}</h3>
+                @foreach($featureLabels as $key => $label)
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" wire:model="featureFlags.{{ $key }}"
+                               class="rounded border-slate-300 text-bpjs-blue-600 shadow-sm focus:ring-bpjs-blue-500" />
+                        <span class="text-sm text-slate-700">{{ $label }}</span>
+                    </label>
+                @endforeach
+            </div>
+            <div class="modal__foot" style="border-radius: 0 0 16px 16px;">
+                <x-bpjs.button variant="ghost" type="button" wire:click="cancelFeatures">{{ __('Batal') }}</x-bpjs.button>
+                <x-bpjs.button type="submit" icon="check">{{ __('Simpan Fitur') }}</x-bpjs.button>
+            </div>
+        </form>
+    @elseif($editingId)
         <form wire:submit="saveBranding" class="card bpjs-rise">
             <div class="card--pad space-y-4">
                 <h3 class="text-sm font-semibold text-slate-800">{{ __('White-label Branding') }}</h3>
@@ -68,6 +85,8 @@
                         <th>{{ __('Nama') }}</th>
                         <th>{{ __('Slug') }}</th>
                         <th>{{ __('Domain') }}</th>
+                        <th>{{ __('Pengguna') }}</th>
+                        <th>{{ __('Reservasi') }}</th>
                         <th>{{ __('Status') }}</th>
                         <th class="text-right">{{ __('Aksi') }}</th>
                     </tr>
@@ -81,6 +100,8 @@
                             </td>
                             <td class="mono text-slate-500" style="font-size:12px;">{{ $tenant->slug }}</td>
                             <td class="text-slate-500" style="font-size:12px;">{{ $tenant->primary_domain ?: '—' }}</td>
+                            <td class="text-slate-600">{{ $userCounts[$tenant->id] ?? 0 }}</td>
+                            <td class="text-slate-600">{{ $bookingCounts[$tenant->id] ?? 0 }}</td>
                             <td>
                                 @if($tenant->status === 'active')
                                     <x-bpjs.pill variant="green">{{ __('Aktif') }}</x-bpjs.pill>
@@ -92,6 +113,8 @@
                                 <div class="inline-flex items-center justify-end gap-3">
                                     <button wire:click="editBranding({{ $tenant->id }})" type="button"
                                             class="text-sm font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">{{ __('Branding') }}</button>
+                                    <button wire:click="editFeatures({{ $tenant->id }})" type="button"
+                                            class="text-sm font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">{{ __('Fitur') }}</button>
                                     @unless($tenant->is_default)
                                         <button wire:click="toggle({{ $tenant->id }})" type="button"
                                                 class="text-sm font-semibold text-slate-500 hover:text-slate-800">
@@ -102,7 +125,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="text-center text-slate-500" style="padding:40px 16px;">{{ __('Belum ada penyewa.') }}</td></tr>
+                        <tr><td colspan="7" class="text-center text-slate-500" style="padding:40px 16px;">{{ __('Belum ada penyewa.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

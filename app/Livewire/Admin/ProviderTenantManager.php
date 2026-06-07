@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Admin;
 
 use App\Actions\ProvisionTenantAction;
+use App\Models\Booking;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -35,6 +36,20 @@ class ProviderTenantManager extends Component
     public string $brandColor = '';
 
     public string $logoUrl = '';
+
+    // 4e per-tenant feature flags edit
+    public ?int $editingFeaturesId = null;
+
+    /** @var array<string, bool> */
+    public array $featureFlags = [];
+
+    /** Toggleable per-tenant features (key => label). */
+    public const FEATURES = [
+        'calendar_sync' => 'Sinkronisasi Kalender',
+        'webhooks' => 'Webhook',
+        'exports' => 'Ekspor Data',
+        'public_api' => 'API Publik',
+    ];
 
     private function guard(): void
     {
@@ -110,6 +125,42 @@ class ProviderTenantManager extends Component
         $this->resetValidation();
     }
 
+    public function editFeatures(int $tenantId): void
+    {
+        $this->guard();
+        $tenant = Tenant::findOrFail($tenantId);
+        $current = $tenant->features ?? [];
+        $this->featureFlags = [];
+        foreach (array_keys(self::FEATURES) as $key) {
+            $this->featureFlags[$key] = (bool) ($current[$key] ?? false);
+        }
+        $this->editingFeaturesId = $tenant->id;
+        $this->resetValidation();
+    }
+
+    public function saveFeatures(): void
+    {
+        $this->guard();
+        if ($this->editingFeaturesId === null) {
+            return;
+        }
+
+        // Only persist known flags (cast to bool).
+        $clean = [];
+        foreach (array_keys(self::FEATURES) as $key) {
+            $clean[$key] = (bool) ($this->featureFlags[$key] ?? false);
+        }
+
+        Tenant::findOrFail($this->editingFeaturesId)->update(['features' => $clean]);
+        $this->feedback = __('Fitur penyewa diperbarui.');
+        $this->editingFeaturesId = null;
+    }
+
+    public function cancelFeatures(): void
+    {
+        $this->editingFeaturesId = null;
+    }
+
     public function toggle(int $tenantId): void
     {
         $this->guard();
@@ -126,8 +177,17 @@ class ProviderTenantManager extends Component
 
     public function render(): View
     {
+        // Per-tenant usage (counted unscoped — the console spans all tenants).
+        $userCounts = User::withoutGlobalScope('tenant')
+            ->selectRaw('tenant_id, COUNT(*) as c')->groupBy('tenant_id')->pluck('c', 'tenant_id');
+        $bookingCounts = Booking::withoutGlobalScope('tenant')
+            ->selectRaw('tenant_id, COUNT(*) as c')->groupBy('tenant_id')->pluck('c', 'tenant_id');
+
         return view('livewire.admin.provider-tenant-manager', [
             'tenants' => Tenant::query()->orderByDesc('is_default')->orderBy('name')->get(),
+            'userCounts' => $userCounts,
+            'bookingCounts' => $bookingCounts,
+            'featureLabels' => self::FEATURES,
         ])->layout('layouts.app', [
             'title' => __('Penyewa (Tenants)'),
             'subtitle' => __('Kelola organisasi pelanggan pada platform'),
