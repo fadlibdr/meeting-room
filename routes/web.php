@@ -10,6 +10,7 @@ use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BookingAttachmentController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LocaleController;
@@ -24,6 +25,7 @@ use App\Livewire\Approval\ApprovalInbox;
 use App\Livewire\Booking\BookingCalendar;
 use App\Livewire\Booking\BookingForm;
 use App\Livewire\Booking\BookingList;
+use App\Livewire\CalendarSubscription;
 use App\Livewire\FrontOffice\DailyCheckIn;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Route;
@@ -206,7 +208,13 @@ Route::middleware(['auth', 'user.active'])->group(function () {
     // Stage 3 C — browsable API docs (Redoc over docs/openapi-v1.yaml)
     Route::get('api-docs', [ApiDocsController::class, 'page'])->name('api-docs.page');
     Route::get('api-docs/openapi.yaml', [ApiDocsController::class, 'spec'])->name('api-docs.spec');
+
+    // Stage 3 F.2a — manage the personal calendar (.ics) subscription URL
+    Route::get('calendar-subscription', CalendarSubscription::class)->name('calendar-subscription.index');
 });
+
+// Stage 3 F.2a — public, tokened .ics subscription feed (no session; token is the credential)
+Route::get('calendar/feed/{token}.ics', [CalendarFeedController::class, 'feed'])->name('calendar.feed');
 
 require __DIR__.'/auth.php';
 

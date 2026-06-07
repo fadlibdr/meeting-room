@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -32,6 +33,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property int $failed_login_attempts
  * @property Carbon|null $locked_until
  * @property Carbon|null $email_verified_at
+ * @property string|null $calendar_feed_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -117,6 +119,26 @@ class User extends Authenticatable
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'requester_user_id');
+    }
+
+    /**
+     * Stage 3 F.2a — the secret token for this user's .ics subscription feed,
+     * created on first access. Rotatable via {@see regenerateCalendarFeedToken()}.
+     */
+    public function ensureCalendarFeedToken(): string
+    {
+        if ($this->calendar_feed_token === null) {
+            $this->forceFill(['calendar_feed_token' => Str::random(48)])->save();
+        }
+
+        return (string) $this->calendar_feed_token;
+    }
+
+    public function regenerateCalendarFeedToken(): string
+    {
+        $this->forceFill(['calendar_feed_token' => Str::random(48)])->save();
+
+        return (string) $this->calendar_feed_token;
     }
 
     public function bookingApprovals(): HasMany
