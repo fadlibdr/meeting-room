@@ -1,0 +1,61 @@
+name: Dusk (E2E)
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+jobs:
+  dusk:
+    name: Browser tests
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: meeting_room_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, curl, zip, bcmath, intl, pdo_mysql
+          coverage: none
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci && npm run build
+      - name: Prepare env
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php -r "file_put_contents('.env', preg_replace('/^DB_HOST=.*/m','DB_HOST=127.0.0.1',file_get_contents('.env')));"
+          php -r "file_put_contents('.env', preg_replace('/^DB_DATABASE=.*/m','DB_DATABASE=meeting_room_test',file_get_contents('.env')));"
+          php -r "file_put_contents('.env', preg_replace('/^DB_USERNAME=.*/m','DB_USERNAME=root',file_get_contents('.env')));"
+          php -r "file_put_contents('.env', preg_replace('/^DB_PASSWORD=.*/m','DB_PASSWORD=root',file_get_contents('.env')));"
+          php -r "file_put_contents('.env', preg_replace('/^APP_URL=.*/m','APP_URL=http://127.0.0.1:8000',file_get_contents('.env')));"
+      - name: Upgrade Chrome Driver
+        run: php artisan dusk:chrome-driver --detect
+      - name: Start Chrome Driver
+        run: ./vendor/laravel/dusk/bin/chromedriver-linux --port=9515 &
+      - name: Run Laravel server
+        run: php artisan serve --no-reload &
+      - name: Run Dusk tests
+        run: php artisan dusk
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dusk-screenshots
+          path: tests/Browser/screenshots
