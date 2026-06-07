@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\CheckInBookingAction;
 use App\Enums\BookingStatus;
 use App\Models\Booking;
+use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
 
@@ -25,22 +26,29 @@ class CheckInController extends Controller
     /** Earliest check-in: this many minutes before the meeting starts. */
     public const LEAD_MINUTES = 30;
 
-    public function checkIn(Booking $booking, CheckInBookingAction $action): Response
+    public function checkIn(int $booking, CheckInBookingAction $action, TenantContext $tenant): Response
     {
-        $status = $this->evaluate($booking);
-        $http = 200;
+        // The signed URL is the credential — resolve the booking across tenants
+        // (it's keyed by id, not host), then pin the context for the check-in.
+        $model = Booking::query()->withoutGlobalScope('tenant')->find($booking);
+        abort_if($model === null, 404);
 
-        if ($status === 'ok') {
-            $action->execute($booking, null); // null actor = QR self-service
-            $status = 'success';
-        } elseif (in_array($status, ['too_early', 'too_late', 'ineligible'], true)) {
-            $http = 422;
-        }
+        return $tenant->runFor((int) $model->tenant_id, function () use ($model, $action): Response {
+            $status = $this->evaluate($model);
+            $http = 200;
 
-        return response()->view('bookings.checkin-result', [
-            'booking' => $booking->fresh(['room']) ?? $booking,
-            'status' => $status,
-        ], $http);
+            if ($status === 'ok') {
+                $action->execute($model, null); // null actor = QR self-service
+                $status = 'success';
+            } elseif (in_array($status, ['too_early', 'too_late', 'ineligible'], true)) {
+                $http = 422;
+            }
+
+            return response()->view('bookings.checkin-result', [
+                'booking' => $model->fresh(['room']) ?? $model,
+                'status' => $status,
+            ], $http);
+        });
     }
 
     private function evaluate(Booking $booking): string
