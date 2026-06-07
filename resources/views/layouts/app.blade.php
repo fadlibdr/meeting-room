@@ -222,6 +222,9 @@
                             <x-dropdown-link :href="route('calendar-subscription.index')" wire:navigate>
                                 {{ __('Langganan Kalender') }}
                             </x-dropdown-link>
+                            <x-dropdown-link :href="route('data.export.mine')">
+                                {{ __('Unduh Data Pribadi') }}
+                            </x-dropdown-link>
                             <x-dropdown-link :href="route('api-tokens.index')" wire:navigate>
                                 {{ __('Token API') }}
                             </x-dropdown-link>

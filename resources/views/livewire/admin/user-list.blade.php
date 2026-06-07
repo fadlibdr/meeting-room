@@ -112,6 +112,16 @@
                                                    wire:confirm="{{ $user->is_active ? __('Nonaktifkan :name?', ['name' => $user->name]) : __('Aktifkan :name?', ['name' => $user->name]) }}"
                                                    type="button"
                                                    class="!px-3 !py-1.5 !text-xs !rounded-lg">{{ $user->is_active ? __('Nonaktifkan') : __('Aktifkan') }}</x-bpjs.button>
+                                    {{-- UU PDP — data-subject actions --}}
+                                    <a href="{{ route('admin.users.data-export', $user->id) }}"
+                                       class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900"
+                                       title="{{ __('Unduh data pribadi (UU PDP)') }}">{{ __('Data') }}</a>
+                                    <form method="POST" action="{{ route('admin.users.anonymize', $user->id) }}"
+                                          onsubmit="return confirm('{{ __('Anonimkan data pribadi :name? Tindakan ini tidak dapat dibatalkan.', ['name' => $user->name]) }}')">
+                                        @csrf
+                                        <button type="submit"
+                                                class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg text-red-700 hover:text-red-800">{{ __('Anonimkan') }}</button>
+                                    </form>
                                 </div>
                             @endhasPermission
                         </td>

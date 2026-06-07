@@ -183,6 +183,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Adds `app/Http/Middleware/SecurityHeaders.php` + global registration + a CI `sca` job. No schema change, no new dependency.
 **Status:** Accepted (7 Jun 2026, `feat/crosscut-security`).
 
+### ADR-027 · UU PDP data-subject rights — personal-data export + erasure by anonymisation
+**Decision:** Implemented now, independent of the Stage-4 productization decision (UU PDP applies to the personal data already held). **Right to access:** `PersonalDataExporter` assembles a user's profile + bookings + calendar-connection metadata (NO tokens/secrets) into a JSON download — self-service at `/me/data-export`, or admin-initiated per user (`users.update`). **Right to erasure:** `AnonymizeUserAction` scrubs identifying fields (name/email→placeholder, employee_no/job_title→null, password→unusable, feed token cleared), revokes all access (API tokens + calendar connections deleted, roles detached, deactivated) inside a transaction, and writes an `activity_logs` `anonymize` entry — while **keeping the user row + bookings** so operational/audit history stays referentially intact. Admins cannot anonymise their own account.
+**Context:** The brief flags this as "worth doing regardless" (Stage 4f / 2.2). Anonymisation (not hard delete) preserves booking/approval/audit integrity while making the person non-identifiable. ToS/Privacy-Policy/DPA/retention-policy remain legal-drafted documents (out of code scope).
+**Consequence:** Adds `PersonalDataExporter`, `AnonymizeUserAction`, `DataSubjectController`, 3 routes, a self-service menu link + admin row actions. No schema change.
+**Status:** Accepted (7 Jun 2026, `feat/pdp-data-subject-rights`).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*

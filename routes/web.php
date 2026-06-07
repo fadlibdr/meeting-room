@@ -13,6 +13,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CalendarConnectController;
 use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\CheckInController;
+use App\Http\Controllers\DataSubjectController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LocaleController;
 use App\Livewire\Admin\ApprovalDelegationManager;
@@ -147,6 +148,14 @@ Route::middleware(['auth', 'user.active'])->group(function () {
             ->middleware('permission:rooms.update')
             ->name('rooms.edit');
 
+        // UU PDP — admin data-subject actions (export / erasure by anonymisation)
+        Route::get('users/{userId}/data-export', [DataSubjectController::class, 'export'])
+            ->middleware('permission:users.update')
+            ->name('users.data-export');
+        Route::post('users/{userId}/anonymize', [DataSubjectController::class, 'anonymize'])
+            ->middleware('permission:users.update')
+            ->name('users.anonymize');
+
         // Stage 3 E2b — non-room bookable resources (equipment/vehicles/desks),
         // reuse rooms.* permissions; rooms keep their dedicated admin above.
         Route::get('resources', ResourceManager::class)
@@ -212,6 +221,9 @@ Route::middleware(['auth', 'user.active'])->group(function () {
 
     // Stage 3 F.2a — manage the personal calendar (.ics) subscription URL
     Route::get('calendar-subscription', CalendarSubscription::class)->name('calendar-subscription.index');
+
+    // UU PDP — self-service personal data export (right to access)
+    Route::get('me/data-export', [DataSubjectController::class, 'exportMine'])->name('data.export.mine');
 
     // Stage 3 F.2 (activation) — per-user OAuth connect flow for two-way sync
     Route::get('calendar/connect/{provider}', [CalendarConnectController::class, 'redirect'])->name('calendar.connect');
