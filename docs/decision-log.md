@@ -189,6 +189,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Adds `PersonalDataExporter`, `AnonymizeUserAction`, `DataSubjectController`, 3 routes, a self-service menu link + admin row actions. No schema change.
 **Status:** Accepted (7 Jun 2026, `feat/pdp-data-subject-rights`).
 
+### ADR-028 · Observability 1.4 — correlation ids + actor in log context, opt-in JSON channel
+**Decision:** A global `CorrelationId` middleware (web + api) honours/mints an `X-Request-Id`, pushes `request_id` + the authenticated `actor_id` into Laravel's `Context` (auto-attached to every log line for the request), and echoes the id on the response. A `json` log channel (Monolog `JsonFormatter`) is added for structured, aggregator-ready logs — opt in with `LOG_STACK=json`. Shipping to an external aggregator (Loki/ELK/Sentry) remains infra, not app code.
+**Context:** Part of cross-cutting 1.4. Registered on the web/api groups (not the outer global stack) so the session/guard is up and the actor resolves. Metrics (queue depth, job failures, latency) + a dashboard + optional `sentry/sentry-laravel` are follow-ups needing infra.
+**Consequence:** Adds `app/Http/Middleware/CorrelationId.php` + group registration + a `json` logging channel. No schema change, no new dependency.
+**Status:** Accepted (7 Jun 2026, `feat/crosscut-observability`).
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*
