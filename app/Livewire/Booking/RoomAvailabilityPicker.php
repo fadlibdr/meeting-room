@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Booking;
 
 use App\DataTransferObjects\ConflictItem;
-use App\Models\Room;
+use App\Models\Resource;
 use App\Services\BookingConflictService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -45,7 +45,7 @@ use Throwable;
  *  Dec-5=B  Advisory tint on capacity overflow (allow selection)
  *  Dec-6=A  Replace <select> entirely (cards are the only input)
  *
- * @property-read EloquentCollection<int, Room> $rooms
+ * @property-read EloquentCollection<int, \App\Models\Resource> $rooms
  * @property-read array<int, array{status: string, conflictTitle: ?string, exceedsCapacity: bool}> $availability
  *
  * @see docs/m1-submit-ui-spec.md
@@ -70,6 +70,10 @@ class RoomAvailabilityPicker extends Component
     #[Reactive]
     public ?int $excludeBookingId = null;
 
+    /** Which resource type to show (room/equipment/vehicle/desk) — Stage 3 E2c. */
+    #[Reactive]
+    public string $resourceType = 'room';
+
     /**
      * User clicked a room card. Dispatch event up to parent which handles
      * actual state mutation. Picker stays stateless re: selection.
@@ -80,14 +84,15 @@ class RoomAvailabilityPicker extends Component
     }
 
     /**
-     * All active rooms ordered by name. Same query as form had previously.
+     * All active resources of the selected type, ordered by name.
      *
-     * @return EloquentCollection<int, Room>
+     * @return EloquentCollection<int, \App\Models\Resource>
      */
     #[Computed]
     public function rooms(): EloquentCollection
     {
-        return Room::query()
+        return Resource::query()
+            ->where('type', $this->resourceType)
             ->where('is_active', true)
             ->where('status', 'active')
             ->orderBy('name')
