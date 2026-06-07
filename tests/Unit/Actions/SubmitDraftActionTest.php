@@ -98,7 +98,7 @@ class SubmitDraftActionTest extends TestCase
     ): Booking {
         return Booking::create([
             'booking_code' => $this->bookingCode(),
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $owner->id,
             'requester_unit_id' => $owner->unit_id,
             'created_by_user_id' => $owner->id,
@@ -119,7 +119,7 @@ class SubmitDraftActionTest extends TestCase
 
         return Booking::create([
             'booking_code' => $this->bookingCode(),
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $owner->id,
             'requester_unit_id' => $owner->unit_id,
             'created_by_user_id' => $owner->id,

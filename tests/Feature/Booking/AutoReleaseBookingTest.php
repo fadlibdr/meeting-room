@@ -41,7 +41,7 @@ class AutoReleaseBookingTest extends TestCase
     private function booking(string $utcStart, string $utcEnd, array $attrs = []): Booking
     {
         return Booking::factory()->approved()->create(array_merge([
-            'room_id' => Room::factory(),
+            'resource_id' => Room::factory(),
             'requester_user_id' => User::factory(),
             'starts_at' => $utcStart,
             'ends_at' => $utcEnd,

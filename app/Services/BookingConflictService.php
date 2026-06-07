@@ -111,7 +111,7 @@ final class BookingConflictService
         $bufferMinutes = $this->effectiveBufferMinutes($room);
 
         $query = Booking::query()
-            ->where('room_id', $room->id)
+            ->where('resource_id', $room->id)
             ->whereIn('status', array_map(fn (BookingStatus $s) => $s->value, self::LOCKING_STATUSES))
             ->where('starts_at', '<', $endsAt)
             ->whereRaw(

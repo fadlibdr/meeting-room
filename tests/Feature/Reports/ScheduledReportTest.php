@@ -75,7 +75,7 @@ class ScheduledReportTest extends TestCase
 
         $room = Room::factory()->create(['name' => 'Ruang Garuda']);
         Booking::factory()->approved()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => 'Rapat BI',
             'starts_at' => '2026-06-08 02:00:00', // 09:00 WIB
             'ends_at' => '2026-06-08 03:00:00',

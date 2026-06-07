@@ -82,7 +82,7 @@ final class BlockRoomAction
 
             // Overlapping locking-status bookings (no buffer for blocks).
             $conflicts = Booking::query()
-                ->where('room_id', $room->id)
+                ->where('resource_id', $room->id)
                 ->whereIn('status', [BookingStatus::Submitted->value, BookingStatus::Approved->value])
                 ->where('starts_at', '<', $endsAt)
                 ->where('ends_at', '>', $startsAt)

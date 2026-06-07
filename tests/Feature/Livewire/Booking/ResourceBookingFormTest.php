@@ -62,7 +62,7 @@ class ResourceBookingFormTest extends TestCase
             ->assertRedirect(route('calendar.index'));
 
         $this->assertDatabaseHas('bookings', [
-            'room_id' => $vehicle->id,
+            'resource_id' => $vehicle->id,
             'subject' => 'Pinjam mobil dinas',
         ]);
     }

@@ -78,7 +78,7 @@ class BookingController extends Controller
             return back()
                 ->withInput()
                 ->withErrors([
-                    'room_id' => $e->getMessage(),
+                    'resource_id' => $e->getMessage(),
                 ]);
         }
 

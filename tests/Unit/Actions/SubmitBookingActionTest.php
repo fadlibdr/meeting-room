@@ -68,7 +68,7 @@ class SubmitBookingActionTest extends TestCase
     private function bookingInput(Room $room, array $overrides = []): array
     {
         return array_merge([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => 'Rapat Mingguan Tim',
             'agenda' => 'Review sprint progress.',
             'attendee_count' => 5,
@@ -353,7 +353,7 @@ class SubmitBookingActionTest extends TestCase
 
         // Pre-existing approved booking 10:00-11:00
         Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'status' => 'approved',
             'starts_at' => '2026-05-05 10:00:00',
             'ends_at' => '2026-05-05 11:00:00',
@@ -379,7 +379,7 @@ class SubmitBookingActionTest extends TestCase
         ]);
 
         Booking::factory()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'status' => 'approved',
             'starts_at' => '2026-05-05 10:00:00',
             'ends_at' => '2026-05-05 11:00:00',

@@ -85,7 +85,7 @@ class EditBookingTest extends TestCase
 
         $attributes = [
             'booking_code' => 'BKG-EDIT-'.strtoupper($status->value).'-'.str_pad((string) $room->id, 4, '0', STR_PAD_LEFT),
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $owner->id,
             'requester_unit_id' => $owner->unit_id,
             'created_by_user_id' => $owner->id,
@@ -157,7 +157,7 @@ class EditBookingTest extends TestCase
 
         Livewire::test(BookingForm::class, ['booking' => $booking])
             ->assertSet('bookingId', $booking->id)
-            ->assertSet('roomId', (string) $booking->room_id)
+            ->assertSet('roomId', (string) $booking->resource_id)
             ->assertSet('subject', 'Rapat Awal')
             ->assertSet('agenda', 'Agenda awal.')
             ->assertSet('attendeeCount', 4)

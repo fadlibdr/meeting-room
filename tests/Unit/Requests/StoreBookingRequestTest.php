@@ -65,7 +65,7 @@ class StoreBookingRequestTest extends TestCase
     private function validPayload(array $overrides = []): array
     {
         return array_merge([
-            'room_id' => $this->room->id,
+            'resource_id' => $this->room->id,
             'subject' => 'Rapat Koordinasi Tim',
             'agenda' => 'Diskusi project Q4',
             'attendee_count' => 5,
@@ -86,9 +86,9 @@ class StoreBookingRequestTest extends TestCase
 
     public function test_room_id_is_required(): void
     {
-        $validator = $this->validatePayload($this->validPayload(['room_id' => null]));
+        $validator = $this->validatePayload($this->validPayload(['resource_id' => null]));
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('room_id', $validator->errors()->toArray());
+        $this->assertArrayHasKey('resource_id', $validator->errors()->toArray());
     }
 
     public function test_subject_is_required(): void
@@ -132,7 +132,7 @@ class StoreBookingRequestTest extends TestCase
 
     public function test_room_id_must_exist(): void
     {
-        $validator = $this->validatePayload($this->validPayload(['room_id' => 99999]));
+        $validator = $this->validatePayload($this->validPayload(['resource_id' => 99999]));
         $this->assertTrue($validator->fails());
     }
 
@@ -214,7 +214,7 @@ class StoreBookingRequestTest extends TestCase
         ]);
 
         $validator = $this->validatePayload($this->validPayload([
-            'room_id' => $inactiveRoom->id,
+            'resource_id' => $inactiveRoom->id,
         ]));
         $this->assertTrue($validator->fails());
     }

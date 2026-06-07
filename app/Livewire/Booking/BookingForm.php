@@ -134,7 +134,7 @@ class BookingForm extends Component
             }
 
             $this->bookingId = $booking->id;
-            $this->roomId = (string) $booking->room_id;
+            $this->roomId = (string) $booking->resource_id;
             $resource = $booking->resource;
             $this->resourceType = $resource instanceof Resource ? $resource->type->value : 'room';
             $this->startsAt = $booking->starts_at->format('Y-m-d\TH:i');
@@ -333,7 +333,7 @@ class BookingForm extends Component
         $user = auth()->user();
 
         $payload = [
-            'room_id' => (int) $this->roomId,
+            'resource_id' => (int) $this->roomId,
             'subject' => $this->subject,
             'agenda' => $this->agenda,
             'attendee_count' => $this->attendeeCount,

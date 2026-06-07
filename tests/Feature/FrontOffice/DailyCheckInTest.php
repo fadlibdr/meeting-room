@@ -43,7 +43,7 @@ class DailyCheckInTest extends TestCase
     private function approvedBookingAt(string $utcStart, ?string $subject = null): Booking
     {
         return Booking::factory()->approved()->create([
-            'room_id' => Room::factory(),
+            'resource_id' => Room::factory(),
             'subject' => $subject ?? 'Rapat '.fake()->unique()->bothify('####'),
             'starts_at' => $utcStart,
             'ends_at' => Carbon::parse($utcStart)->addHour(),
@@ -132,7 +132,7 @@ class DailyCheckInTest extends TestCase
 
     public function test_cannot_check_in_a_non_approved_booking(): void
     {
-        $booking = Booking::factory()->submitted()->create(['room_id' => Room::factory()]);
+        $booking = Booking::factory()->submitted()->create(['resource_id' => Room::factory()]);
 
         Livewire::actingAs($this->userWithRole('front_office'))
             ->test(DailyCheckIn::class)

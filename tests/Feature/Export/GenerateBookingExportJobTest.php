@@ -25,7 +25,7 @@ class GenerateBookingExportJobTest extends TestCase
     private function bookingFor(User $owner, string $subject = 'Rapat'): Booking
     {
         return Booking::factory()->approved()->create([
-            'room_id' => Room::factory(),
+            'resource_id' => Room::factory(),
             'requester_unit_id' => Unit::factory(),
             'requester_user_id' => $owner->id,
             'subject' => $subject,

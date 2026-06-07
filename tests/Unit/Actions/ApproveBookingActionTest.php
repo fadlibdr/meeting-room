@@ -83,7 +83,7 @@ class ApproveBookingActionTest extends TestCase
 
         $booking = Booking::create([
             'booking_code' => 'BKG-20260505-TEST',
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $requester->id,
             'requester_unit_id' => $unit->id,
             'created_by_user_id' => $requester->id,
@@ -200,7 +200,7 @@ class ApproveBookingActionTest extends TestCase
         $otherRequester = User::factory()->create();
         Booking::create([
             'booking_code' => 'BKG-20260505-RACE',
-            'room_id' => $booking->room_id,
+            'resource_id' => $booking->resource_id,
             'requester_user_id' => $otherRequester->id,
             'created_by_user_id' => $otherRequester->id,
             'subject' => 'Conflicting booking',
@@ -226,7 +226,7 @@ class ApproveBookingActionTest extends TestCase
         // Plant the conflicting booking
         Booking::create([
             'booking_code' => 'BKG-20260505-RACE',
-            'room_id' => $booking->room_id,
+            'resource_id' => $booking->resource_id,
             'requester_user_id' => User::factory()->create()->id,
             'created_by_user_id' => User::factory()->create()->id,
             'subject' => 'Conflict',

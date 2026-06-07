@@ -78,7 +78,7 @@ class UpdateBookingActionTest extends TestCase
 
         $attributes = [
             'booking_code' => sprintf('BKG-UPD-%06d', ++$this->bookingSeq),
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $requester->id,
             'requester_unit_id' => $unit->id,
             'created_by_user_id' => $requester->id,
@@ -129,7 +129,7 @@ class UpdateBookingActionTest extends TestCase
     }
 
     /**
-     * @return array{room_id: int, subject: string, agenda: string, attendee_count: int, starts_at: string, ends_at: string}
+     * @return array{resource_id: int, subject: string, agenda: string, attendee_count: int, starts_at: string, ends_at: string}
      */
     private function payload(
         Room $room,
@@ -137,7 +137,7 @@ class UpdateBookingActionTest extends TestCase
         string $endsAt = '2026-05-06 15:00:00',
     ): array {
         return [
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => 'Rapat Diperbarui',
             'agenda' => 'Agenda diperbarui.',
             'attendee_count' => 6,
@@ -273,7 +273,7 @@ class UpdateBookingActionTest extends TestCase
 
         $this->action()->execute($booking, $actor, $this->payload($newRoom));
 
-        $this->assertSame($newRoom->id, $booking->fresh()->room_id);
+        $this->assertSame($newRoom->id, $booking->fresh()->resource_id);
     }
 
     // ─── AUDIT ───────────────────────────────────────────────────────

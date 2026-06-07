@@ -34,7 +34,7 @@
         $usageByRoom = \App\Models\Booking::query()
             ->whereDate('starts_at', $today)
             ->whereIn('status', ['approved', 'submitted'])
-            ->selectRaw('room_id, COUNT(*) as c')->groupBy('room_id')->pluck('c', 'room_id');
+            ->selectRaw('resource_id, COUNT(*) as c')->groupBy('resource_id')->pluck('c', 'resource_id');
         $rooms = \App\Models\Room::query()->where('status', 'active')->orderBy('name')->get();
         $maxUsage = max(1, (int) ($usageByRoom->max() ?? 0));
     }

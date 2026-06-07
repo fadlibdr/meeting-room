@@ -44,7 +44,7 @@ class RoomController extends Controller
 
         return response()->json([
             'data' => [
-                'room_id' => $room->id,
+                'resource_id' => $room->id,
                 'starts_at' => $startsAt->toIso8601String(),
                 'ends_at' => $endsAt->toIso8601String(),
                 'available' => $found->isEmpty(),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1;
 
+use App\Enums\ResourceType;
 use App\Enums\RoomApprovalMode;
 use App\Models\Booking;
 use App\Models\Role;
@@ -63,7 +64,7 @@ class ApiV1Test extends TestCase
     {
         $room = Room::factory()->create(['status' => 'active', 'approval_mode' => RoomApprovalMode::None->value]);
         Booking::factory()->approved()->create([
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'starts_at' => '2026-05-06 02:00:00',
             'ends_at' => '2026-05-06 03:00:00',
         ]);
@@ -107,18 +108,36 @@ class ApiV1Test extends TestCase
         $user = $this->requester();
         Sanctum::actingAs($user, ['read', 'booking:write']);
 
+        // Legacy room_id is accepted as a deprecated write alias (E3).
         $this->postJson('/api/v1/bookings', [
             'room_id' => $room->id, 'subject' => 'Rapat API', 'attendee_count' => 3,
             'starts_at' => '2026-05-07 02:00:00', 'ends_at' => '2026-05-07 03:00:00',
-        ])->assertStatus(201)->assertJsonPath('data.subject', 'Rapat API');
+        ])->assertStatus(201)
+            ->assertJsonPath('data.subject', 'Rapat API')
+            ->assertJsonPath('data.resource.id', $room->id);
 
-        $this->assertDatabaseHas('bookings', ['subject' => 'Rapat API', 'source' => 'api', 'requester_user_id' => $user->id]);
+        $this->assertDatabaseHas('bookings', ['subject' => 'Rapat API', 'source' => 'api', 'requester_user_id' => $user->id, 'resource_id' => $room->id]);
 
         // Overlapping slot is rejected by the conflict service.
         $this->postJson('/api/v1/bookings', [
             'room_id' => $room->id, 'subject' => 'Bentrok', 'attendee_count' => 3,
             'starts_at' => '2026-05-07 02:30:00', 'ends_at' => '2026-05-07 03:30:00',
         ])->assertStatus(422);
+    }
+
+    public function test_create_booking_with_resource_id_books_a_non_room_resource(): void
+    {
+        $vehicle = \App\Models\Resource::factory()->ofType(ResourceType::Vehicle)->create();
+        $user = $this->requester();
+        Sanctum::actingAs($user, ['read', 'booking:write']);
+
+        $this->postJson('/api/v1/bookings', [
+            'resource_id' => $vehicle->id, 'subject' => 'Pinjam mobil', 'attendee_count' => 2,
+            'starts_at' => '2026-05-08 02:00:00', 'ends_at' => '2026-05-08 03:00:00',
+        ])->assertStatus(201)
+            ->assertJsonPath('data.resource.id', $vehicle->id);
+
+        $this->assertDatabaseHas('bookings', ['subject' => 'Pinjam mobil', 'resource_id' => $vehicle->id]);
     }
 
     public function test_create_booking_forbidden_without_create_permission(): void

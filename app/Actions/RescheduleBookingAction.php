@@ -55,7 +55,7 @@ final class RescheduleBookingAction
      * Reschedule the Approved booking $original onto $newData, returning the
      * newly created booking B.
      *
-     * @param  array{room_id: int, subject: string, agenda?: ?string, attendee_count: int, starts_at: string, ends_at: string}  $newData
+     * @param  array{resource_id?: int, room_id?: int, subject: string, agenda?: ?string, attendee_count: int, starts_at: string, ends_at: string}  $newData
      *
      * @throws DomainException When $original is not Approved
      */
@@ -78,7 +78,7 @@ final class RescheduleBookingAction
     }
 
     /**
-     * @param  array{room_id: int, subject: string, agenda?: ?string, attendee_count: int, starts_at: string, ends_at: string}  $newData
+     * @param  array{resource_id?: int, room_id?: int, subject: string, agenda?: ?string, attendee_count: int, starts_at: string, ends_at: string}  $newData
      */
     private function performReschedule(Booking $original, User $actor, array $newData): Booking
     {

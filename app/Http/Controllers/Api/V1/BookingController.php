@@ -31,7 +31,7 @@ class BookingController extends Controller
 
         $bookings = Booking::query()
             ->where('requester_user_id', $user->id)
-            ->with('room:id,name')
+            ->with('resource:id,name')
             ->orderByDesc('starts_at')
             ->paginate(25);
 
@@ -47,8 +47,13 @@ class BookingController extends Controller
             abort(403, 'Anda tidak memiliki izin membuat reservasi.');
         }
 
+        // Accept the deprecated `room_id` field as an alias for `resource_id`.
+        $request->merge([
+            'resource_id' => $request->input('resource_id', $request->input('room_id')),
+        ]);
+
         $validated = $request->validate([
-            'room_id' => ['required', 'integer', Rule::exists('resources', 'id')->where('type', 'room')],
+            'resource_id' => ['required', 'integer', Rule::exists('resources', 'id')],
             'subject' => ['required', 'string', 'max:150'],
             'agenda' => ['nullable', 'string', 'max:5000'],
             'attendee_count' => ['required', 'integer', 'min:1'],
@@ -58,7 +63,7 @@ class BookingController extends Controller
 
         try {
             $booking = $submit->execute($user, [
-                'room_id' => (int) $validated['room_id'],
+                'resource_id' => (int) $validated['resource_id'],
                 'subject' => $validated['subject'],
                 'agenda' => $validated['agenda'] ?? null,
                 'attendee_count' => (int) $validated['attendee_count'],
@@ -75,7 +80,7 @@ class BookingController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        return (new BookingResource($booking->load('room:id,name')))
+        return (new BookingResource($booking->load('resource:id,name')))
             ->response()
             ->setStatusCode(201);
     }

@@ -186,7 +186,7 @@ class RoomBlockForm extends Component
         }
 
         return Booking::query()
-            ->where('room_id', $this->roomId)
+            ->where('resource_id', $this->roomId)
             ->whereIn('status', [BookingStatus::Submitted->value, BookingStatus::Approved->value])
             ->where('starts_at', '<', $end)
             ->where('ends_at', '>', $start)

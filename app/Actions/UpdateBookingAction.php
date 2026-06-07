@@ -65,7 +65,7 @@ final class UpdateBookingAction
     /**
      * Apply edits to a Draft or Submitted booking.
      *
-     * @param  array{room_id: int, subject: string, agenda: string|null, attendee_count: int, starts_at: string, ends_at: string}  $data
+     * @param  array{resource_id?: int, room_id?: int, subject: string, agenda: string|null, attendee_count: int, starts_at: string, ends_at: string}  $data  Provide resource_id; room_id accepted as a deprecated alias.
      *
      * @throws BookingConflictException When the new slot overlaps another booking/block
      * @throws DomainException When the booking is not in an editable status
@@ -81,15 +81,18 @@ final class UpdateBookingAction
     }
 
     /**
-     * @param  array{room_id: int, subject: string, agenda: string|null, attendee_count: int, starts_at: string, ends_at: string}  $data
+     * @param  array{resource_id?: int, room_id?: int, subject: string, agenda: string|null, attendee_count: int, starts_at: string, ends_at: string}  $data  Provide resource_id; room_id accepted as a deprecated alias.
      */
     private function performUpdate(Booking $booking, User $actor, array $data): Booking
     {
-        // 1. Lock the target room (the edit may move the booking to a new room).
+        // 1. Lock the target resource (the edit may move the booking). Accept
+        // the deprecated `room_id` key as an alias for `resource_id` (E3).
+        $resourceId = $data['resource_id'] ?? $data['room_id'];
+
         /** @var \App\Models\Resource $room */
         $room = Resource::query()
             ->lockForUpdate()
-            ->findOrFail($data['room_id']);
+            ->findOrFail($resourceId);
 
         // 2. Reload the booking inside the lock — fresh state.
         /** @var Booking $booking */
@@ -126,7 +129,7 @@ final class UpdateBookingAction
 
         // 6. Apply the field changes — plus the revert, on the Submitted path.
         $attributes = [
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => $data['subject'],
             'agenda' => $data['agenda'] ?? null,
             'attendee_count' => $data['attendee_count'],
@@ -169,7 +172,7 @@ final class UpdateBookingAction
                 $actor->name,
             ),
             'context' => [
-                'room_id' => $room->id,
+                'resource_id' => $room->id,
                 'reverted_to_draft' => $wasSubmitted,
             ],
         ]);

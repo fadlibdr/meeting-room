@@ -69,8 +69,9 @@ components:
         booking_code: { type: string }
         subject: { type: string }
         status: { type: string, enum: [draft, submitted, approved, rejected, cancelled, completed] }
-        room:
+        resource:
           type: object
+          description: The booked resource (room or equipment/vehicle/desk).
           properties:
             id: { type: integer }
             name: { type: [string, "null"] }
@@ -100,7 +101,7 @@ components:
             booking_code: { type: string }
             subject: { type: string }
             status: { type: string }
-            room_id: { type: integer }
+            resource_id: { type: integer }
             requester_user_id: { type: integer }
             starts_at: { type: string, format: date-time }
             ends_at: { type: string, format: date-time }
@@ -142,7 +143,7 @@ paths:
                   data:
                     type: object
                     properties:
-                      room_id: { type: integer }
+                      resource_id: { type: integer }
                       available: { type: boolean }
                       conflicts:
                         type: array
@@ -170,16 +171,19 @@ paths:
       description: >
         Routes through the same submit pipeline as the web app — conflict
         detection and the approval chain apply. Requires the caller to hold the
-        bookings.create permission.
+        bookings.create permission. `resource_id` may target any active resource
+        (room/equipment/vehicle/desk). The legacy `room_id` field is still
+        accepted as a deprecated alias for `resource_id`.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [room_id, subject, attendee_count, starts_at, ends_at]
+              required: [resource_id, subject, attendee_count, starts_at, ends_at]
               properties:
-                room_id: { type: integer }
+                resource_id: { type: integer, description: "Target resource id (any type)." }
+                room_id: { type: integer, deprecated: true, description: "Deprecated alias for resource_id." }
                 subject: { type: string, maxLength: 150 }
                 agenda: { type: [string, "null"] }
                 attendee_count: { type: integer, minimum: 1 }

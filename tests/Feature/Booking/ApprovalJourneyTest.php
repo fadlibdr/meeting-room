@@ -86,7 +86,7 @@ class ApprovalJourneyTest extends TestCase
         ]);
 
         $booking = $this->submitAction->execute($requester, [
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => 'Rapat Lintas Unit',
             'attendee_count' => 6,
             'starts_at' => '2026-05-05 10:00:00',
@@ -205,7 +205,7 @@ class ApprovalJourneyTest extends TestCase
         ]);
 
         $booking = $this->submitAction->execute($requester, [
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => 'Rapat Mandiri',
             'attendee_count' => 3,
             'starts_at' => '2026-05-05 10:00:00',
@@ -233,7 +233,7 @@ class ApprovalJourneyTest extends TestCase
         $poacher = $this->userWithRole('requester');
         Booking::create([
             'booking_code' => 'BKG-20260505-POACH',
-            'room_id' => $booking->room_id,
+            'resource_id' => $booking->resource_id,
             'requester_user_id' => $poacher->id,
             'created_by_user_id' => $poacher->id,
             'subject' => 'Bentrok',

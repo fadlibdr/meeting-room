@@ -41,7 +41,7 @@ class QrCheckInTest extends TestCase
     private function approvedBooking(array $attrs = []): Booking
     {
         return Booking::factory()->approved()->create(array_merge([
-            'room_id' => Room::factory(),
+            'resource_id' => Room::factory(),
             'requester_user_id' => User::factory(),
             'starts_at' => '2026-06-08 03:00:00',
             'ends_at' => '2026-06-08 04:00:00',

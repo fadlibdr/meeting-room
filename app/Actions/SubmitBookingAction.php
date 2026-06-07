@@ -55,14 +55,15 @@ final class SubmitBookingAction
 
     /**
      * @param  array{
-     *     room_id: int,
+     *     resource_id?: int,
+     *     room_id?: int,
      *     subject: string,
      *     agenda?: ?string,
      *     attendee_count: int,
      *     starts_at: string,
      *     ends_at: string,
      *     source?: string
-     * }  $input
+     * }  $input  Provide resource_id; room_id is accepted as a deprecated alias.
      */
     public function execute(User $requester, array $input, bool $notify = true): Booking
     {
@@ -93,11 +94,14 @@ final class SubmitBookingAction
      */
     private function performSubmit(User $requester, array $input): Booking
     {
-        // 1. Lock the room row
+        // 1. Lock the resource row. Accept the deprecated `room_id` input key
+        // as an alias for `resource_id` (Stage 3 E3 — backward compatible).
+        $resourceId = $input['resource_id'] ?? $input['room_id'];
+
         /** @var \App\Models\Resource $room */
         $room = Resource::query()
             ->lockForUpdate()
-            ->findOrFail($input['room_id']);
+            ->findOrFail($resourceId);
 
         // 2. Defense-in-depth: room must still be active.
         // status is cast to RoomStatus enum — compare against enum, not string.
@@ -121,7 +125,7 @@ final class SubmitBookingAction
         // 5. Create booking row
         $booking = Booking::create([
             'booking_code' => $this->generateBookingCode(),
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $requester->id,
             'requester_unit_id' => $requester->unit_id,
             'created_by_user_id' => $requester->id,
@@ -172,7 +176,7 @@ final class SubmitBookingAction
             ),
             'context' => [
                 'approval_mode' => $room->approval_mode->value,
-                'room_id' => $room->id,
+                'resource_id' => $room->id,
                 'auto_approved' => $room->approval_mode === RoomApprovalMode::None,
                 'starts_at' => $startsAt->toIso8601String(),
                 'ends_at' => $endsAt->toIso8601String(),

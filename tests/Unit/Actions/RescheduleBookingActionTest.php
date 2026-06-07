@@ -61,7 +61,7 @@ class RescheduleBookingActionTest extends TestCase
 
         $this->assertNotSame($a->id, $b->id);
         $this->assertSame(BookingStatus::Submitted, $b->status);
-        $this->assertSame($roomB->id, $b->room_id);
+        $this->assertSame($roomB->id, $b->resource_id);
         $this->assertSame('Rapat Dijadwalkan Ulang', $b->subject);
     }
 
@@ -272,7 +272,7 @@ class RescheduleBookingActionTest extends TestCase
         );
 
         $this->assertSame(BookingStatus::Submitted, $b->status);
-        $this->assertSame($room->id, $b->room_id);
+        $this->assertSame($room->id, $b->resource_id);
         $a->refresh();
         $this->assertSame(BookingStatus::Cancelled, $a->status);
     }
@@ -311,7 +311,7 @@ class RescheduleBookingActionTest extends TestCase
     {
         $booking = Booking::create([
             'booking_code' => $this->bookingCode(),
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $requester->id,
             'requester_unit_id' => $requester->unit_id,
             'created_by_user_id' => $requester->id,
@@ -341,7 +341,7 @@ class RescheduleBookingActionTest extends TestCase
     {
         return Booking::create([
             'booking_code' => $this->bookingCode(),
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $requester->id,
             'requester_unit_id' => $requester->unit_id,
             'created_by_user_id' => $requester->id,
@@ -356,12 +356,12 @@ class RescheduleBookingActionTest extends TestCase
     }
 
     /**
-     * @return array{room_id: int, subject: string, attendee_count: int, starts_at: string, ends_at: string}
+     * @return array{resource_id: int, subject: string, attendee_count: int, starts_at: string, ends_at: string}
      */
     private function newData(Room $room, Carbon $start, Carbon $end): array
     {
         return [
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'subject' => 'Rapat Dijadwalkan Ulang',
             'attendee_count' => 6,
             'starts_at' => $start->toDateTimeString(),

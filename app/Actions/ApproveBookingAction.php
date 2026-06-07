@@ -11,7 +11,7 @@ use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\BookingApproval;
 use App\Models\BookingStatusHistory;
-use App\Models\Room;
+use App\Models\Resource;
 use App\Models\User;
 use App\Notifications\BookingApprovedNotification;
 use App\Notifications\BookingSubmittedNotification;
@@ -88,11 +88,11 @@ final class ApproveBookingAction
      */
     private function performApprove(Booking $booking, User $actor, ?string $notes): array
     {
-        // 1. Lock the room row
-        /** @var Room $room */
-        $room = Room::query()
+        // 1. Lock the resource row
+        /** @var \App\Models\Resource $room */
+        $room = Resource::query()
             ->lockForUpdate()
-            ->findOrFail($booking->room_id);
+            ->findOrFail($booking->resource_id);
 
         // 2. Reload booking inside the lock — get fresh state
         /** @var Booking $booking */
@@ -181,7 +181,7 @@ final class ApproveBookingAction
                 $actor->name,
             ),
             'context' => [
-                'room_id' => $room->id,
+                'resource_id' => $room->id,
                 'approval_step' => $approvalRow->sequence_no,
                 'finalized' => $finalized,
                 'advanced_to_step' => $next?->sequence_no,

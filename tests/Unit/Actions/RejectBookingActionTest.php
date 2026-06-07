@@ -85,7 +85,7 @@ class RejectBookingActionTest extends TestCase
 
         $booking = Booking::create([
             'booking_code' => 'BKG-20260505-TEST',
-            'room_id' => $room->id,
+            'resource_id' => $room->id,
             'requester_user_id' => $requester->id,
             'requester_unit_id' => $unit->id,
             'created_by_user_id' => $requester->id,

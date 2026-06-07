@@ -33,7 +33,7 @@ final class CreateRecurringBookingAction
     ) {}
 
     /**
-     * @param  array{room_id: int, subject: string, agenda?: ?string, attendee_count: int, starts_at: string, ends_at: string, source?: string}  $input
+     * @param  array{resource_id?: int, room_id?: int, subject: string, agenda?: ?string, attendee_count: int, starts_at: string, ends_at: string, source?: string}  $input
      * @return array{created: Collection<int, Booking>, skipped: list<array{starts_at: string, reason: string}>}
      */
     public function execute(
