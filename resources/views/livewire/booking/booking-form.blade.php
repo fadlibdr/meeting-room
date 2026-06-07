@@ -200,11 +200,20 @@
                 </div>
             @endif
 
-            {{-- Step 2: Pilih Ruangan --}}
+            {{-- Step 2: Pilih Sumber Daya --}}
             <div class="mt-6 pt-6" style="border-top: 1px solid var(--slate-100);">
-                <h2 class="card__h">{{ __('Pilih Ruangan') }} <span style="color: var(--red-500);">*</span></h2>
+                <div class="flex flex-wrap items-end justify-between gap-3">
+                    <h2 class="card__h">{{ __('Pilih Ruangan') }} <span style="color: var(--red-500);">*</span></h2>
+                    <div style="min-width: 200px;">
+                        <select wire:model.live="resourceType" class="select" aria-label="{{ __('Jenis sumber daya') }}">
+                            @foreach(\App\Enums\ResourceType::cases() as $t)
+                                <option value="{{ $t->value }}">{{ $t->label() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
 
-                <livewire:booking.room-availability-picker :starts-at="$startsAt" :ends-at="$endsAt" :attendee-count="$attendeeCount" :selected-room-id="(int) $roomId" :exclude-booking-id="$bookingId" />
+                <livewire:booking.room-availability-picker :starts-at="$startsAt" :ends-at="$endsAt" :attendee-count="$attendeeCount" :selected-room-id="(int) $roomId" :exclude-booking-id="$bookingId" :resource-type="$resourceType" wire:key="picker-{{ $resourceType }}" />
 
                 @error('roomId')
                     <p class="field__err mt-3" role="alert">{{ $message }}</p>
