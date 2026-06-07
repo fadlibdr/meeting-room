@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ApplyTenantBranding;
 use App\Http\Middleware\CorrelationId;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsurePlatformAdmin;
@@ -37,6 +38,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Stage 4a P2b: resolve the tenant from the host before anything else (web + api).
         $middleware->web(prepend: [ResolveTenant::class]);
         $middleware->api(prepend: [ResolveTenant::class]);
+
+        // Stage 4 4b: apply the resolved tenant's white-label branding (web).
+        $middleware->web(append: [ApplyTenantBranding::class]);
 
         // Cross-cutting 1.4: request/correlation id + actor in log context (web + api).
         $middleware->web(append: [CorrelationId::class]);

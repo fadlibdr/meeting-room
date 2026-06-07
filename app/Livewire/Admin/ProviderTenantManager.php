@@ -27,6 +27,15 @@ class ProviderTenantManager extends Component
 
     public string $feedback = '';
 
+    // 4b white-label branding edit
+    public ?int $editingId = null;
+
+    public string $brandName = '';
+
+    public string $brandColor = '';
+
+    public string $logoUrl = '';
+
     private function guard(): void
     {
         $user = auth()->user();
@@ -59,6 +68,46 @@ class ProviderTenantManager extends Component
 
         $this->feedback = __('Penyewa ":name" dibuat (slug: :slug).', ['name' => $tenant->name, 'slug' => $tenant->slug]);
         $this->showForm = false;
+    }
+
+    public function editBranding(int $tenantId): void
+    {
+        $this->guard();
+        $tenant = Tenant::findOrFail($tenantId);
+        $this->editingId = $tenant->id;
+        $this->brandName = $tenant->brand_name ?? '';
+        $this->brandColor = $tenant->brand_color ?? '';
+        $this->logoUrl = $tenant->logo_url ?? '';
+        $this->resetValidation();
+    }
+
+    public function saveBranding(): void
+    {
+        $this->guard();
+        if ($this->editingId === null) {
+            return;
+        }
+
+        $validated = $this->validate([
+            'brandName' => ['nullable', 'string', 'max:120'],
+            'brandColor' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'logoUrl' => ['nullable', 'url', 'max:255'],
+        ]);
+
+        Tenant::findOrFail($this->editingId)->update([
+            'brand_name' => $validated['brandName'] ?: null,
+            'brand_color' => $validated['brandColor'] ?: null,
+            'logo_url' => $validated['logoUrl'] ?: null,
+        ]);
+
+        $this->feedback = __('Branding penyewa diperbarui.');
+        $this->editingId = null;
+    }
+
+    public function cancelBranding(): void
+    {
+        $this->editingId = null;
+        $this->resetValidation();
     }
 
     public function toggle(int $tenantId): void
