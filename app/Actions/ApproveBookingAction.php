@@ -17,6 +17,8 @@ use App\Notifications\BookingApprovedNotification;
 use App\Notifications\BookingSubmittedNotification;
 use App\Policies\BookingPolicy;
 use App\Services\BookingConflictService;
+use App\Services\Calendar\CalendarSyncDispatcher;
+use App\Services\Calendar\CalendarSyncService;
 use App\Services\WebhookDispatcher;
 use DomainException;
 use Illuminate\Support\Carbon;
@@ -74,6 +76,7 @@ final class ApproveBookingAction
             User::findOrFail($approved->requester_user_id)
                 ->notify(new BookingApprovedNotification($approved));
             app(WebhookDispatcher::class)->dispatch(WebhookEvent::BookingApproved, $approved);
+            app(CalendarSyncDispatcher::class)->dispatch($approved, CalendarSyncService::UPSERT);
         } elseif ($approved->current_approver_user_id !== null) {
             // Multi-step chain advanced → tell the NEXT approver (Stage 3 B).
             User::findOrFail($approved->current_approver_user_id)

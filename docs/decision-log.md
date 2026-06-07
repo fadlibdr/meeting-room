@@ -165,6 +165,12 @@ Run `docs/loadtest.js` (k6) against **staging** and record p95 latency + error r
 **Consequence:** Adds `users.calendar_feed_token` (migration), `CalendarFeedController`, `CalendarSubscription` Livewire page, two routes, a menu link. No new dependency. Phase F part 2a.
 **Status:** Accepted (7 Jun 2026, `feat/stage3-calendar-ics-feed`).
 
+### ADR-025 · Two-way calendar sync is a flag-gated, provider-driver engine (scaffold pending live creds)
+**Decision:** Stage-3 F.2b/c adds outbound **two-way** sync (create/update/delete real events) for **Microsoft Graph** and **Google Calendar** behind `config/calendar.php` (`CALENDAR_SYNC_ENABLED`, off by default). A `CalendarProvider` contract has `MicrosoftGraphProvider` + `GoogleCalendarProvider` drivers built to the documented Graph v1.0 / Calendar v3 REST contracts (pure `Http` calls). `CalendarSyncService` (delegated mode, implemented) writes to each calendar the booking's requester has connected (`calendar_connections`, encrypted tokens) and records the external event id (`booking_calendar_events`) so later updates/deletes target it; **application/admin-consent mode is config-selectable but left as an activation stub**. A queued `SyncBookingToCalendarsJob` is fired post-commit (`CalendarSyncDispatcher`, mirroring webhooks) from Submit(approved)/Approve(finalized)/Cancel.
+**Context:** Per the chosen consent answer (support both; scaffold now). The engine is **fully unit-tested with `Http::fake`** but **cannot be validated against the live APIs** until an Entra app (Graph Calendars perms) and a GCP OAuth client exist — so it ships disabled as activation-ready scaffold. Deliberately deferred to activation follow-ups: the per-user OAuth *connect* flow (creating `calendar_connections` rows), token refresh-on-expiry, application-mode mailbox iteration, and reconciliation.
+**Consequence:** Adds `calendar_connections` + `booking_calendar_events` (migrations), `config/calendar.php`, the provider contract + 2 drivers, `CalendarSyncService`/`CalendarSyncDispatcher`/`SyncBookingToCalendarsJob`, and three post-commit dispatch lines. No new Composer dependency. Phase F part 2b/2c (scaffold).
+**Status:** Accepted (7 Jun 2026, `feat/stage3-calendar-twoway`). Activation is config + connect-flow follow-up.
+
 ---
 
 *Internal Use Only • BPJS Kesehatan • Architecture Decision Log v1.0*

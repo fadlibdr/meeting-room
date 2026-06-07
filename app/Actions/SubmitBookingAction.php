@@ -19,6 +19,8 @@ use App\Notifications\BookingSubmittedNotification;
 use App\Policies\BookingPolicy;
 use App\Services\ApprovalRoutingService;
 use App\Services\BookingConflictService;
+use App\Services\Calendar\CalendarSyncDispatcher;
+use App\Services\Calendar\CalendarSyncService;
 use App\Services\WebhookDispatcher;
 use Carbon\CarbonImmutable;
 use DomainException;
@@ -85,6 +87,10 @@ final class SubmitBookingAction
             $booking->status === BookingStatus::Approved ? WebhookEvent::BookingApproved : WebhookEvent::BookingSubmitted,
             $booking,
         );
+
+        if ($booking->status === BookingStatus::Approved) {
+            app(CalendarSyncDispatcher::class)->dispatch($booking, CalendarSyncService::UPSERT);
+        }
 
         return $booking;
     }
