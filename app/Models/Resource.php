@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ResourceType;
 use App\Enums\RoomApprovalMode;
 use App\Enums\RoomStatus;
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +18,7 @@ use Illuminate\Support\Carbon;
  * legacy {@see Room} model is a type-scoped subclass of this.
  *
  * @property int $id
+ * @property int|null $tenant_id
  * @property ResourceType $type
  * @property string $code
  * @property string $name
@@ -35,6 +37,7 @@ use Illuminate\Support\Carbon;
  */
 class Resource extends Model
 {
+    use BelongsToTenant;
     use HasFactory;
 
     protected $table = 'resources';

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BookingStatus;
 use App\Enums\RoomApprovalMode;
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int|null $tenant_id
  * @property string $booking_code
  * @property int $resource_id
  * @property int $requester_user_id
@@ -46,6 +48,7 @@ use Illuminate\Support\Carbon;
  */
 class Booking extends Model
 {
+    use BelongsToTenant;
     use HasFactory;
 
     protected $fillable = [
