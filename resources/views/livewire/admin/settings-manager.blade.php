@@ -20,8 +20,19 @@
     @endif
 
     {{-- Settings grouped by section --}}
+    @php
+        $groupLabels = [
+            'booking' => __('Reservasi'),
+            'notifications' => __('Notifikasi'),
+            'system' => __('Sistem'),
+            'users' => __('Pengguna'),
+            'email' => __('Email (SMTP)'),
+            'sso' => __('SSO Microsoft'),
+            'calendar' => __('Sinkronisasi Kalender'),
+        ];
+    @endphp
     @forelse($groupedSettings as $group => $settings)
-        <x-bpjs.card :title="ucfirst($group)" rise>
+        <x-bpjs.card :title="$groupLabels[$group] ?? ucfirst($group)" rise>
             <div style="display: flex; flex-direction: column;">
                 @foreach($settings as $setting)
                     <div class="flex items-start justify-between gap-4" style="padding: 16px 0; border-top: 1px solid var(--slate-100);">
