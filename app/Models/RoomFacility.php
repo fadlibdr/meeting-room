@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,6 +20,7 @@ use Illuminate\Support\Carbon;
  */
 class RoomFacility extends Model
 {
+    use BelongsToTenant;
     use HasFactory;
 
     protected $fillable = ['code', 'name', 'category', 'icon', 'is_active'];
