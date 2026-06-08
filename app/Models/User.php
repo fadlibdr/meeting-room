@@ -102,6 +102,14 @@ class User extends Authenticatable
         return $this->belongsTo(Unit::class);
     }
 
+    /**
+     * @return BelongsTo<Tenant, $this>
+     */
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
     public function approver(): BelongsTo
     {
         return $this->belongsTo(self::class, 'approver_user_id');

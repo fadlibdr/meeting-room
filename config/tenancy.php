@@ -11,4 +11,5 @@ return [
     | spike covers ONE vertical (resources + bookings); full rollout is P1+.
     */
     'enabled' => (bool) env('TENANCY_ENABLED', false),
+    'allow_signup' => (bool) env('TENANCY_ALLOW_SIGNUP', false),
 ];
