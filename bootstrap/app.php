@@ -50,6 +50,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Cross-cutting 1.1: baseline security headers on every response (web + api).
         $middleware->append(SecurityHeaders::class);
+
+        // Stage 4f.4: the cookie/consent choice is set by JS and read server-side
+        // to gate non-essential scripts, so it must NOT be encrypted.
+        $middleware->encryptCookies(except: ['cookie_consent']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
