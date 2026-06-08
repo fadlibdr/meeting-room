@@ -37,6 +37,12 @@ class RoomUtilizationReportTest extends TestCase
 
     public function test_no_show_metric_counts_auto_released_bookings(): void
     {
+        // Freeze "now" to the start of the test day so the asserted booking
+        // window is deterministically in the future (the "unreclaimed" metric
+        // depends on now()). Without this the test is a time-bomb that flips
+        // once the wall clock passes 2026-06-08. travelTo auto-resets on teardown.
+        $this->travelTo(CarbonImmutable::parse('2026-06-08 00:00:00', 'UTC'));
+
         $room = Room::factory()->create();
         $unit = Unit::factory()->create();
 
