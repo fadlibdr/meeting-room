@@ -12,6 +12,7 @@ use App\Http\Controllers\BookingAttachmentController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CalendarConnectController;
 use App\Http\Controllers\CalendarFeedController;
+use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\DataSubjectController;
 use App\Http\Controllers\ExportController;
@@ -47,6 +48,9 @@ Route::view('offline', 'offline')->name('offline');
 
 // Stage 4f.1 — public trust/legal pages (terms, privacy, dpa, security).
 Route::get('legal/{doc}', [LegalController::class, 'show'])->name('legal.show');
+
+// Stage 4g.2 — public changelog (rendered from CHANGELOG.md).
+Route::get('changelog', [ChangelogController::class, 'show'])->name('changelog');
 
 // Stage 3 A.3 — QR self-check-in (public; the temporary signed URL is the credential).
 Route::get('bookings/{booking}/checkin', [CheckInController::class, 'checkIn'])
