@@ -4,6 +4,7 @@ use App\Http\Middleware\ApplyTenantBranding;
 use App\Http\Middleware\CorrelationId;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsurePlatformAdmin;
+use App\Http\Middleware\EnsureSignupAllowed;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\SecurityHeaders;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'user.active' => EnsureUserIsActive::class,
             'permission' => EnsurePermission::class,
             'platform.admin' => EnsurePlatformAdmin::class,
+            'signup.allowed' => EnsureSignupAllowed::class,
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
         ]);
