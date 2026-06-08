@@ -31,6 +31,7 @@ use App\Livewire\Booking\BookingForm;
 use App\Livewire\Booking\BookingList;
 use App\Livewire\CalendarSubscription;
 use App\Livewire\FrontOffice\DailyCheckIn;
+use App\Livewire\Support\ContactForm;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Route;
 
@@ -225,6 +226,9 @@ Route::middleware(['auth', 'user.active'])->group(function () {
 
     // Stage 3 C — personal API token management
     Route::get('api-tokens', ApiTokenManager::class)->name('api-tokens.index');
+
+    // Stage 4g.1 — in-app support / contact form.
+    Route::get('support', ContactForm::class)->name('support');
 
     // Stage 3 C — browsable API docs (Redoc over docs/openapi-v1.yaml)
     Route::get('api-docs', [ApiDocsController::class, 'page'])->name('api-docs.page');

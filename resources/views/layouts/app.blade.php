@@ -243,6 +243,9 @@
                             <x-dropdown-link :href="route('api-docs.page')">
                                 {{ __('Dokumentasi API') }}
                             </x-dropdown-link>
+                            <x-dropdown-link :href="route('support')" wire:navigate>
+                                {{ __('Bantuan & Dukungan') }}
+                            </x-dropdown-link>
                             @hasPermission('app-settings.view')
                                 <x-dropdown-link :href="route('admin.settings.index')" wire:navigate>
                                     {{ __('common.settings') }}
