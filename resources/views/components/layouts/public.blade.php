@@ -8,6 +8,11 @@
         <title>{{ ($pageTitle ?? '') ? $pageTitle.' · ' : '' }}{{ config('app.name', 'BPJS Kesehatan') }}</title>
         <meta name="theme-color" content="#005490">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        {{-- 4f.4 — non-essential (analytics) scripts load ONLY after opt-in. --}}
+        @if(\App\Support\Consent::granted('analytics'))
+            {{-- Place analytics/marketing tags here; gated on explicit consent. --}}
+        @endif
     </head>
     <body class="font-sans antialiased bg-slate-50 text-slate-800">
         <header class="border-b border-slate-200 bg-white">
@@ -46,5 +51,7 @@
                 <p class="mt-4 text-slate-400">© {{ date('Y') }} BPJS Kesehatan · Direktorat SDM dan Umum</p>
             </div>
         </footer>
+
+        <x-consent-banner />
     </body>
 </html>

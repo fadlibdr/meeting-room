@@ -280,5 +280,7 @@
                 </main>
             </div>
         </div>
+
+        <x-consent-banner />
     </body>
 </html>

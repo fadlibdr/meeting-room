@@ -81,5 +81,7 @@
                 </div>
             </div>
         </div>
+
+        <x-consent-banner />
     </body>
 </html>

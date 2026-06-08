@@ -11,6 +11,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Alpine: hide elements until Alpine initializes (used by the consent banner). */
+[x-cloak] { display: none !important; }
+
 /* ============================================================
    DESIGN TOKENS (CSS variables) — consumed by the component layer
    below. Mirror tailwind.config.js so utilities + components agree.
