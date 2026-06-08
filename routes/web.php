@@ -20,6 +20,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\StatusController;
+use App\Http\Controllers\TryDemoController;
 use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
 use App\Livewire\Admin\ProviderTenantManager;
@@ -59,6 +60,9 @@ Route::get('status', [StatusController::class, 'show'])->name('status');
 
 // Stage 4h.1 — go-to-market pages (scaffold; 404 unless marketing.enabled).
 Route::get('product/{page?}', [MarketingController::class, 'show'])->name('marketing.show');
+
+// Stage 4h.2 — public demo / sandbox "try it" entry (404 unless demo.enabled).
+Route::get('try', TryDemoController::class)->middleware('throttle:10,1')->name('demo.try');
 
 // Stage 3 A.3 — QR self-check-in (public; the temporary signed URL is the credential).
 Route::get('bookings/{booking}/checkin', [CheckInController::class, 'checkIn'])
