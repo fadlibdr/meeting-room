@@ -94,6 +94,22 @@
     <div class="grid grid-cols-1 gap-[18px]">
         <livewire:profile.update-profile-information-form />
         <livewire:profile.update-password-form />
+
+        {{-- 4f.2 — surface data-subject rights (export) + privacy policy --}}
+        <x-bpjs.card :title="__('Privasi & Data Saya')">
+            <p style="font-size: 13px; color: var(--slate-500); margin: 0 0 14px;">
+                {{ __('Anda berhak mengunduh salinan data pribadi Anda. Pelajari bagaimana data Anda diproses dalam Kebijakan Privasi kami.') }}
+            </p>
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ route('data.export.mine') }}" class="btn btn--primary">
+                    {{ __('Unduh Data Saya') }}
+                </a>
+                <a href="{{ route('legal.show', 'privacy') }}" class="btn btn--ghost">
+                    {{ __('Kebijakan Privasi') }}
+                </a>
+            </div>
+        </x-bpjs.card>
+
         <livewire:profile.delete-user-form />
     </div>
 </x-app-layout>
