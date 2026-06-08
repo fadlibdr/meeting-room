@@ -18,6 +18,7 @@ use App\Http\Controllers\DataSubjectController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\StatusController;
 use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
 use App\Livewire\Admin\ProviderTenantManager;
@@ -51,6 +52,9 @@ Route::get('legal/{doc}', [LegalController::class, 'show'])->name('legal.show');
 
 // Stage 4g.2 — public changelog (rendered from CHANGELOG.md).
 Route::get('changelog', [ChangelogController::class, 'show'])->name('changelog');
+
+// Stage 4g.3 — public status page (summarised up/degraded/down only).
+Route::get('status', [StatusController::class, 'show'])->name('status');
 
 // Stage 3 A.3 — QR self-check-in (public; the temporary signed URL is the credential).
 Route::get('bookings/{booking}/checkin', [CheckInController::class, 'checkIn'])
