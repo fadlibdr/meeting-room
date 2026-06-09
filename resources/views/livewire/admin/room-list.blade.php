@@ -65,7 +65,15 @@
                 @forelse($rooms as $room)
                     <tr>
                         <td class="font-mono text-slate-900">{{ $room->code }}</td>
-                        <td class="font-semibold text-slate-900">{{ $room->name }}</td>
+                        <td class="font-semibold text-slate-900">
+                            <div class="flex items-center gap-2.5">
+                                @if($room->photoUrl())
+                                    <img src="{{ $room->photoUrl() }}" alt="{{ $room->name }}"
+                                         class="h-9 w-9 rounded-md border border-slate-200 object-cover" />
+                                @endif
+                                <span>{{ $room->name }}</span>
+                            </div>
+                        </td>
                         <td class="text-slate-500">
                             {{ $room->location ?? '-' }}@if($room->floor) · {{ $room->floor }}@endif
                         </td>
