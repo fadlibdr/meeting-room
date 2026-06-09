@@ -40,12 +40,14 @@
     }
     $statusTotal = max(1, (int) $statusCounts->sum());
 
-    // --- Today's schedule ---
-    $todaySchedule = $canViewBookings
+    // --- This week's schedule (Mon–Sun) ---
+    $weekStart = $today->copy()->startOfWeek();
+    $weekEnd = $today->copy()->endOfWeek();
+    $weekSchedule = $canViewBookings
         ? \App\Models\Booking::with("room")
-            ->whereDate('starts_at', $today)
+            ->whereBetween('starts_at', [$weekStart->copy()->startOfDay(), $weekEnd->copy()->endOfDay()])
             ->whereIn('status', ['approved', 'submitted', 'completed'])
-            ->orderBy('starts_at')->take(8)->get()
+            ->orderBy('starts_at')->take(12)->get()
         : collect();
 
     // --- My pending approvals ---
@@ -143,10 +145,12 @@
     @if($canViewBookings || $canApprove)
         <div class="r-split mb-[18px]" style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 18px;">
             @if($canViewBookings)
-                <x-bpjs.card title="Jadwal Hari Ini" rise>
-                    @forelse($todaySchedule as $b)
+                <x-bpjs.card title="Jadwal Minggu Ini" rise>
+                    @forelse($weekSchedule as $b)
                         <div class="flex items-center gap-3" @if(!$loop->first) style="border-top: 1px solid var(--slate-100); padding-top: 11px; margin-top: 11px;" @endif>
-                            <span class="font-mono" style="font-size: 12px; color: var(--slate-500); width: 44px; flex-shrink: 0;">{{ $b->starts_at->format('H:i') }}</span>
+                            <span class="font-mono text-center" style="font-size: 11px; color: var(--slate-500); width: 52px; flex-shrink: 0; line-height: 1.25;">
+                                {{ $b->starts_at->locale(app()->getLocale())->isoFormat('ddd') }}<br>{{ $b->starts_at->format('H:i') }}
+                            </span>
                             <span style="width: 3px; align-self: stretch; min-height: 28px; border-radius: 3px; flex-shrink: 0; background: {{ $statusBar[$b->status->value] ?? 'var(--slate-300)' }};"></span>
                             <div class="flex-1 min-w-0">
                                 <div class="truncate" style="font-size: 13.5px; color: var(--slate-900); font-weight: 500;">{{ $b->subject }}</div>
@@ -156,7 +160,7 @@
                         </div>
                     @empty
                         <div class="text-center" style="padding: 24px 0; font-size: 13px; color: var(--slate-500);">
-                            {{ __('Tidak ada jadwal hari ini.') }}
+                            {{ __('Tidak ada jadwal minggu ini.') }}
                         </div>
                     @endforelse
                 </x-bpjs.card>

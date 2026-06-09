@@ -36,6 +36,9 @@ use Livewire\Component;
  * @property-read EloquentCollection<int, Room> $allActiveRooms
  * @property-read EloquentCollection<int, Booking> $bookings
  * @property-read array{open: ?string, close: ?string, slots: array<int, string>} $timeWindow
+ * @property-read array<int, CarbonImmutable> $weekDays
+ * @property-read array<int, array<int, array{date: CarbonImmutable, inMonth: bool}>> $monthGrid
+ * @property-read array<string, array<int, Booking>> $bookingsByDay
  *
  * @see docs/m1-submit-ui-spec.md
  */
@@ -58,11 +61,21 @@ class BookingCalendar extends Component
     public string $selectedDate = '';
 
     /**
+     * Calendar view mode: 'day' (time-grid by room), 'week' (7-day agenda),
+     * or 'month' (month grid). Persisted in the URL so a view survives refresh.
+     */
+    #[Url(as: 'view')]
+    public string $view = 'day';
+
+    /**
      * Room IDs to show. Empty array = show all active rooms (M1-D-Dec-3 default).
      *
      * @var array<int, int>
      */
     public array $roomFilterIds = [];
+
+    /** @var array<int, string> */
+    public const VIEWS = ['day', 'week', 'month'];
 
     public function mount(): void
     {
@@ -72,6 +85,51 @@ class BookingCalendar extends Component
             $this->selectedDate = CarbonImmutable::now($this->resolveTimezone())
                 ->format('Y-m-d');
         }
+
+        if (! in_array($this->view, self::VIEWS, true)) {
+            $this->view = 'day';
+        }
+    }
+
+    public function setView(string $view): void
+    {
+        if (in_array($view, self::VIEWS, true)) {
+            $this->view = $view;
+        }
+    }
+
+    /**
+     * Jump to the day view for a specific date (used by week/month cell clicks).
+     */
+    public function goToDay(string $date): void
+    {
+        $this->selectedDate = CarbonImmutable::parse($date, $this->resolveTimezone())->format('Y-m-d');
+        $this->view = 'day';
+    }
+
+    /** View-aware step backward (day / week / month). */
+    public function previous(): void
+    {
+        $this->shift(-1);
+    }
+
+    /** View-aware step forward (day / week / month). */
+    public function next(): void
+    {
+        $this->shift(1);
+    }
+
+    private function shift(int $direction): void
+    {
+        $date = CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone());
+
+        $next = match ($this->view) {
+            'week' => $date->addWeeks($direction),
+            'month' => $date->addMonths($direction),
+            default => $date->addDays($direction),
+        };
+
+        $this->selectedDate = $next->format('Y-m-d');
     }
 
     public function nextDay(): void
@@ -152,12 +210,9 @@ class BookingCalendar extends Component
     #[Computed]
     public function bookings(): EloquentCollection
     {
-        $start = CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())
-            ->startOfDay()
-            ->utc();
-        $end = CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())
-            ->endOfDay()
-            ->utc();
+        [$rangeStart, $rangeEnd] = $this->displayRange();
+        $start = $rangeStart->utc();
+        $end = $rangeEnd->utc();
 
         $roomIds = $this->rooms->pluck('id')->all();
         if (empty($roomIds)) {
@@ -175,6 +230,83 @@ class BookingCalendar extends Component
             })
             ->orderBy('starts_at')
             ->get();
+    }
+
+    /**
+     * The visible date range for the current view, in the display timezone.
+     *
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     */
+    private function displayRange(): array
+    {
+        $date = CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone());
+
+        return match ($this->view) {
+            'week' => [$date->startOfWeek(), $date->endOfWeek()],
+            'month' => [$date->startOfMonth()->startOfWeek(), $date->endOfMonth()->endOfWeek()],
+            default => [$date->startOfDay(), $date->endOfDay()],
+        };
+    }
+
+    /**
+     * The 7 days of the selected week (Mon–Sun), in the display timezone.
+     *
+     * @return array<int, CarbonImmutable>
+     */
+    #[Computed]
+    public function weekDays(): array
+    {
+        $start = CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())->startOfWeek();
+
+        return array_map(fn (int $i): CarbonImmutable => $start->addDays($i), range(0, 6));
+    }
+
+    /**
+     * The month grid as rows of 7 day-cells (leading/trailing days from
+     * adjacent months included so each row is a full week).
+     *
+     * @return array<int, array<int, array{date: CarbonImmutable, inMonth: bool}>>
+     */
+    #[Computed]
+    public function monthGrid(): array
+    {
+        $date = CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone());
+        $month = $date->month;
+        $cursor = $date->startOfMonth()->startOfWeek();
+        $end = $date->endOfMonth()->endOfWeek();
+
+        $weeks = [];
+        $week = [];
+        while ($cursor->lte($end)) {
+            $week[] = ['date' => $cursor, 'inMonth' => $cursor->month === $month];
+            if (count($week) === 7) {
+                $weeks[] = $week;
+                $week = [];
+            }
+            $cursor = $cursor->addDay();
+        }
+
+        return $weeks;
+    }
+
+    /**
+     * Visible bookings grouped by their (display-tz) date 'Y-m-d'.
+     * Used by the week + month views.
+     *
+     * @return array<string, array<int, Booking>>
+     */
+    #[Computed]
+    public function bookingsByDay(): array
+    {
+        $tz = $this->resolveTimezone();
+        $grouped = [];
+
+        foreach ($this->bookings as $booking) {
+            $key = CarbonImmutable::parse($booking->starts_at)->setTimezone($tz)->format('Y-m-d');
+            $grouped[$key][] = $booking;
+        }
+
+        return $grouped;
     }
 
     /**
@@ -310,10 +442,31 @@ class BookingCalendar extends Component
             'allRooms' => $this->allActiveRooms,
             'bookings' => $this->bookings,
             'timeWindow' => $this->timeWindow,
+            'view' => $this->view,
+            'weekDays' => $this->weekDays,
+            'monthGrid' => $this->monthGrid,
+            'bookingsByDay' => $this->bookingsByDay,
             'displayDate' => CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())
                 ->locale('id')
                 ->isoFormat('dddd, D MMMM Y'),
+            'rangeLabel' => $this->rangeLabel(),
         ])->layout('layouts.app', ['title' => __('Kalender'), 'subtitle' => __('Jadwal penggunaan ruang rapat')]);
+    }
+
+    /**
+     * View-aware header label for the current range.
+     */
+    private function rangeLabel(): string
+    {
+        $locale = app()->getLocale();
+        [$start, $end] = $this->displayRange();
+        $date = CarbonImmutable::parse($this->selectedDate, $this->resolveTimezone())->locale($locale);
+
+        return match ($this->view) {
+            'week' => $start->locale($locale)->isoFormat('D MMM').' – '.$end->locale($locale)->isoFormat('D MMM Y'),
+            'month' => $date->isoFormat('MMMM Y'),
+            default => $date->isoFormat('dddd, D MMMM Y'),
+        };
     }
 
     /**
