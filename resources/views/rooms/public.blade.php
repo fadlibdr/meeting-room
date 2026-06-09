@@ -33,20 +33,28 @@
                 <x-bpjs.card :pad="false" rise wire:key="room-{{ $room->id }}"
                     style="overflow: hidden; animation-delay: {{ $i * 40 }}ms;">
 
-                    {{-- Photo placeholder --}}
+                    {{-- Photo (falls back to a gradient placeholder when none is set) --}}
                     <div style="padding: 10px; padding-bottom: 0;">
-                        <div style="height: 132px; border-radius: 12px; position: relative; overflow: hidden;
-                                    background: linear-gradient(135deg, {{ $a }}, {{ $b }});
-                                    display: flex; align-items: center; justify-content: center;">
-                            <div style="position: absolute; width: 180px; height: 180px; border-radius: 9999px;
-                                        background: radial-gradient(circle, rgba(255,255,255,.12), transparent 60%);
-                                        top: -70px; right: -40px;"></div>
-                            <span style="color: rgba(255,255,255,.5);"><x-icon name="building" :size="36" :stroke="1.4" /></span>
-                            <span style="position: absolute; bottom: 9px; left: 11px; font-size: 10.5px; font-weight: 600;
-                                         letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,.6);">
-                                Foto ruangan
-                            </span>
-                        </div>
+                        @if ($room->photoUrl())
+                            <div style="height: 132px; border-radius: 12px; overflow: hidden;">
+                                <img src="{{ $room->photoUrl() }}" alt="{{ $room->name }}"
+                                     loading="lazy"
+                                     style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+                            </div>
+                        @else
+                            <div style="height: 132px; border-radius: 12px; position: relative; overflow: hidden;
+                                        background: linear-gradient(135deg, {{ $a }}, {{ $b }});
+                                        display: flex; align-items: center; justify-content: center;">
+                                <div style="position: absolute; width: 180px; height: 180px; border-radius: 9999px;
+                                            background: radial-gradient(circle, rgba(255,255,255,.12), transparent 60%);
+                                            top: -70px; right: -40px;"></div>
+                                <span style="color: rgba(255,255,255,.5);"><x-icon name="building" :size="36" :stroke="1.4" /></span>
+                                <span style="position: absolute; bottom: 9px; left: 11px; font-size: 10.5px; font-weight: 600;
+                                             letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,.6);">
+                                    Foto ruangan
+                                </span>
+                            </div>
+                        @endif
                     </div>
 
                     {{-- Body --}}
