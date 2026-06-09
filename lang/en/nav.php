@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 return [
     'menu' => 'Menu',
+    'bookings_group' => 'Bookings',
+    'reports' => 'Reports',
+    'room_management' => 'Room Management',
+    'users_org' => 'Users & Org',
+    'approval_admin' => 'Approvals',
+    'system' => 'System',
     'dashboard' => 'Dashboard',
     'calendar' => 'Calendar',
     'reservations' => 'Reservations',

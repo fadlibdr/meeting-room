@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 return [
     'menu' => 'Menu',
+    'bookings_group' => 'Reservasi',
+    'reports' => 'Laporan',
+    'room_management' => 'Manajemen Ruang',
+    'users_org' => 'Pengguna & Organisasi',
+    'approval_admin' => 'Persetujuan',
+    'system' => 'Sistem',
     'dashboard' => 'Dashboard',
     'calendar' => 'Kalender',
     'reservations' => 'Reservasi',

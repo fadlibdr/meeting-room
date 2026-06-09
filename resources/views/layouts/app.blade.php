@@ -50,85 +50,100 @@
                 </div>
 
                 <nav class="nav">
-                    <div class="nav__label">{{ __('nav.menu') }}</div>
-
+                    {{-- Standalone top item --}}
                     <a href="{{ route('dashboard') }}" wire:navigate
                        class="nav__item @if(request()->routeIs('dashboard')) active @endif">
                         <x-icon name="dashboard" :size="19" /> {{ __('nav.dashboard') }}
                     </a>
 
-                    @hasPermission('bookings.view')
-                        <a href="{{ route('calendar.index') }}" wire:navigate
-                           class="nav__item @if(request()->routeIs('calendar.*') || request()->routeIs('bookings.new')) active @endif">
-                            <x-icon name="calendar" :size="19" /> {{ __('nav.calendar') }}
-                        </a>
-                    @endhasPermission
+                    {{-- Group: Reservasi --}}
+                    @if($u->hasPermission('bookings.view') || $u->hasPermission('bookings.view-all') || $u->hasPermission('bookings.approve') || $u->hasPermission('bookings.check-in') || $u->hasPermission('rooms.view'))
+                        <x-nav-group group-key="bookings" :label="__('nav.bookings_group')"
+                                     :active="request()->routeIs('calendar.*') || request()->routeIs('bookings.*') || request()->routeIs('approvals.*') || request()->routeIs('front-office.*') || (request()->routeIs('rooms.*') && !request()->routeIs('admin.*'))">
+                            @hasPermission('bookings.view')
+                                <a href="{{ route('calendar.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('calendar.*') || request()->routeIs('bookings.new')) active @endif">
+                                    <x-icon name="calendar" :size="19" /> {{ __('nav.calendar') }}
+                                </a>
+                            @endhasPermission
 
-                    @if($u->hasPermission('bookings.view') || $u->hasPermission('bookings.view-all'))
-                        <a href="{{ route('bookings.index') }}" wire:navigate
-                           class="nav__item @if(request()->routeIs('bookings.*') && !request()->routeIs('bookings.new')) active @endif">
-                            <x-icon name="doc" :size="19" /> {{ __('nav.reservations') }}
-                        </a>
+                            @if($u->hasPermission('bookings.view') || $u->hasPermission('bookings.view-all'))
+                                <a href="{{ route('bookings.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('bookings.*') && !request()->routeIs('bookings.new')) active @endif">
+                                    <x-icon name="doc" :size="19" /> {{ __('nav.reservations') }}
+                                </a>
+                            @endif
+
+                            @hasPermission('bookings.approve')
+                                <a href="{{ route('approvals.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('approvals.*')) active @endif">
+                                    <x-icon name="inbox" :size="19" /> {{ __('nav.approvals') }}
+                                    @if($pendingCount > 0)<span class="count">{{ $pendingCount }}</span>@endif
+                                </a>
+                            @endhasPermission
+
+                            @hasPermission('bookings.check-in')
+                                <a href="{{ route('front-office.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('front-office.*')) active @endif">
+                                    <x-icon name="checkCircle" :size="19" /> {{ __('nav.front_desk') }}
+                                </a>
+                            @endhasPermission
+
+                            @hasPermission('rooms.view')
+                                <a href="{{ route('rooms.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('rooms.*') && !request()->routeIs('admin.*')) active @endif">
+                                    <x-icon name="building" :size="19" /> {{ __('nav.rooms') }}
+                                </a>
+                            @endhasPermission
+                        </x-nav-group>
                     @endif
 
-                    @hasPermission('bookings.approve')
-                        <a href="{{ route('approvals.index') }}" wire:navigate
-                           class="nav__item @if(request()->routeIs('approvals.*')) active @endif">
-                            <x-icon name="inbox" :size="19" /> {{ __('nav.approvals') }}
-                            @if($pendingCount > 0)<span class="count">{{ $pendingCount }}</span>@endif
-                        </a>
-                    @endhasPermission
-
-                    @hasPermission('bookings.check-in')
-                        <a href="{{ route('front-office.index') }}" wire:navigate
-                           class="nav__item @if(request()->routeIs('front-office.*')) active @endif">
-                            <x-icon name="checkCircle" :size="19" /> {{ __('nav.front_desk') }}
-                        </a>
-                    @endhasPermission
-
-                    @hasPermission('rooms.view')
-                        <a href="{{ route('rooms.index') }}" wire:navigate
-                           class="nav__item @if(request()->routeIs('rooms.*') && !request()->routeIs('admin.*')) active @endif">
-                            <x-icon name="building" :size="19" /> {{ __('nav.rooms') }}
-                        </a>
-                    @endhasPermission
-
-                    @if($u->hasPermission('reports.view') || $u->hasPermission('rooms.create') || $u->hasPermission('rooms.update') || $u->hasPermission('rooms.manage-blocks') || $u->hasPermission('users.view') || $u->hasPermission('activity-logs.view') || $u->hasPermission('app-settings.view'))
-                        <div class="nav__label">{{ __('nav.administration') }}</div>
-
-                        @hasPermission('reports.view')
+                    {{-- Group: Laporan --}}
+                    @hasPermission('reports.view')
+                        <x-nav-group group-key="reports" :label="__('nav.reports')"
+                                     :active="request()->routeIs('admin.reports.*')">
                             <a href="{{ route('admin.reports.utilization') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.reports.*')) active @endif">
                                 <x-icon name="dashboard" :size="19" /> {{ __('nav.utilization_report') }}
                             </a>
-                        @endhasPermission
+                        </x-nav-group>
+                    @endhasPermission
 
-                        @hasPermission('rooms.create')
-                            <a href="{{ route('admin.rooms.index') }}" wire:navigate
-                               class="nav__item @if(request()->routeIs('admin.rooms.*')) active @endif">
-                                <x-icon name="building" :size="19" /> {{ __('nav.manage_rooms') }}
-                            </a>
-                        @endhasPermission
+                    {{-- Group: Manajemen Ruang --}}
+                    @if($u->hasPermission('rooms.create') || $u->hasPermission('rooms.update') || $u->hasPermission('rooms.manage-blocks'))
+                        <x-nav-group group-key="rooms" :label="__('nav.room_management')"
+                                     :active="request()->routeIs('admin.rooms.*') || request()->routeIs('admin.resources.*') || request()->routeIs('admin.facilities.*') || request()->routeIs('admin.room-blocks.*')">
+                            @hasPermission('rooms.create')
+                                <a href="{{ route('admin.rooms.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.rooms.*')) active @endif">
+                                    <x-icon name="building" :size="19" /> {{ __('nav.manage_rooms') }}
+                                </a>
+                            @endhasPermission
 
-                        @hasPermission('rooms.update')
-                            <a href="{{ route('admin.resources.index') }}" wire:navigate
-                               class="nav__item @if(request()->routeIs('admin.resources.*')) active @endif">
-                                <x-icon name="panelLeft" :size="19" /> {{ __('nav.resources') }}
-                            </a>
-                            <a href="{{ route('admin.facilities.index') }}" wire:navigate
-                               class="nav__item @if(request()->routeIs('admin.facilities.*')) active @endif">
-                                <x-icon name="panelLeft" :size="19" /> {{ __('nav.facilities') }}
-                            </a>
-                        @endhasPermission
+                            @hasPermission('rooms.update')
+                                <a href="{{ route('admin.resources.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.resources.*')) active @endif">
+                                    <x-icon name="panelLeft" :size="19" /> {{ __('nav.resources') }}
+                                </a>
+                                <a href="{{ route('admin.facilities.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.facilities.*')) active @endif">
+                                    <x-icon name="panelLeft" :size="19" /> {{ __('nav.facilities') }}
+                                </a>
+                            @endhasPermission
 
-                        @hasPermission('rooms.manage-blocks')
-                            <a href="{{ route('admin.room-blocks.index') }}" wire:navigate
-                               class="nav__item @if(request()->routeIs('admin.room-blocks.*')) active @endif">
-                                <x-icon name="clock" :size="19" /> {{ __('nav.block_rooms') }}
-                            </a>
-                        @endhasPermission
+                            @hasPermission('rooms.manage-blocks')
+                                <a href="{{ route('admin.room-blocks.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.room-blocks.*')) active @endif">
+                                    <x-icon name="clock" :size="19" /> {{ __('nav.block_rooms') }}
+                                </a>
+                            @endhasPermission
+                        </x-nav-group>
+                    @endif
 
-                        @hasPermission('users.view')
+                    {{-- Group: Pengguna & Organisasi --}}
+                    @hasPermission('users.view')
+                        <x-nav-group group-key="users" :label="__('nav.users_org')"
+                                     :active="request()->routeIs('admin.users.*') || request()->routeIs('admin.units.*')">
                             <a href="{{ route('admin.users.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.users.*')) active @endif">
                                 <x-icon name="users" :size="19" /> {{ __('nav.users') }}
@@ -137,16 +152,13 @@
                                class="nav__item @if(request()->routeIs('admin.units.*')) active @endif">
                                 <x-icon name="building" :size="19" /> {{ __('nav.units') }}
                             </a>
-                        @endhasPermission
+                        </x-nav-group>
+                    @endhasPermission
 
-                        @hasPermission('activity-logs.view')
-                            <a href="{{ route('admin.logs.index') }}" wire:navigate
-                               class="nav__item @if(request()->routeIs('admin.logs.*')) active @endif">
-                                <x-icon name="doc" :size="19" /> {{ __('nav.activity_log') }}
-                            </a>
-                        @endhasPermission
-
-                        @hasPermission('app-settings.update')
+                    {{-- Group: Persetujuan --}}
+                    @hasPermission('app-settings.update')
+                        <x-nav-group group-key="approval" :label="__('nav.approval_admin')"
+                                     :active="request()->routeIs('admin.approval-policies.*') || request()->routeIs('admin.approval-delegations.*')">
                             <a href="{{ route('admin.approval-policies.index') }}" wire:navigate
                                class="nav__item @if(request()->routeIs('admin.approval-policies.*')) active @endif">
                                 <x-icon name="checkCircle" :size="19" /> {{ __('nav.approval_policies') }}
@@ -155,28 +167,41 @@
                                class="nav__item @if(request()->routeIs('admin.approval-delegations.*')) active @endif">
                                 <x-icon name="users" :size="19" /> {{ __('nav.approval_delegations') }}
                             </a>
-                        @endhasPermission
+                        </x-nav-group>
+                    @endhasPermission
 
-                        @hasPermission('app-settings.update')
-                            <a href="{{ route('admin.webhooks.index') }}" wire:navigate
-                               class="nav__item @if(request()->routeIs('admin.webhooks.*')) active @endif">
-                                <x-icon name="arrowRight" :size="19" /> {{ __('nav.webhooks') }}
-                            </a>
-                        @endhasPermission
+                    {{-- Group: Sistem --}}
+                    @if($u->hasPermission('activity-logs.view') || $u->hasPermission('app-settings.update') || $u->hasPermission('app-settings.view') || $u->isPlatformAdmin())
+                        <x-nav-group group-key="system" :label="__('nav.system')"
+                                     :active="request()->routeIs('admin.logs.*') || request()->routeIs('admin.webhooks.*') || request()->routeIs('admin.settings.*') || request()->routeIs('admin.tenants.*')">
+                            @hasPermission('activity-logs.view')
+                                <a href="{{ route('admin.logs.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.logs.*')) active @endif">
+                                    <x-icon name="doc" :size="19" /> {{ __('nav.activity_log') }}
+                                </a>
+                            @endhasPermission
 
-                        @hasPermission('app-settings.view')
-                            <a href="{{ route('admin.settings.index') }}" wire:navigate
-                               class="nav__item @if(request()->routeIs('admin.settings.*')) active @endif">
-                                <x-icon name="settings" :size="19" /> {{ __('nav.settings') }}
-                            </a>
-                        @endhasPermission
+                            @hasPermission('app-settings.update')
+                                <a href="{{ route('admin.webhooks.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.webhooks.*')) active @endif">
+                                    <x-icon name="arrowRight" :size="19" /> {{ __('nav.webhooks') }}
+                                </a>
+                            @endhasPermission
 
-                        @if($u->isPlatformAdmin())
-                            <a href="{{ route('admin.tenants.index') }}" wire:navigate
-                               class="nav__item @if(request()->routeIs('admin.tenants.*')) active @endif">
-                                <x-icon name="building" :size="19" /> {{ __('nav.tenants') }}
-                            </a>
-                        @endif
+                            @hasPermission('app-settings.view')
+                                <a href="{{ route('admin.settings.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.settings.*')) active @endif">
+                                    <x-icon name="settings" :size="19" /> {{ __('nav.settings') }}
+                                </a>
+                            @endhasPermission
+
+                            @if($u->isPlatformAdmin())
+                                <a href="{{ route('admin.tenants.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.tenants.*')) active @endif">
+                                    <x-icon name="building" :size="19" /> {{ __('nav.tenants') }}
+                                </a>
+                            @endif
+                        </x-nav-group>
                     @endif
                 </nav>
 
