@@ -8,10 +8,20 @@ calendar sync. Menu items appear based on your role's permissions.
 - **Kelola Ruangan** (`rooms.create`/`update`): create/edit meeting rooms — code,
   name, capacity, location, status, approval mode, per-room booking buffer.
   Inactive/archived rooms stop accepting bookings without deleting history.
-- **Fasilitas**: facility catalogue assignable to rooms.
 - **Sumber Daya** (Resources): manage non-room bookable types — **Peralatan /
   Kendaraan / Meja Kerja** — with type, code, name, capacity, status, approval
   mode. These book through the same engine as rooms.
+- **Fasilitas** (Facilities): the amenity catalogue assignable to rooms.
+
+> **Resource vs Facility — which one?** The line is **schedulability**:
+> - A **Sumber Daya** (Resource) is **booked per time slot** and has its own
+>   calendar/conflict/approval — a room, a bookable projector, a vehicle, a desk.
+> - A **Fasilitas** (Facility) is a **static attribute** of a room (built-in
+>   projector, whiteboard, video-conference) with **no schedule of its own**.
+>
+> A projector that people reserve individually → **Resource (Peralatan)**. A
+> projector permanently fixed in Room A → **Facility**. The Resource form and the
+> Facilities page both carry this hint inline.
 - **Blokir Ruangan**: block a room/resource for a window (maintenance, events);
   blocks clash with bookings and can force-cancel conflicting ones.
 
