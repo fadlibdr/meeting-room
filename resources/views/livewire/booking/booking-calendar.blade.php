@@ -4,7 +4,7 @@
     <x-bpjs.card class="card--pad mb-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-2">
-                <x-bpjs.button variant="ghost" wire:click="previousDay" aria-label="{{ __('Hari sebelumnya') }}" class="!px-2.5">
+                <x-bpjs.button variant="ghost" wire:click="previous" aria-label="{{ __('Sebelumnya') }}" class="!px-2.5">
                     <x-icon name="chevronLeft" :size="18" />
                 </x-bpjs.button>
 
@@ -12,7 +12,7 @@
                     {{ __('Hari Ini') }}
                 </x-bpjs.button>
 
-                <x-bpjs.button variant="ghost" wire:click="nextDay" aria-label="{{ __('Hari berikutnya') }}" class="!px-2.5">
+                <x-bpjs.button variant="ghost" wire:click="next" aria-label="{{ __('Berikutnya') }}" class="!px-2.5">
                     <x-icon name="chevronRight" :size="18" />
                 </x-bpjs.button>
 
@@ -23,12 +23,24 @@
                 </label>
 
                 <span class="h-display ml-1 hidden text-sm font-semibold text-slate-900 sm:inline">
-                    {{ $displayDate }}
+                    {{ $rangeLabel }}
                 </span>
             </div>
 
-            {{-- Legend --}}
             <div class="flex items-center gap-4">
+                {{-- View switcher: Day / Week / Month --}}
+                <div class="inline-flex rounded-[10px] border border-slate-200 bg-slate-50 p-0.5">
+                    @foreach (['day' => __('Hari'), 'week' => __('Minggu'), 'month' => __('Bulan')] as $mode => $label)
+                        <button type="button" wire:click="setView('{{ $mode }}')" @class([
+                            'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors',
+                            'bg-white text-bpjs-blue-700 shadow-sm ring-1 ring-inset ring-slate-200' => $view === $mode,
+                            'text-slate-500 hover:text-slate-700' => $view !== $mode,
+                        ])>{{ $label }}</button>
+                    @endforeach
+                </div>
+
+                {{-- Legend --}}
+                <div class="hidden items-center gap-4 sm:flex">
                 <span class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
                     <span class="inline-block h-2.5 w-2.5 rounded-sm bg-bpjs-green-500"></span>
                     {{ __('Disetujui') }}
@@ -37,6 +49,7 @@
                     <span class="inline-block h-2.5 w-2.5 rounded-sm bg-amber-400"></span>
                     {{ __('Menunggu') }}
                 </span>
+                </div>
             </div>
         </div>
     </x-bpjs.card>
@@ -64,6 +77,7 @@
     </div>
 
     {{-- Calendar grid --}}
+    @if ($view === 'day')
     @if (empty($timeWindow['slots']))
         <x-bpjs.card class="px-6 py-16 text-center">
             <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
@@ -213,6 +227,83 @@
                 </x-bpjs.card>
             @endforeach
         </div>
+    @endif
+
+    @elseif ($view === 'week')
+        <x-bpjs.card class="overflow-hidden">
+            <div class="grid grid-cols-1 divide-y divide-slate-100 sm:grid-cols-7 sm:divide-x sm:divide-y-0">
+                @foreach ($weekDays as $day)
+                    @php($key = $day->format('Y-m-d'))
+                    @php($dayBookings = collect($bookingsByDay[$key] ?? []))
+                    <div class="min-h-[120px] {{ $day->isToday() ? 'bg-bpjs-blue-50/40' : '' }}">
+                        <button type="button" wire:click="goToDay('{{ $key }}')"
+                                class="flex w-full items-center justify-between border-b border-slate-100 px-3 py-2 text-left hover:bg-slate-50">
+                            <span class="text-xs font-semibold uppercase tracking-wide {{ $day->isToday() ? 'text-bpjs-blue-700' : 'text-slate-500' }}">
+                                {{ $day->locale(app()->getLocale())->isoFormat('ddd') }}
+                            </span>
+                            <span class="font-mono text-sm {{ $day->isToday() ? 'font-bold text-bpjs-blue-700' : 'text-slate-900' }}">{{ $day->locale(app()->getLocale())->isoFormat('D MMM') }}</span>
+                        </button>
+                        <div class="space-y-1 p-2">
+                            @forelse ($dayBookings as $b)
+                                @php($approved = $b->status->value === 'approved')
+                                <a href="{{ route('bookings.show', $b) }}" wire:navigate @class([
+                                    'block rounded-md px-2 py-1 ring-1 ring-inset',
+                                    'bg-bpjs-green-50 text-bpjs-green-900 ring-bpjs-green-200' => $approved,
+                                    'bg-amber-50 text-amber-900 ring-amber-200' => ! $approved,
+                                ])>
+                                    <span class="block truncate font-mono text-[10px] opacity-75">{{ $this->formatBookingTime($b) }}</span>
+                                    <span class="block truncate text-[11px] font-semibold leading-tight">{{ $b->subject }}</span>
+                                    <span class="block truncate text-[10px] opacity-70">{{ $b->room?->name }}</span>
+                                </a>
+                            @empty
+                                <p class="px-1 py-2 text-center text-[11px] text-slate-400">—</p>
+                            @endforelse
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </x-bpjs.card>
+
+    @elseif ($view === 'month')
+        <x-bpjs.card class="overflow-hidden">
+            <div class="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
+                @foreach ($weekDays as $day)
+                    <div class="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        {{ $day->locale(app()->getLocale())->isoFormat('ddd') }}
+                    </div>
+                @endforeach
+            </div>
+            @foreach ($monthGrid as $week)
+                <div class="grid grid-cols-7">
+                    @foreach ($week as $cell)
+                        @php($key = $cell['date']->format('Y-m-d'))
+                        @php($dayBookings = collect($bookingsByDay[$key] ?? []))
+                        <button type="button" wire:click="goToDay('{{ $key }}')" @class([
+                            'flex min-h-[96px] flex-col items-stretch gap-1 border-b border-r border-slate-100 p-1.5 text-left hover:bg-slate-50',
+                            'bg-slate-50/60' => ! $cell['inMonth'],
+                        ])>
+                            <span @class([
+                                'font-mono text-xs',
+                                'font-bold text-bpjs-blue-700' => $cell['date']->isToday(),
+                                'text-slate-400' => ! $cell['inMonth'],
+                                'text-slate-700' => $cell['inMonth'] && ! $cell['date']->isToday(),
+                            ])>{{ $cell['date']->isoFormat('D') }}</span>
+                            @foreach ($dayBookings->take(3) as $b)
+                                @php($approved = $b->status->value === 'approved')
+                                <span @class([
+                                    'block truncate rounded px-1 py-0.5 text-[10px] leading-tight',
+                                    'bg-bpjs-green-100 text-bpjs-green-800' => $approved,
+                                    'bg-amber-100 text-amber-800' => ! $approved,
+                                ]) title="{{ $b->subject }}">{{ $b->subject }}</span>
+                            @endforeach
+                            @if ($dayBookings->count() > 3)
+                                <span class="text-[10px] font-medium text-slate-500">+{{ $dayBookings->count() - 3 }} {{ __('lainnya') }}</span>
+                            @endif
+                        </button>
+                    @endforeach
+                </div>
+            @endforeach
+        </x-bpjs.card>
     @endif
 
 </div>
