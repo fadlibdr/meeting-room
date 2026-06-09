@@ -40,11 +40,8 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
-          php -r "file_put_contents('.env', preg_replace('/^DB_HOST=.*/m','DB_HOST=127.0.0.1',file_get_contents('.env')));"
-          php -r "file_put_contents('.env', preg_replace('/^DB_DATABASE=.*/m','DB_DATABASE=meeting_room_test',file_get_contents('.env')));"
-          php -r "file_put_contents('.env', preg_replace('/^DB_USERNAME=.*/m','DB_USERNAME=root',file_get_contents('.env')));"
-          php -r "file_put_contents('.env', preg_replace('/^DB_PASSWORD=.*/m','DB_PASSWORD=root',file_get_contents('.env')));"
-          php -r "file_put_contents('.env', preg_replace('/^APP_URL=.*/m','APP_URL=http://127.0.0.1:8000',file_get_contents('.env')));"
+          php -r '$e=file_get_contents(".env"); $e=preg_replace("/^#?\s*DB_[A-Z_]+=.*$/m","",$e); $e.="\nDB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_PORT=3306\nDB_DATABASE=meeting_room_test\nDB_USERNAME=root\nDB_PASSWORD=root\n"; file_put_contents(".env",$e);'
+          php -r '$e=file_get_contents(".env"); $e=preg_replace("/^#?\s*APP_URL=.*$/m","",$e); $e.="\nAPP_URL=http://127.0.0.1:8000\n"; file_put_contents(".env",$e);'
       - name: Upgrade Chrome Driver
         run: php artisan dusk:chrome-driver --detect
       - name: Start Chrome Driver
