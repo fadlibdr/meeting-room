@@ -67,6 +67,35 @@
                     <textarea wire:model="description" id="description" rows="3"
                               class="textarea @error('description') input--err @enderror"></textarea>
                 </x-bpjs.field>
+
+                <x-bpjs.field :label="__('Foto Ruang')" for="photo"
+                              :hint="__('Opsional. JPG, PNG, atau WEBP, maksimal 4 MB.')"
+                              :error="$errors->first('photo')">
+                    <div class="space-y-3">
+                        {{-- Preview: a newly selected upload takes precedence over the stored one --}}
+                        @if($photo && $photo->isPreviewable())
+                            <div class="flex items-start gap-3">
+                                <img src="{{ $photo->temporaryUrl() }}" alt="{{ __('Pratinjau') }}"
+                                     class="h-28 w-40 rounded-lg border border-slate-200 object-cover" />
+                                <button type="button" wire:click="clearPhoto" class="btn btn--ghost">{{ __('Batalkan pilihan') }}</button>
+                            </div>
+                        @elseif($existingPhotoPath && ! $removePhoto)
+                            <div class="flex items-start gap-3">
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($existingPhotoPath) }}"
+                                     alt="{{ $name }}" class="h-28 w-40 rounded-lg border border-slate-200 object-cover" />
+                                <label class="flex items-center gap-2 text-sm text-slate-600">
+                                    <input type="checkbox" wire:model.live="removePhoto" class="checkbox" />
+                                    {{ __('Hapus foto') }}
+                                </label>
+                            </div>
+                        @endif
+
+                        <input type="file" id="photo" wire:model="photo"
+                               accept="image/jpeg,image/png,image/webp"
+                               class="input @error('photo') input--err @enderror" />
+                        <div wire:loading wire:target="photo" class="text-sm text-slate-500">{{ __('Mengunggah…') }}</div>
+                    </div>
+                </x-bpjs.field>
             </div>
 
             <div class="modal__foot" style="border-radius: 0 0 16px 16px;">

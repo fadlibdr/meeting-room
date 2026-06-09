@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * A bookable resource (Stage 3 E). Rooms are the default type; equipment,
@@ -30,6 +31,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $approval_policy_id
  * @property int $booking_buffer_minutes
  * @property string|null $description
+ * @property string|null $photo_path
  * @property array<string, mixed>|null $metadata
  * @property bool $is_active
  * @property Carbon|null $created_at
@@ -45,7 +47,7 @@ class Resource extends Model
     protected $fillable = [
         'type', 'code', 'name', 'location', 'floor', 'capacity',
         'status', 'approval_mode', 'approval_policy_id', 'booking_buffer_minutes',
-        'description', 'metadata', 'is_active',
+        'description', 'photo_path', 'metadata', 'is_active',
     ];
 
     protected function casts(): array
@@ -87,5 +89,17 @@ class Resource extends Model
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'resource_id');
+    }
+
+    /**
+     * Public URL for the resource photo, or null when none is set.
+     */
+    public function photoUrl(): ?string
+    {
+        $path = $this->photo_path;
+
+        return is_string($path) && $path !== ''
+            ? Storage::disk('public')->url($path)
+            : null;
     }
 }

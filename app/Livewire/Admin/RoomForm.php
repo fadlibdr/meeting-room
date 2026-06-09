@@ -10,12 +10,16 @@ use App\Models\ApprovalPolicy;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class RoomForm extends Component
 {
+    use WithFileUploads;
+
     public ?Room $room = null;
 
     public bool $isEditMode = false;
@@ -40,6 +44,15 @@ class RoomForm extends Component
 
     public string $description = '';
 
+    /** Newly selected upload (temporary), if any. */
+    public $photo = null;
+
+    /** Existing stored photo path (edit mode), for preview. */
+    public ?string $existingPhotoPath = null;
+
+    /** When true, the existing photo is removed on save. */
+    public bool $removePhoto = false;
+
     public function mount(?Room $room = null): void
     {
         if ($room && $room->exists) {
@@ -55,6 +68,7 @@ class RoomForm extends Component
             $this->approvalPolicyId = $room->approval_policy_id;
             $this->bookingBufferMinutes = $room->booking_buffer_minutes;
             $this->description = $room->description ?? '';
+            $this->existingPhotoPath = $room->photo_path;
         }
     }
 
@@ -76,6 +90,7 @@ class RoomForm extends Component
             'approvalPolicyId' => ['nullable', 'integer', 'exists:approval_policies,id'],
             'bookingBufferMinutes' => ['required', 'integer', 'min:0', 'max:240'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ];
     }
 
@@ -93,7 +108,16 @@ class RoomForm extends Component
             'status.required' => __('Status wajib dipilih.'),
             'approvalMode.required' => __('Mode approval wajib dipilih.'),
             'bookingBufferMinutes.min' => __('Buffer tidak boleh negatif.'),
+            'photo.image' => __('Berkas harus berupa gambar.'),
+            'photo.mimes' => __('Format foto harus JPG, PNG, atau WEBP.'),
+            'photo.max' => __('Ukuran foto maksimal 4 MB.'),
         ];
+    }
+
+    /** Discard the just-selected (not yet saved) upload. */
+    public function clearPhoto(): void
+    {
+        $this->photo = null;
     }
 
     public function save(): void
@@ -107,7 +131,21 @@ class RoomForm extends Component
 
         $validated = $this->validate();
 
-        DB::transaction(function () use ($validated) {
+        // Resolve the photo path + which old file (if any) to delete, OUTSIDE the
+        // transaction (filesystem work shouldn't sit inside the DB transaction).
+        $oldPath = $this->isEditMode ? $this->existingPhotoPath : null;
+        $photoPath = $oldPath;
+        $pathToDelete = null;
+
+        if ($this->photo !== null) {
+            $photoPath = $this->photo->store('room-photos', 'public');
+            $pathToDelete = $oldPath; // replacing → delete the previous file
+        } elseif ($this->removePhoto) {
+            $photoPath = null;
+            $pathToDelete = $oldPath;
+        }
+
+        DB::transaction(function () use ($validated, $photoPath) {
             $payload = [
                 'code' => $validated['code'],
                 'name' => $validated['name'],
@@ -119,6 +157,7 @@ class RoomForm extends Component
                 'approval_policy_id' => $validated['approvalPolicyId'] ?: null,
                 'booking_buffer_minutes' => $validated['bookingBufferMinutes'],
                 'description' => $validated['description'] ?: null,
+                'photo_path' => $photoPath,
                 'is_active' => RoomStatus::from($validated['status'])->isBookable(),
             ];
 
@@ -128,6 +167,17 @@ class RoomForm extends Component
                 Room::create($payload);
             }
         });
+
+        // Only remove the old file once the DB write has committed.
+        if ($pathToDelete !== null && $pathToDelete !== $photoPath) {
+            Storage::disk('public')->delete($pathToDelete);
+        }
+
+        // The temporary upload has been consumed by store(); clear it so a
+        // re-render never tries to preview a moved file.
+        $this->photo = null;
+        $this->removePhoto = false;
+        $this->existingPhotoPath = $photoPath;
 
         session()->flash('status', $this->isEditMode ? __('Ruang berhasil diperbarui.') : __('Ruang berhasil dibuat.'));
         $this->redirectRoute('admin.rooms.index', navigate: true);
