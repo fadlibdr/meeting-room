@@ -3,15 +3,28 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
+use Livewire\WithFileUploads;
 
 new class extends Component
 {
+    use WithFileUploads;
+
     public string $name = '';
     public string $email = '';
     public bool $emailNotifications = true;
     public string $locale = '';
+
+    /** Newly selected avatar upload (temporary), if any. */
+    public $avatar = null;
+
+    /** Existing stored avatar path, for preview. */
+    public ?string $existingAvatarPath = null;
+
+    /** When true, the existing avatar is removed on save. */
+    public bool $removeAvatar = false;
 
     /**
      * Mount the component.
@@ -22,6 +35,13 @@ new class extends Component
         $this->email = Auth::user()->email;
         $this->emailNotifications = (bool) Auth::user()->email_notifications;
         $this->locale = Auth::user()->locale ?? (string) config('app.locale', 'id');
+        $this->existingAvatarPath = Auth::user()->avatar_path;
+    }
+
+    /** Discard the just-selected (not yet saved) upload. */
+    public function clearAvatar(): void
+    {
+        $this->avatar = null;
     }
 
     /**
@@ -35,16 +55,40 @@ new class extends Component
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
             'locale' => ['required', 'string', Rule::in(array_keys(config('app.available_locales', [])))],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
-        $user->fill($validated);
+        // Resolve avatar path + which old file (if any) to delete.
+        $oldPath = $this->existingAvatarPath;
+        $avatarPath = $oldPath;
+        $pathToDelete = null;
+
+        if ($this->avatar !== null) {
+            $avatarPath = $this->avatar->store('avatars', 'public');
+            $pathToDelete = $oldPath; // replacing → drop the previous file
+        } elseif ($this->removeAvatar) {
+            $avatarPath = null;
+            $pathToDelete = $oldPath;
+        }
+
+        $user->fill(['name' => $validated['name'], 'email' => $validated['email'], 'locale' => $validated['locale']]);
         $user->email_notifications = $this->emailNotifications;
+        $user->avatar_path = $avatarPath;
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
         $user->save();
+
+        if ($pathToDelete !== null && $pathToDelete !== $avatarPath) {
+            Storage::disk('public')->delete($pathToDelete);
+        }
+
+        // Reset the consumed temp upload so a re-render never previews a moved file.
+        $this->avatar = null;
+        $this->removeAvatar = false;
+        $this->existingAvatarPath = $avatarPath;
 
         // Apply the language choice to the current session immediately.
         Session::put('locale', $user->locale);
@@ -83,6 +127,40 @@ new class extends Component
     </header>
 
     <form wire:submit="updateProfileInformation" class="space-y-5">
+        <x-bpjs.field :label="__('Foto Profil')" for="avatar"
+                      :hint="__('Opsional. JPG, PNG, atau WEBP, maksimal 4 MB.')"
+                      :error="$errors->first('avatar')">
+            <div class="flex items-center gap-4">
+                @if($avatar && $avatar->isPreviewable())
+                    <img src="{{ $avatar->temporaryUrl() }}" alt="{{ __('Pratinjau') }}"
+                         class="h-16 w-16 rounded-full border border-slate-200 object-cover" />
+                @elseif($existingAvatarPath && ! $removeAvatar)
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($existingAvatarPath) }}"
+                         alt="{{ $name }}" class="h-16 w-16 rounded-full border border-slate-200 object-cover" />
+                @else
+                    <div class="flex h-16 w-16 items-center justify-center rounded-full bg-bpjs-blue-600 text-lg font-bold text-white">
+                        {{ \Illuminate\Support\Str::of($name)->explode(' ')->filter()->take(2)->map(fn ($p) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($p, 0, 1)))->implode('') }}
+                    </div>
+                @endif
+                <div class="space-y-2">
+                    <input type="file" id="avatar" wire:model="avatar"
+                           accept="image/jpeg,image/png,image/webp"
+                           class="input @error('avatar') input--err @enderror" />
+                    <div class="flex items-center gap-3">
+                        <div wire:loading wire:target="avatar" class="text-sm text-slate-500">{{ __('Mengunggah…') }}</div>
+                        @if($avatar)
+                            <button type="button" wire:click="clearAvatar" class="text-sm text-slate-500 underline">{{ __('Batalkan pilihan') }}</button>
+                        @elseif($existingAvatarPath)
+                            <label class="flex items-center gap-2 text-sm text-slate-600">
+                                <input type="checkbox" wire:model.live="removeAvatar" class="rounded border-slate-300" />
+                                {{ __('Hapus foto') }}
+                            </label>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </x-bpjs.field>
+
         <x-bpjs.field :label="__('Nama')" req for="name" :error="$errors->first('name')">
             <input wire:model="name" id="name" name="name" type="text"
                    class="input @error('name') input--err @enderror"

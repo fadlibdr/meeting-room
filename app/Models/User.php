@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -29,6 +30,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property bool $is_active
  * @property string|null $timezone
  * @property string|null $locale
+ * @property string|null $avatar_path
  * @property bool $email_notifications
  * @property Carbon|null $last_login_at
  * @property int $failed_login_attempts
@@ -60,6 +62,7 @@ class User extends Authenticatable
         'is_active',
         'timezone',
         'locale',
+        'avatar_path',
         'email_notifications',
     ];
 
@@ -113,6 +116,18 @@ class User extends Authenticatable
     public function approver(): BelongsTo
     {
         return $this->belongsTo(self::class, 'approver_user_id');
+    }
+
+    /**
+     * Public URL for the user's avatar, or null (callers fall back to initials).
+     */
+    public function avatarUrl(): ?string
+    {
+        $path = $this->avatar_path;
+
+        return is_string($path) && $path !== ''
+            ? Storage::disk('public')->url($path)
+            : null;
     }
 
     public function subordinates(): HasMany

@@ -182,7 +182,11 @@
 
                 <div class="sidebar__foot">
                     <div class="userchip">
-                        <div class="ava">{{ $initials ?: '—' }}</div>
+                        @if($u?->avatarUrl())
+                            <img class="ava" src="{{ $u->avatarUrl() }}" alt="{{ $u->name }}" style="object-fit: cover;" />
+                        @else
+                            <div class="ava">{{ $initials ?: '—' }}</div>
+                        @endif
                         <div style="min-width: 0;">
                             <div class="nm" x-data="{{ json_encode(['name' => $u->name]) }}" x-text="name"
                                  x-on:profile-updated.window="name = $event.detail.name"></div>
@@ -219,7 +223,11 @@
                     <x-dropdown align="right" width="56">
                         <x-slot name="trigger">
                             <button class="profilebtn" aria-label="{{ __('common.user_profile') }}">
-                                <span class="ava">{{ $initials ?: '—' }}</span>
+                                @if($u?->avatarUrl())
+                                    <img class="ava" src="{{ $u->avatarUrl() }}" alt="{{ $u->name }}" style="object-fit: cover;" />
+                                @else
+                                    <span class="ava">{{ $initials ?: '—' }}</span>
+                                @endif
                                 <x-icon name="chevronDown" :size="15" />
                             </button>
                         </x-slot>
