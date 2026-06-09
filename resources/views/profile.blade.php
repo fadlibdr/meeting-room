@@ -20,7 +20,12 @@
             <div style="position: absolute; width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle,rgba(0,177,64,.3),transparent 65%); top: -120px; right: 40px;"></div>
         </div>
         <div class="profile-banner__row" style="padding: 0 26px 22px; display: flex; align-items: flex-end; gap: 18px; margin-top: -42px; position: relative; z-index: 1; flex-wrap: wrap;">
-            <div style="width: 92px; height: 92px; border-radius: 22px; background: var(--bpjs-blue-600); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 34px; font-family: var(--font-display); border: 4px solid #fff; box-shadow: 0 4px 12px rgba(16,24,40,.12); flex-shrink: 0;">{{ $initials }}</div>
+            @if($u?->avatarUrl())
+                <img src="{{ $u->avatarUrl() }}" alt="{{ $u->name }}"
+                     style="width: 92px; height: 92px; border-radius: 22px; object-fit: cover; border: 4px solid #fff; box-shadow: 0 4px 12px rgba(16,24,40,.12); flex-shrink: 0;" />
+            @else
+                <div style="width: 92px; height: 92px; border-radius: 22px; background: var(--bpjs-blue-600); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 34px; font-family: var(--font-display); border: 4px solid #fff; box-shadow: 0 4px 12px rgba(16,24,40,.12); flex-shrink: 0;">{{ $initials }}</div>
+            @endif
             <div style="flex: 1; min-width: 200px; padding-bottom: 4px;">
                 <div class="h-display" style="font-size: 22px; font-weight: 800; color: var(--slate-900);">{{ $u->name }}</div>
                 <div style="font-size: 13.5px; color: var(--slate-500); margin-top: 2px;">{{ $primaryRole }} &middot; BPJS Kesehatan</div>
