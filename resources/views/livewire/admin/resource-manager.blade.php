@@ -10,6 +10,10 @@
     @if($showForm)
         <form wire:submit="save" class="card bpjs-rise">
             <div class="card--pad space-y-4">
+                <div class="rounded-lg border border-bpjs-blue-200 bg-bpjs-blue-50 px-4 py-3 text-sm text-bpjs-blue-800">
+                    <strong class="font-semibold">{{ __('Sumber Daya vs Fasilitas') }}</strong>
+                    {{ __('Sumber daya dipesan per slot waktu dan memiliki jadwalnya sendiri (ruangan, peralatan, kendaraan, meja). Untuk benda yang melekat pada sebuah ruangan dan TIDAK dipesan terpisah — mis. proyektor bawaan atau papan tulis — daftarkan sebagai Fasilitas, bukan sebagai sumber daya.') }}
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <x-bpjs.field :label="__('Jenis')" req for="rtype" :error="$errors->first('type')">
                         <select wire:model="type" id="rtype" class="select @error('type') input--err @enderror">
