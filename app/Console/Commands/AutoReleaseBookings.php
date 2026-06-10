@@ -46,6 +46,12 @@ class AutoReleaseBookings extends Command
 
     private function releaseForCurrentTenant(SettingsService $settings, ReleaseNoShowBookingAction $action): void
     {
+        if (! (bool) $settings->get('booking.auto_release_enabled', true)) {
+            $this->info('Auto-release disabled — skipped.');
+
+            return;
+        }
+
         $grace = (int) $settings->get('booking.auto_release_grace_minutes', self::DEFAULT_GRACE_MINUTES);
         $grace = max(0, $grace);
 

@@ -18,8 +18,8 @@ class AppSettingsSeederTest extends TestCase
     {
         $this->seed(AppSettingsSeeder::class);
 
-        // 15 base + Stage 3 (max-duration, sso x6, calendar x6) + tenancy flag + telegram x4 = 33.
-        $this->assertSame(33, AppSetting::count());
+        // 15 base + Stage 3 (max-duration, sso x6, calendar x6) + tenancy flag + telegram x4 + auto-release toggle = 34.
+        $this->assertSame(34, AppSetting::count());
         $this->assertNotNull(AppSetting::where('key', 'sso.enabled')->first());
         $this->assertNotNull(AppSetting::where('key', 'calendar.sync_enabled')->first());
         $this->assertSame('encrypted', AppSetting::where('key', 'sso.azure_client_secret')->value('data_type'));
@@ -38,7 +38,7 @@ class AppSettingsSeederTest extends TestCase
         $this->seed(AppSettingsSeeder::class);
         $this->seed(AppSettingsSeeder::class);
 
-        $this->assertSame(33, AppSetting::count());
+        $this->assertSame(34, AppSetting::count());
     }
 
     public function test_reseeding_preserves_an_admin_edited_value(): void

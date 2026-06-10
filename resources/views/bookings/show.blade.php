@@ -70,7 +70,7 @@
             </dl>
             @if ($booking->agenda)
                 <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--slate-100);">
-                    <dt style="font-size: 12px; color: var(--slate-400);">{{ __('Agenda') }}</dt>
+                    <dt style="font-size: 12px; color: var(--slate-400);">{{ __('Catatan') }}</dt>
                     <dd style="margin: 5px 0 0; font-size: 13.5px; color: var(--slate-700); line-height: 1.6; white-space: pre-line;">{{ $booking->agenda }}</dd>
                 </div>
             @endif

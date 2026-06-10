@@ -142,12 +142,13 @@
                     @foreach ($bookings as $booking)
                         @php($position = $this->bookingGridPosition($booking))
                         @php($roomIndex = $rooms->search(fn ($r) => $r->id === $booking->resource_id))
-                        @php($isApproved = $booking->status->value === 'approved')
+                        @php($sv = $booking->status->value)
                         @if ($position !== null && $roomIndex !== false)
                             <div wire:key="booking-block-{{ $booking->id }}" @class([
                                 'relative z-10 m-0.5 flex flex-col justify-start overflow-hidden rounded-lg px-2 py-1 ring-1 ring-inset',
-                                'bg-bpjs-green-50 text-bpjs-green-900 ring-bpjs-green-300' => $isApproved,
-                                'bg-amber-50 text-amber-900 ring-amber-300' => ! $isApproved,
+                                'bg-bpjs-green-50 text-bpjs-green-900 ring-bpjs-green-300' => $sv === 'approved',
+                                'bg-slate-100 text-slate-700 ring-slate-300' => $sv === 'completed',
+                                'bg-amber-50 text-amber-900 ring-amber-300' => ! in_array($sv, ['approved', 'completed']),
                             ]) style="grid-column: {{ $roomIndex + 2 }}; grid-row: {{ $position['rowStart'] }} / span {{ $position['rowSpan'] }};" title="{{ $booking->subject }} - {{ $this->formatBookingTime($booking) }} - {{ $booking->requester->name ?? '?' }}">
                                 <p class="truncate text-[11px] font-semibold leading-tight">
                                     {{ $booking->subject }}
@@ -201,7 +202,6 @@
                     @else
                         <ul class="divide-y divide-slate-100">
                             @foreach ($roomBookings as $booking)
-                                @php($isApproved = $booking->status->value === 'approved')
                                 <li wire:key="mobile-booking-{{ $booking->id }}" class="px-4 py-3">
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="min-w-0 flex-1">
@@ -216,9 +216,7 @@
                                                 {{ $booking->requester->name ?? '-' }}
                                             </p>
                                         </div>
-                                        <x-bpjs.pill :variant="$isApproved ? 'green' : 'amber'" class="flex-shrink-0">
-                                            {{ $isApproved ? __('Disetujui') : __('Menunggu') }}
-                                        </x-bpjs.pill>
+                                        <x-bpjs.status-pill :status="$booking->status" class="flex-shrink-0" />
                                     </div>
                                 </li>
                             @endforeach
@@ -245,11 +243,12 @@
                         </button>
                         <div class="space-y-1 p-2">
                             @forelse ($dayBookings as $b)
-                                @php($approved = $b->status->value === 'approved')
+                                @php($sv = $b->status->value)
                                 <a href="{{ route('bookings.show', $b) }}" wire:navigate @class([
                                     'block rounded-md px-2 py-1 ring-1 ring-inset',
-                                    'bg-bpjs-green-50 text-bpjs-green-900 ring-bpjs-green-200' => $approved,
-                                    'bg-amber-50 text-amber-900 ring-amber-200' => ! $approved,
+                                    'bg-bpjs-green-50 text-bpjs-green-900 ring-bpjs-green-200' => $sv === 'approved',
+                                    'bg-slate-100 text-slate-700 ring-slate-200' => $sv === 'completed',
+                                    'bg-amber-50 text-amber-900 ring-amber-200' => ! in_array($sv, ['approved', 'completed']),
                                 ])>
                                     <span class="block truncate font-mono text-[10px] opacity-75">{{ $this->formatBookingTime($b) }}</span>
                                     <span class="block truncate text-[11px] font-semibold leading-tight">{{ $b->subject }}</span>
@@ -289,11 +288,12 @@
                                 'text-slate-700' => $cell['inMonth'] && ! $cell['date']->isToday(),
                             ])>{{ $cell['date']->isoFormat('D') }}</span>
                             @foreach ($dayBookings->take(3) as $b)
-                                @php($approved = $b->status->value === 'approved')
+                                @php($sv = $b->status->value)
                                 <span @class([
                                     'block truncate rounded px-1 py-0.5 text-[10px] leading-tight',
-                                    'bg-bpjs-green-100 text-bpjs-green-800' => $approved,
-                                    'bg-amber-100 text-amber-800' => ! $approved,
+                                    'bg-bpjs-green-100 text-bpjs-green-800' => $sv === 'approved',
+                                    'bg-slate-200 text-slate-700' => $sv === 'completed',
+                                    'bg-amber-100 text-amber-800' => ! in_array($sv, ['approved', 'completed']),
                                 ]) title="{{ $b->subject }}">{{ $b->subject }}</span>
                             @endforeach
                             @if ($dayBookings->count() > 3)

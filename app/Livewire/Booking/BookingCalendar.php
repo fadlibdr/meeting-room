@@ -222,7 +222,13 @@ class BookingCalendar extends Component
         return Booking::query()
             ->with(['room:id,name', 'requester:id,name'])
             ->whereIn('resource_id', $roomIds)
-            ->whereIn('status', [BookingStatus::Submitted->value, BookingStatus::Approved->value])
+            // Show all real reservations regardless of status — only drafts (not
+            // yet submitted) and freed slots (cancelled/rejected) are excluded.
+            ->whereNotIn('status', [
+                BookingStatus::Draft->value,
+                BookingStatus::Cancelled->value,
+                BookingStatus::Rejected->value,
+            ])
             ->where(function ($q) use ($start, $end): void {
                 // Booking overlaps the day if it starts before day end AND ends after day start
                 $q->where('starts_at', '<', $end)
