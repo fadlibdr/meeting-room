@@ -22,6 +22,7 @@ return [
     'resources' => 'Sumber Daya',
     'facilities' => 'Fasilitas',
     'block_rooms' => 'Blokir Ruangan',
+    'roles' => 'Peran & Hak Akses',
     'users' => 'Pengguna',
     'units' => 'Unit',
     'activity_log' => 'Log Aktivitas',

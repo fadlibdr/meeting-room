@@ -26,6 +26,7 @@ use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
 use App\Livewire\Admin\ProviderTenantManager;
 use App\Livewire\Admin\ResourceManager;
+use App\Livewire\Admin\RoleManager;
 use App\Livewire\Admin\SettingsManager;
 use App\Livewire\Admin\UtilizationDashboard;
 use App\Livewire\Admin\WebhookSubscriptionManager;
@@ -150,6 +151,11 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::get('users/{userId}/edit', [UserController::class, 'edit'])
             ->middleware('permission:users.update')
             ->name('users.edit');
+
+        // Configurable RBAC — roles + permission matrix.
+        Route::get('roles', RoleManager::class)
+            ->middleware('permission:roles.view')
+            ->name('roles.index');
 
         // Org structure — Units (reuse users.* permissions, like Facilities reuse rooms.*)
         Route::get('units', [UnitController::class, 'index'])

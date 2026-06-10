@@ -141,19 +141,27 @@
                     @endif
 
                     {{-- Group: Pengguna & Organisasi --}}
-                    @hasPermission('users.view')
+                    @if($u->hasPermission('users.view') || $u->hasPermission('roles.view'))
                         <x-nav-group group-key="users" :label="__('nav.users_org')"
-                                     :active="request()->routeIs('admin.users.*') || request()->routeIs('admin.units.*')">
-                            <a href="{{ route('admin.users.index') }}" wire:navigate
-                               class="nav__item @if(request()->routeIs('admin.users.*')) active @endif">
-                                <x-icon name="users" :size="19" /> {{ __('nav.users') }}
-                            </a>
-                            <a href="{{ route('admin.units.index') }}" wire:navigate
-                               class="nav__item @if(request()->routeIs('admin.units.*')) active @endif">
-                                <x-icon name="building" :size="19" /> {{ __('nav.units') }}
-                            </a>
+                                     :active="request()->routeIs('admin.users.*') || request()->routeIs('admin.units.*') || request()->routeIs('admin.roles.*')">
+                            @hasPermission('users.view')
+                                <a href="{{ route('admin.users.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.users.*')) active @endif">
+                                    <x-icon name="users" :size="19" /> {{ __('nav.users') }}
+                                </a>
+                                <a href="{{ route('admin.units.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.units.*')) active @endif">
+                                    <x-icon name="building" :size="19" /> {{ __('nav.units') }}
+                                </a>
+                            @endhasPermission
+                            @hasPermission('roles.view')
+                                <a href="{{ route('admin.roles.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.roles.*')) active @endif">
+                                    <x-icon name="checkCircle" :size="19" /> {{ __('nav.roles') }}
+                                </a>
+                            @endhasPermission
                         </x-nav-group>
-                    @endhasPermission
+                    @endif
 
                     {{-- Group: Persetujuan --}}
                     @hasPermission('app-settings.update')
