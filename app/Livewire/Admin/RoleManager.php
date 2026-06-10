@@ -77,6 +77,27 @@ class RoleManager extends Component
         }
     }
 
+    /**
+     * Toggle every permission in a module on/off at once (matrix convenience).
+     */
+    public function toggleModule(string $module): void
+    {
+        $ids = Permission::query()
+            ->where('module', $module)
+            ->where('is_active', true)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $allSelected = $ids !== [] && array_diff($ids, $this->permissionIds) === [];
+
+        if ($allSelected) {
+            $this->permissionIds = array_values(array_diff($this->permissionIds, $ids));
+        } else {
+            $this->permissionIds = array_values(array_unique([...$this->permissionIds, ...$ids]));
+        }
+    }
+
     public function save(): void
     {
         $this->guard($this->creating ? 'roles.create' : 'roles.update');
