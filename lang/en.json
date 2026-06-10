@@ -15,6 +15,7 @@
     ":n reservasi dibatalkan": ":n reservations cancelled",
     "Ada booking yang bentrok dengan jadwal blokir ini. Centang opsi di bawah untuk membatalkan booking tersebut, lalu simpan kembali.": "Some bookings conflict with this block schedule. Check the option below to cancel them, then save again.",
     "Agenda": "Agenda",
+    "Catatan": "Notes",
     "Ajukan pemesanan ruang rapat": "Request a meeting room booking",
     "Ajukan Reservasi": "Submit Reservation",
     "Ajukan reservasi ini untuk persetujuan?": "Submit this reservation for approval?",

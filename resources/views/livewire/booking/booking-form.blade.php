@@ -87,7 +87,7 @@
                     />
                 </x-bpjs.field>
 
-                <x-bpjs.field :label="__('Agenda')" :hint="__('Opsional')" for="agenda" :error="$errors->first('agenda')">
+                <x-bpjs.field :label="__('Catatan')" :hint="__('Opsional')" for="agenda" :error="$errors->first('agenda')">
                     <textarea
                         wire:model="agenda"
                         id="agenda"
