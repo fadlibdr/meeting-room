@@ -43,8 +43,9 @@ class ProfileTest extends TestCase
         $user->refresh();
 
         $this->assertSame('Test User', $user->name);
-        $this->assertSame('test@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
+        // Email changes are now staged for confirmation, not applied immediately.
+        $this->assertNotSame('test@example.com', $user->email);
+        $this->assertSame('test@example.com', $user->pending_email);
     }
 
     public function test_email_notification_preference_can_be_toggled(): void
