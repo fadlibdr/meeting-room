@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Notifications;
 
+use App\Enums\NotificationType;
 use App\Models\Booking;
+use App\Models\NotificationChannelDefault;
 use App\Models\Room;
 use App\Models\User;
 use App\Notifications\BookingApprovedNotification;
@@ -39,6 +41,15 @@ class TelegramNotificationTest extends TestCase
     {
         app(SettingsService::class)->set('telegram.enabled', true);
         config(['services.telegram.bot_token' => $token, 'services.telegram.api_base' => 'https://api.telegram.org']);
+
+        // Telegram is off-by-default in the channel matrix; enable it for the
+        // type these tests use (BookingApproved) so via() includes the channel.
+        NotificationChannelDefault::create([
+            'type' => NotificationType::BookingApproved->value,
+            'channel' => 'telegram',
+            'enabled' => true,
+            'user_overridable' => true,
+        ]);
     }
 
     public function test_via_includes_telegram_when_enabled_and_chat_id_present(): void

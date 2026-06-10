@@ -31,4 +31,5 @@ return [
     'approval_delegations' => 'Delegasi Persetujuan',
     'webhooks' => 'Webhook',
     'settings' => 'Pengaturan',
+    'notifications' => 'Notifikasi',
 ];

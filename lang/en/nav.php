@@ -31,4 +31,5 @@ return [
     'approval_delegations' => 'Approval Delegations',
     'webhooks' => 'Webhooks',
     'settings' => 'Settings',
+    'notifications' => 'Notifications',
 ];
