@@ -37,6 +37,32 @@ class UserForm extends Component
 
     public ?string $generatedPassword = null;
 
+    /** Optional manual password when an admin resets a user's password (edit mode). */
+    public string $newPassword = '';
+
+    /** The password set by the last reset, shown once so the admin can relay it. */
+    public ?string $resetResult = null;
+
+    /**
+     * Admin reset of a user's password (edit mode). Uses the typed password if
+     * given, otherwise generates a strong random one and reveals it once.
+     */
+    public function resetPassword(): void
+    {
+        $actor = auth()->user();
+        abort_unless($actor instanceof User && $actor->hasPermission('users.update'), 403);
+        abort_unless($this->isEditMode && $this->user instanceof User, 403);
+
+        $plain = $this->newPassword !== ''
+            ? $this->validate(['newPassword' => ['string', 'min:8', 'max:72']], [], ['newPassword' => 'kata sandi'])['newPassword']
+            : Str::random(14);
+
+        $this->user->forceFill(['password' => Hash::make($plain)])->save();
+
+        $this->resetResult = $plain;
+        $this->newPassword = '';
+    }
+
     public function mount(?User $user = null): void
     {
         if ($user && $user->exists) {

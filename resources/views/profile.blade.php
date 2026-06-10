@@ -115,6 +115,7 @@
             </div>
         </x-bpjs.card>
 
-        <livewire:profile.delete-user-form />
+        {{-- Self-service account deletion is disabled by policy (component kept for reversibility). --}}
+        {{-- <livewire:profile.delete-user-form /> --}}
     </div>
 </x-app-layout>
