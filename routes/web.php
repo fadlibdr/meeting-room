@@ -15,6 +15,7 @@ use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\DataSubjectController;
+use App\Http\Controllers\EmailChangeController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
@@ -62,6 +63,11 @@ Route::get('changelog', [ChangelogController::class, 'show'])->name('changelog')
 
 // Stage 4g.3 — public status page (summarised up/degraded/down only).
 Route::get('status', [StatusController::class, 'show'])->name('status');
+
+// Email-change confirmation (link sent to the new address; signed + tokened).
+Route::get('email/change/verify/{token}', [EmailChangeController::class, 'verify'])
+    ->middleware(['signed', 'throttle:20,1'])
+    ->name('email.change.verify');
 
 // Telegram bot webhook — public, guarded by the secret path segment (CSRF-exempt).
 Route::post('telegram/webhook/{secret}', TelegramWebhookController::class)

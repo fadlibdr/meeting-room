@@ -24,6 +24,8 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $employee_no
  * @property string $name
  * @property string $email
+ * @property string|null $pending_email
+ * @property string|null $pending_email_token
  * @property string $password
  * @property string|null $job_title
  * @property int|null $approver_user_id

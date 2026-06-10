@@ -18,6 +18,9 @@ new class extends Component
     public string $locale = '';
     public string $telegramChatId = '';
 
+    /** A staged email change awaiting confirmation, if any. */
+    public ?string $pendingEmail = null;
+
     /** Newly selected avatar upload (temporary), if any. */
     public $avatar = null;
 
@@ -38,6 +41,7 @@ new class extends Component
         $this->telegramChatId = (string) (Auth::user()->telegram_chat_id ?? '');
         $this->locale = Auth::user()->locale ?? (string) config('app.locale', 'id');
         $this->existingAvatarPath = Auth::user()->avatar_path;
+        $this->pendingEmail = Auth::user()->pending_email;
     }
 
     /** Discard the just-selected (not yet saved) upload. */
@@ -92,16 +96,29 @@ new class extends Component
             $pathToDelete = $oldPath;
         }
 
-        $user->fill(['name' => $validated['name'], 'email' => $validated['email'], 'locale' => $validated['locale']]);
+        // Email changes are staged (pending_email) and only applied once the
+        // user confirms via the link sent to the NEW address. Name/locale/etc.
+        // apply immediately; the current email keeps working until confirmed.
+        $emailChanged = strtolower(trim($validated['email'])) !== strtolower((string) $user->email);
+
+        $user->fill(['name' => $validated['name'], 'locale' => $validated['locale']]);
         $user->email_notifications = $this->emailNotifications;
         $user->telegram_chat_id = ($validated['telegramChatId'] ?? '') !== '' ? $validated['telegramChatId'] : null;
         $user->avatar_path = $avatarPath;
 
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
+        if ($emailChanged) {
+            $token = \Illuminate\Support\Str::random(40);
+            $user->pending_email = strtolower(trim($validated['email']));
+            $user->pending_email_token = $token;
         }
 
         $user->save();
+
+        if ($emailChanged) {
+            \Illuminate\Support\Facades\Notification::route('mail', $user->pending_email)
+                ->notify(new \App\Notifications\EmailChangeVerificationNotification($user->pending_email_token, $user->name));
+            $this->pendingEmail = $user->pending_email;
+        }
 
         if ($pathToDelete !== null && $pathToDelete !== $avatarPath) {
             Storage::disk('public')->delete($pathToDelete);
@@ -189,10 +206,17 @@ new class extends Component
                    required autofocus autocomplete="name" />
         </x-bpjs.field>
 
-        <x-bpjs.field :label="__('Email')" req for="email" :error="$errors->first('email')">
+        <x-bpjs.field :label="__('Email')" req for="email"
+                      :hint="__('Mengubah email memerlukan konfirmasi melalui tautan yang dikirim ke alamat baru. Email lama tetap berlaku sampai dikonfirmasi.')"
+                      :error="$errors->first('email')">
             <input wire:model="email" id="email" name="email" type="email"
                    class="input font-mono @error('email') input--err @enderror"
                    required autocomplete="username" />
+            @if($pendingEmail)
+                <p class="mt-1.5 rounded-md bg-amber-50 px-2.5 py-1.5 text-xs text-amber-800">
+                    {{ __('Menunggu konfirmasi untuk:') }} <span class="font-mono font-semibold">{{ $pendingEmail }}</span>
+                </p>
+            @endif
         </x-bpjs.field>
 
         <x-bpjs.field :label="__('common.language')" for="locale" :error="$errors->first('locale')">
