@@ -19,6 +19,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MarketingController;
+use App\Http\Controllers\RoomShowController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\TryDemoController;
@@ -135,6 +136,7 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         ->middleware('permission:bookings.check-in')
         ->name('front-office.index');
     Route::view('rooms', 'rooms.public')->name('rooms.index');
+    Route::get('rooms/{room}', RoomShowController::class)->name('rooms.show');
 
     // Stage 2.2 — download a queued data export (owner-only; enforced in controller)
     Route::get('exports/{export}/download', [ExportController::class, 'download'])

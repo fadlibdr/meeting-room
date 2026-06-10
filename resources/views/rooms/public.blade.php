@@ -30,7 +30,9 @@
         <div class="grid gap-[18px]" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
             @foreach ($rooms as $i => $room)
                 @php [$a, $b] = $tints[$i % count($tints)]; @endphp
-                <x-bpjs.card :pad="false" rise wire:key="room-{{ $room->id }}"
+                <a href="{{ route('rooms.show', $room) }}" wire:navigate wire:key="room-{{ $room->id }}"
+                   class="block transition-transform hover:-translate-y-0.5">
+                <x-bpjs.card :pad="false" rise
                     style="overflow: hidden; animation-delay: {{ $i * 40 }}ms;">
 
                     {{-- Photo (falls back to a gradient placeholder when none is set) --}}
@@ -92,6 +94,7 @@
                         @endif
                     </div>
                 </x-bpjs.card>
+                </a>
             @endforeach
         </div>
     @endif
