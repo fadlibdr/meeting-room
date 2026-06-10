@@ -54,6 +54,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Stage 4f.4: the cookie/consent choice is set by JS and read server-side
         // to gate non-essential scripts, so it must NOT be encrypted.
         $middleware->encryptCookies(except: ['cookie_consent']);
+
+        // Telegram posts updates server-to-server — exempt the webhook from CSRF
+        // (it is guarded by the secret path segment instead).
+        $middleware->validateCsrfTokens(except: ['telegram/webhook/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

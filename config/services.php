@@ -55,6 +55,8 @@ return [
     'telegram' => [
         'enabled' => (bool) env('TELEGRAM_ENABLED', false),
         'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'bot_username' => env('TELEGRAM_BOT_USERNAME'), // without the @, for deep links
+        'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'), // path segment guarding the webhook
         'api_base' => env('TELEGRAM_API_BASE', 'https://api.telegram.org'),
     ],
 

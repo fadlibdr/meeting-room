@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Notifications\Channels;
 
+use App\Services\TelegramBot;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Log;
  */
 class TelegramChannel
 {
+    public function __construct(private readonly TelegramBot $bot) {}
+
     public function send(object $notifiable, Notification $notification): void
     {
         if (! method_exists($notification, 'toTelegram')) {
@@ -30,9 +32,7 @@ class TelegramChannel
         $chatId = $notifiable->routeNotificationFor('telegram', $notification)
             ?? ($notifiable->telegram_chat_id ?? null);
 
-        $token = (string) config('services.telegram.bot_token', '');
-
-        if (blank($chatId) || $token === '') {
+        if (blank($chatId) || ! $this->bot->isConfigured()) {
             return;
         }
 
@@ -41,15 +41,7 @@ class TelegramChannel
             return;
         }
 
-        $base = rtrim((string) config('services.telegram.api_base', 'https://api.telegram.org'), '/');
-
-        $response = Http::asJson()
-            ->post("{$base}/bot{$token}/sendMessage", [
-                'chat_id' => $chatId,
-                'text' => $message,
-                'parse_mode' => 'HTML',
-                'disable_web_page_preview' => true,
-            ]);
+        $response = $this->bot->sendMessage($chatId, $message);
 
         if ($response->failed()) {
             Log::warning('telegram.notification.failed', [
