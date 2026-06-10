@@ -138,6 +138,7 @@ final class SubmitBookingAction
             'subject' => $input['subject'],
             'agenda' => $input['agenda'] ?? null,
             'attendee_count' => $input['attendee_count'],
+            'room_layout' => $input['room_layout'] ?? null,
             'starts_at' => $startsAt,
             'ends_at' => $endsAt,
             'status' => $resolution['status']->value,

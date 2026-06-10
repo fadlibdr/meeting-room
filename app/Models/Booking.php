@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BookingStatus;
 use App\Enums\RoomApprovalMode;
+use App\Enums\RoomLayout;
 use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property string $subject
  * @property string|null $agenda
  * @property int $attendee_count
+ * @property RoomLayout|null $room_layout
  * @property Carbon $starts_at
  * @property Carbon $ends_at
  * @property BookingStatus $status
@@ -55,7 +57,7 @@ class Booking extends Model
         'booking_code', 'resource_id',
         'requester_user_id', 'requester_unit_id',
         'created_by_user_id', 'updated_by_user_id',
-        'subject', 'agenda', 'attendee_count',
+        'subject', 'agenda', 'attendee_count', 'room_layout',
         'starts_at', 'ends_at',
         'status', 'source', 'approval_mode_snapshot',
         'current_approval_step', 'current_approver_user_id',
@@ -69,6 +71,7 @@ class Booking extends Model
     {
         return [
             'attendee_count' => 'integer',
+            'room_layout' => RoomLayout::class,
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'status' => BookingStatus::class,

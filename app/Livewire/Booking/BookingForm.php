@@ -11,6 +11,7 @@ use App\Actions\UpdateBookingAction;
 use App\DataTransferObjects\ConflictItem;
 use App\Enums\RecurrenceFrequency;
 use App\Enums\ResourceType;
+use App\Enums\RoomLayout;
 use App\Exceptions\ApprovalRoutingException;
 use App\Exceptions\BookingConflictException;
 use App\Models\Booking;
@@ -77,6 +78,9 @@ class BookingForm extends Component
 
     public int $attendeeCount = 1;
 
+    /** Optional seating layout (RoomLayout enum value). */
+    public ?string $roomLayout = null;
+
     // ── Recurrence (create mode only) ───────────────────────────────
     /** Toggle: when true, submit() creates a recurring series. */
     public bool $recurring = false;
@@ -142,6 +146,7 @@ class BookingForm extends Component
             $this->subject = $booking->subject;
             $this->agenda = $booking->agenda;
             $this->attendeeCount = $booking->attendee_count;
+            $this->roomLayout = $booking->room_layout?->value;
 
             return;
         }
@@ -269,6 +274,7 @@ class BookingForm extends Component
             'roomId' => ['required', 'integer', Rule::exists('resources', 'id')->where('type', $this->resourceType)],
             'subject' => ['required', 'string', 'min:3', 'max:150'],
             'agenda' => ['nullable', 'string', 'max:5000'],
+            'roomLayout' => ['nullable', Rule::in(RoomLayout::values())],
             'attendeeCount' => ['required', 'integer', 'min:1'],
             'startsAt' => ['required', 'date', 'after:now'],
             'endsAt' => ['required', 'date', 'after:startsAt'],
@@ -337,6 +343,7 @@ class BookingForm extends Component
             'subject' => $this->subject,
             'agenda' => $this->agenda,
             'attendee_count' => $this->attendeeCount,
+            'room_layout' => $this->roomLayout ?: null,
             'starts_at' => $this->normalizeDatetime($this->startsAt),
             'ends_at' => $this->normalizeDatetime($this->endsAt),
         ];
@@ -440,7 +447,8 @@ class BookingForm extends Component
 
     public function render(): View
     {
-        return view('livewire.booking.booking-form')
-            ->layout('layouts.app', ['title' => __('Buat Reservasi'), 'subtitle' => __('Ajukan pemesanan ruang rapat')]);
+        return view('livewire.booking.booking-form', [
+            'roomLayouts' => RoomLayout::cases(),
+        ])->layout('layouts.app', ['title' => __('Buat Reservasi'), 'subtitle' => __('Ajukan pemesanan ruang rapat')]);
     }
 }
