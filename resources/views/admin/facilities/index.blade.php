@@ -12,5 +12,8 @@
         {{ __('(jenis Peralatan), bukan di sini.') }}
     </div>
 
+    <div class="mb-4 flex justify-end">
+        <a href="{{ route('admin.export', 'facilities') }}" class="btn btn--ghost">{{ __('Ekspor CSV') }}</a>
+    </div>
     <livewire:admin.facility-list />
 </x-app-layout>
