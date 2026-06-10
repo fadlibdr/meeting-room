@@ -8,6 +8,7 @@ use App\Actions\ApproveBookingAction;
 use App\Enums\NotificationType;
 use App\Models\Booking;
 use App\Models\User;
+use App\Notifications\Concerns\BroadcastsToTelegram;
 use App\Services\IcsGenerator;
 use App\Services\SettingsService;
 use Illuminate\Bus\Queueable;
@@ -24,6 +25,7 @@ use Illuminate\Notifications\Notification;
  */
 final class BookingApprovedNotification extends Notification implements ShouldQueue
 {
+    use BroadcastsToTelegram;
     use Queueable;
 
     public function __construct(
@@ -43,7 +45,7 @@ final class BookingApprovedNotification extends Notification implements ShouldQu
             $channels[] = 'mail';
         }
 
-        return $channels;
+        return array_merge($channels, $this->telegramChannels($notifiable));
     }
 
     public function toMail(object $notifiable): MailMessage

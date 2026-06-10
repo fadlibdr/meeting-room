@@ -44,6 +44,9 @@ class RuntimeSettingsServiceProvider extends ServiceProvider
         'calendar.google_enabled' => ['calendar.google.enabled'],
         'calendar.google_client_id' => ['calendar.google.client_id'],
         'calendar.google_client_secret' => ['calendar.google.client_secret'],
+
+        'telegram.enabled' => ['services.telegram.enabled'],
+        'telegram.bot_token' => ['services.telegram.bot_token'],
     ];
 
     public function boot(): void
@@ -63,7 +66,7 @@ class RuntimeSettingsServiceProvider extends ServiceProvider
 
             /** @var Collection<string, AppSetting> $settings */
             $settings = AppSetting::query()
-                ->whereIn('group', ['sso', 'calendar', 'system'])
+                ->whereIn('group', ['sso', 'calendar', 'system', 'telegram'])
                 ->get()
                 ->keyBy('key');
         } catch (Throwable) {

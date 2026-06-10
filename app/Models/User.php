@@ -31,6 +31,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $timezone
  * @property string|null $locale
  * @property string|null $avatar_path
+ * @property string|null $telegram_chat_id
  * @property bool $email_notifications
  * @property Carbon|null $last_login_at
  * @property int $failed_login_attempts
@@ -63,8 +64,17 @@ class User extends Authenticatable
         'timezone',
         'locale',
         'avatar_path',
+        'telegram_chat_id',
         'email_notifications',
     ];
+
+    /**
+     * Telegram chat id used by the Telegram notification channel.
+     */
+    public function routeNotificationForTelegram(): ?string
+    {
+        return $this->telegram_chat_id;
+    }
 
     /**
      * @var list<string>

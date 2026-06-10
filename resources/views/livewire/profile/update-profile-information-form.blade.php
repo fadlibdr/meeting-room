@@ -16,6 +16,7 @@ new class extends Component
     public string $email = '';
     public bool $emailNotifications = true;
     public string $locale = '';
+    public string $telegramChatId = '';
 
     /** Newly selected avatar upload (temporary), if any. */
     public $avatar = null;
@@ -34,6 +35,7 @@ new class extends Component
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
         $this->emailNotifications = (bool) Auth::user()->email_notifications;
+        $this->telegramChatId = (string) (Auth::user()->telegram_chat_id ?? '');
         $this->locale = Auth::user()->locale ?? (string) config('app.locale', 'id');
         $this->existingAvatarPath = Auth::user()->avatar_path;
     }
@@ -56,6 +58,7 @@ new class extends Component
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
             'locale' => ['required', 'string', Rule::in(array_keys(config('app.available_locales', [])))],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'telegramChatId' => ['nullable', 'string', 'max:64', 'regex:/^-?\d+$/'],
         ]);
 
         // Resolve avatar path + which old file (if any) to delete.
@@ -73,6 +76,7 @@ new class extends Component
 
         $user->fill(['name' => $validated['name'], 'email' => $validated['email'], 'locale' => $validated['locale']]);
         $user->email_notifications = $this->emailNotifications;
+        $user->telegram_chat_id = ($validated['telegramChatId'] ?? '') !== '' ? $validated['telegramChatId'] : null;
         $user->avatar_path = $avatarPath;
 
         if ($user->isDirty('email')) {
@@ -179,6 +183,14 @@ new class extends Component
                     <option value="{{ $code }}">{{ $label }}</option>
                 @endforeach
             </select>
+        </x-bpjs.field>
+
+        <x-bpjs.field :label="__('Telegram Chat ID')" for="telegramChatId"
+                      :hint="__('Opsional. Untuk menerima notifikasi via Telegram: kirim /start ke bot kami, lalu tempel Chat ID numerik Anda di sini. Kosongkan untuk menonaktifkan.')"
+                      :error="$errors->first('telegramChatId')">
+            <input wire:model="telegramChatId" id="telegramChatId" type="text" inputmode="numeric"
+                   placeholder="123456789"
+                   class="input font-mono @error('telegramChatId') input--err @enderror" />
         </x-bpjs.field>
 
         <div class="pt-1">

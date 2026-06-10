@@ -283,6 +283,26 @@ class AppSettingsSeeder extends Seeder
                 'group' => 'calendar',
                 'is_editable' => true,
             ],
+
+            // --- Telegram notifications ---
+            [
+                'key' => 'telegram.enabled',
+                'value' => '0',
+                'data_type' => 'boolean',
+                'label' => 'Aktifkan Notifikasi Telegram',
+                'description' => 'Kirim notifikasi reservasi via bot Telegram kepada pengguna yang telah mengisi Chat ID Telegram di profil mereka. Memerlukan Token Bot di bawah.',
+                'group' => 'telegram',
+                'is_editable' => true,
+            ],
+            [
+                'key' => 'telegram.bot_token',
+                'value' => null,
+                'data_type' => 'encrypted',
+                'label' => 'Token Bot Telegram',
+                'description' => 'Token bot dari @BotFather. Disimpan terenkripsi; biarkan kosong saat menyunting untuk tidak mengubah. Jika kosong, sistem memakai nilai dari .env.',
+                'group' => 'telegram',
+                'is_editable' => true,
+            ],
         ];
 
         foreach ($settings as $setting) {

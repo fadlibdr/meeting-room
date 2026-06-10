@@ -50,4 +50,12 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    // Telegram bot notifications. Both also manageable from Settings → Telegram
+    // (the DB setting overrides these at boot via RuntimeSettingsServiceProvider).
+    'telegram' => [
+        'enabled' => (bool) env('TELEGRAM_ENABLED', false),
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'api_base' => env('TELEGRAM_API_BASE', 'https://api.telegram.org'),
+    ],
+
 ];
