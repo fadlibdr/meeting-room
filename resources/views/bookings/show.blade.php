@@ -68,6 +68,13 @@
                     <dd style="margin: 3px 0 0; font-size: 13.5px; color: var(--slate-900); font-weight: 600;">{{ $booking->room->location ?? '—' }}</dd>
                 </div>
             </dl>
+            @if ($booking->room_layout)
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--slate-100);">
+                    <dt style="font-size: 12px; color: var(--slate-400);">{{ __('Tata Letak Ruang') }}</dt>
+                    <dd style="margin: 5px 0 0; font-size: 13.5px; color: var(--slate-900); font-weight: 600;">{{ $booking->room_layout->label() }}</dd>
+                </div>
+            @endif
+
             @if ($booking->agenda)
                 <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--slate-100);">
                     <dt style="font-size: 12px; color: var(--slate-400);">{{ __('Catatan') }}</dt>

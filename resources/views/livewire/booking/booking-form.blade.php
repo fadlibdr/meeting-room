@@ -98,6 +98,15 @@
                     ></textarea>
                 </x-bpjs.field>
 
+                <x-bpjs.field :label="__('Tata Letak Ruang')" :hint="__('Opsional')" for="roomLayout" :error="$errors->first('roomLayout')">
+                    <select wire:model="roomLayout" id="roomLayout" class="select @error('roomLayout') input--err @enderror">
+                        <option value="">{{ __('— Tidak ditentukan —') }}</option>
+                        @foreach ($roomLayouts as $layout)
+                            <option value="{{ $layout->value }}">{{ $layout->label() }}</option>
+                        @endforeach
+                    </select>
+                </x-bpjs.field>
+
                 {{-- Recurrence (create mode only) --}}
                 @if ($mode === 'create')
                     <div class="pt-5" style="border-top: 1px solid var(--slate-100);">
