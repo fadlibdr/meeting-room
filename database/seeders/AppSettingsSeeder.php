@@ -303,6 +303,24 @@ class AppSettingsSeeder extends Seeder
                 'group' => 'telegram',
                 'is_editable' => true,
             ],
+            [
+                'key' => 'telegram.bot_username',
+                'value' => null,
+                'data_type' => 'string',
+                'label' => 'Username Bot Telegram',
+                'description' => 'Username bot tanpa tanda @ (mis. SirraNotif_bot). Dipakai untuk tautan "Hubungkan Telegram" di profil.',
+                'group' => 'telegram',
+                'is_editable' => true,
+            ],
+            [
+                'key' => 'telegram.webhook_secret',
+                'value' => null,
+                'data_type' => 'encrypted',
+                'label' => 'Secret Webhook Telegram',
+                'description' => 'Segmen rahasia pada URL webhook (mis. string acak panjang). Diperlukan agar penangkapan Chat ID otomatis via /start berfungsi. Jalankan "php artisan telegram:set-webhook" setelah mengubah.',
+                'group' => 'telegram',
+                'is_editable' => true,
+            ],
         ];
 
         foreach ($settings as $setting) {

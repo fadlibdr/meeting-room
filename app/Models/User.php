@@ -32,6 +32,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $locale
  * @property string|null $avatar_path
  * @property string|null $telegram_chat_id
+ * @property string|null $telegram_link_token
  * @property bool $email_notifications
  * @property Carbon|null $last_login_at
  * @property int $failed_login_attempts
@@ -74,6 +75,19 @@ class User extends Authenticatable
     public function routeNotificationForTelegram(): ?string
     {
         return $this->telegram_chat_id;
+    }
+
+    /**
+     * One-time deep-link token for the "Hubungkan Telegram" flow, created on
+     * first use. The /start webhook exchanges it for the user's chat id.
+     */
+    public function ensureTelegramLinkToken(): string
+    {
+        if ($this->telegram_link_token === null) {
+            $this->forceFill(['telegram_link_token' => Str::random(32)])->save();
+        }
+
+        return (string) $this->telegram_link_token;
     }
 
     /**

@@ -20,6 +20,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\StatusController;
+use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\TryDemoController;
 use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
@@ -57,6 +58,11 @@ Route::get('changelog', [ChangelogController::class, 'show'])->name('changelog')
 
 // Stage 4g.3 — public status page (summarised up/degraded/down only).
 Route::get('status', [StatusController::class, 'show'])->name('status');
+
+// Telegram bot webhook — public, guarded by the secret path segment (CSRF-exempt).
+Route::post('telegram/webhook/{secret}', TelegramWebhookController::class)
+    ->middleware('throttle:60,1')
+    ->name('telegram.webhook');
 
 // Stage 4h.1 — go-to-market pages (scaffold; 404 unless marketing.enabled).
 Route::get('product/{page?}', [MarketingController::class, 'show'])->name('marketing.show');

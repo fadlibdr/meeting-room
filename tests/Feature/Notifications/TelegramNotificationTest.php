@@ -96,7 +96,7 @@ class TelegramNotificationTest extends TestCase
         $user = User::factory()->create(['telegram_chat_id' => '987654', 'email_notifications' => false]);
 
         // Send directly through the channel — must not hit the network.
-        (new TelegramChannel)->send($user, new BookingApprovedNotification($this->booking()));
+        app(TelegramChannel::class)->send($user, new BookingApprovedNotification($this->booking()));
 
         Http::assertNothingSent();
     }

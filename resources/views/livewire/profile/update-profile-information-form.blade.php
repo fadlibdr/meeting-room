@@ -46,6 +46,24 @@ new class extends Component
         $this->avatar = null;
     }
 
+    /** Telegram deep-link (t.me/<bot>?start=<token>) generated on demand. */
+    public ?string $telegramDeepLink = null;
+
+    /**
+     * Generate a one-time link and the t.me deep link so the user can connect
+     * their Telegram automatically (the /start webhook captures their chat id).
+     */
+    public function connectTelegram(): void
+    {
+        $botUsername = (string) config('services.telegram.bot_username', '');
+        if ($botUsername === '') {
+            return;
+        }
+
+        $token = Auth::user()->ensureTelegramLinkToken();
+        $this->telegramDeepLink = 'https://t.me/'.ltrim($botUsername, '@').'?start='.$token;
+    }
+
     /**
      * Update the profile information for the currently authenticated user.
      */
@@ -186,11 +204,26 @@ new class extends Component
         </x-bpjs.field>
 
         <x-bpjs.field :label="__('Telegram Chat ID')" for="telegramChatId"
-                      :hint="__('Opsional. Untuk menerima notifikasi via Telegram: kirim /start ke bot kami, lalu tempel Chat ID numerik Anda di sini. Kosongkan untuk menonaktifkan.')"
+                      :hint="__('Opsional. Tempel Chat ID numerik Anda untuk menerima notifikasi via Telegram, atau gunakan tombol Hubungkan di bawah. Kosongkan untuk menonaktifkan.')"
                       :error="$errors->first('telegramChatId')">
             <input wire:model="telegramChatId" id="telegramChatId" type="text" inputmode="numeric"
                    placeholder="123456789"
                    class="input font-mono @error('telegramChatId') input--err @enderror" />
+
+            @if(config('services.telegram.bot_username'))
+                <div class="mt-2">
+                    @if($telegramDeepLink)
+                        <a href="{{ $telegramDeepLink }}" target="_blank" rel="noopener" class="btn btn--primary">
+                            {{ __('Buka Telegram & tekan Start') }}
+                        </a>
+                        <p class="mt-1.5 field__hint">{{ __('Setelah menekan Start di bot, Chat ID Anda tertaut otomatis. Muat ulang halaman ini untuk melihat hasilnya.') }}</p>
+                    @else
+                        <button type="button" wire:click="connectTelegram" class="btn btn--ghost">
+                            {{ __('Hubungkan Telegram otomatis') }}
+                        </button>
+                    @endif
+                </div>
+            @endif
         </x-bpjs.field>
 
         <div class="pt-1">

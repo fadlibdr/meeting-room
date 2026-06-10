@@ -47,6 +47,8 @@ class RuntimeSettingsServiceProvider extends ServiceProvider
 
         'telegram.enabled' => ['services.telegram.enabled'],
         'telegram.bot_token' => ['services.telegram.bot_token'],
+        'telegram.bot_username' => ['services.telegram.bot_username'],
+        'telegram.webhook_secret' => ['services.telegram.webhook_secret'],
     ];
 
     public function boot(): void
