@@ -22,6 +22,7 @@ return [
     'resources' => 'Resources',
     'facilities' => 'Facilities',
     'block_rooms' => 'Block Rooms',
+    'roles' => 'Roles & Permissions',
     'users' => 'Users',
     'units' => 'Units',
     'activity_log' => 'Activity Log',
