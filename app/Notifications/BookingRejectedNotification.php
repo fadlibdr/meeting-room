@@ -8,8 +8,7 @@ use App\Actions\RejectBookingAction;
 use App\Enums\NotificationType;
 use App\Models\Booking;
 use App\Models\User;
-use App\Notifications\Concerns\BroadcastsToTelegram;
-use App\Services\SettingsService;
+use App\Notifications\Concerns\ConfigurableNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -24,27 +23,16 @@ use Illuminate\Notifications\Notification;
  */
 final class BookingRejectedNotification extends Notification implements ShouldQueue
 {
-    use BroadcastsToTelegram;
+    use ConfigurableNotification;
     use Queueable;
 
     public function __construct(
         private readonly Booking $booking,
     ) {}
 
-    /**
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    public function notificationType(): NotificationType
     {
-        $channels = ['database'];
-        $globalOn = (bool) app(SettingsService::class)->get('notifications.send_email_default', false);
-        $userOptIn = ! $notifiable instanceof User || $notifiable->email_notifications;
-
-        if ($globalOn && $userOptIn) {
-            $channels[] = 'mail';
-        }
-
-        return array_merge($channels, $this->telegramChannels($notifiable));
+        return NotificationType::BookingRejected;
     }
 
     public function toMail(object $notifiable): MailMessage

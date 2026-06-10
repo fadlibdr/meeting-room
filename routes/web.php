@@ -24,6 +24,7 @@ use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\TryDemoController;
 use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
+use App\Livewire\Admin\NotificationSettingsManager;
 use App\Livewire\Admin\ProviderTenantManager;
 use App\Livewire\Admin\ResourceManager;
 use App\Livewire\Admin\RoleManager;
@@ -37,6 +38,7 @@ use App\Livewire\Booking\BookingForm;
 use App\Livewire\Booking\BookingList;
 use App\Livewire\CalendarSubscription;
 use App\Livewire\FrontOffice\DailyCheckIn;
+use App\Livewire\NotificationPreferences;
 use App\Livewire\Support\ContactForm;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Route;
@@ -248,6 +250,11 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::get('settings', SettingsManager::class)
             ->middleware('permission:app-settings.view')
             ->name('settings.index');
+
+        // Configurable notifications — admin channel-default matrix.
+        Route::get('notifications', NotificationSettingsManager::class)
+            ->middleware('permission:app-settings.update')
+            ->name('notifications.index');
     });
 
     Route::view('profile', 'profile')->middleware(['auth'])->name('profile');
@@ -257,6 +264,9 @@ Route::middleware(['auth', 'user.active'])->group(function () {
 
     // Stage 4g.1 — in-app support / contact form.
     Route::get('support', ContactForm::class)->name('support');
+
+    // Per-user notification preferences (configurable notifications).
+    Route::get('me/notifications', NotificationPreferences::class)->name('notifications.preferences');
 
     // Stage 3 C — browsable API docs (Redoc over docs/openapi-v1.yaml)
     Route::get('api-docs', [ApiDocsController::class, 'page'])->name('api-docs.page');

@@ -202,6 +202,12 @@
                                     <x-icon name="settings" :size="19" /> {{ __('nav.settings') }}
                                 </a>
                             @endhasPermission
+                            @hasPermission('app-settings.update')
+                                <a href="{{ route('admin.notifications.index') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.notifications.*')) active @endif">
+                                    <x-icon name="inbox" :size="19" /> {{ __('nav.notifications') }}
+                                </a>
+                            @endhasPermission
 
                             @if($u->isPlatformAdmin())
                                 <a href="{{ route('admin.tenants.index') }}" wire:navigate
@@ -283,6 +289,9 @@
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('api-docs.page')">
                                 {{ __('Dokumentasi API') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('notifications.preferences')" wire:navigate>
+                                {{ __('Preferensi Notifikasi') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('support')" wire:navigate>
                                 {{ __('Bantuan & Dukungan') }}
