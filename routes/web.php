@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\FacilityController;
+use App\Http\Controllers\Admin\ParameterExportController;
 use App\Http\Controllers\Admin\RoomBlockController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UnitController;
@@ -166,6 +167,10 @@ Route::middleware(['auth', 'user.active'])->group(function () {
         Route::get('roles', RoleManager::class)
             ->middleware('permission:roles.view')
             ->name('roles.index');
+
+        // Parameter exports (CSV) — users, units, rooms, facilities, settings.
+        Route::get('export/{entity}', [ParameterExportController::class, 'download'])
+            ->name('export');
 
         // Org structure — Units (reuse users.* permissions, like Facilities reuse rooms.*)
         Route::get('units', [UnitController::class, 'index'])

@@ -1,5 +1,9 @@
 <div class="space-y-6">
 
+    <div class="flex justify-end">
+        <a href="{{ route('admin.export', 'settings') }}" class="btn btn--ghost">{{ __('Ekspor CSV') }}</a>
+    </div>
+
     {{-- Flash messages --}}
     @if($successMessage)
         <div class="card card--pad bpjs-rise" style="border-color: var(--bpjs-green-200); background: var(--bpjs-green-50);">

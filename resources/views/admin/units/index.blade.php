@@ -6,5 +6,8 @@
         </div>
     @endif
 
+    <div class="mb-4 flex justify-end">
+        <a href="{{ route('admin.export', 'units') }}" class="btn btn--ghost">{{ __('Ekspor CSV') }}</a>
+    </div>
     <livewire:admin.unit-list />
 </x-app-layout>
