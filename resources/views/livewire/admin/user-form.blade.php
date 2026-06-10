@@ -98,5 +98,28 @@
                 </x-bpjs.button>
             </div>
         </form>
+
+        {{-- Admin password reset (edit mode) --}}
+        @if($isEditMode)
+            <x-bpjs.card :title="__('Reset Kata Sandi')" class="mt-5">
+                @if($resetResult)
+                    <div class="mb-3 rounded-lg border border-bpjs-green-200 bg-bpjs-green-50 px-4 py-3 text-sm text-bpjs-green-800">
+                        {{ __('Kata sandi baru (salin & sampaikan ke pengguna; hanya ditampilkan sekali):') }}
+                        <span class="mono font-bold">{{ $resetResult }}</span>
+                    </div>
+                @endif
+                <p class="mb-3 text-sm text-slate-500">
+                    {{ __('Setel kata sandi baru untuk pengguna ini. Kosongkan untuk membuat kata sandi acak yang kuat.') }}
+                </p>
+                <div class="flex flex-wrap items-end gap-3">
+                    <x-bpjs.field :label="__('Kata Sandi Baru (opsional)')" for="newPassword" :error="$errors->first('newPassword')">
+                        <input wire:model="newPassword" id="newPassword" type="text" autocomplete="off"
+                               class="input @error('newPassword') input--err @enderror" placeholder="{{ __('min. 8 karakter') }}" />
+                    </x-bpjs.field>
+                    <x-bpjs.button variant="ghost" type="button" wire:click="resetPassword"
+                                   wire:confirm="{{ __('Reset kata sandi pengguna ini?') }}">{{ __('Reset Kata Sandi') }}</x-bpjs.button>
+                </div>
+            </x-bpjs.card>
+        @endif
     @endif
 </div>
