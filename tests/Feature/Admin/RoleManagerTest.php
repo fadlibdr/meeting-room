@@ -138,4 +138,25 @@ class RoleManagerTest extends TestCase
             ->call('newRole')
             ->assertForbidden();
     }
+
+    public function test_toggle_module_selects_and_clears_all_in_a_module(): void
+    {
+        $component = Livewire::actingAs($this->admin())
+            ->test(RoleManager::class)
+            ->call('newRole')
+            ->call('toggleModule', 'bookings');
+
+        $bookingPerms = Permission::where('module', 'bookings')->pluck('id')->map(fn ($i) => (int) $i)->all();
+        $selected = $component->get('permissionIds');
+        foreach ($bookingPerms as $id) {
+            $this->assertContains($id, $selected);
+        }
+
+        // Toggling again clears them.
+        $component->call('toggleModule', 'bookings');
+        $selected = $component->get('permissionIds');
+        foreach ($bookingPerms as $id) {
+            $this->assertNotContains($id, $selected);
+        }
+    }
 }

@@ -15,24 +15,24 @@
                         <tr>
                             <th rowspan="2" class="align-bottom">{{ __('Jenis Notifikasi') }}</th>
                             @foreach($channels as $channel)
-                                <th colspan="2" class="text-center">{{ $channelLabels[$channel] ?? $channel }}</th>
+                                <th colspan="2" class="border-l border-slate-200 bg-slate-50 text-center text-bpjs-blue-700">{{ $channelLabels[$channel] ?? $channel }}</th>
                             @endforeach
                         </tr>
                         <tr>
                             @foreach($channels as $channel)
-                                <th class="text-center text-[11px] font-medium text-slate-500">{{ __('Aktif') }}</th>
-                                <th class="text-center text-[11px] font-medium text-slate-500">{{ __('Dpt. diubah') }}</th>
+                                <th class="border-l border-slate-200 text-center text-[11px] font-medium text-slate-500">{{ __('Aktif') }}</th>
+                                <th class="text-center text-[11px] font-medium text-slate-400">{{ __('Dpt. diubah') }}</th>
                             @endforeach
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($types as $type)
-                            <tr wire:key="ntype-{{ $type->value }}">
+                            <tr wire:key="ntype-{{ $type->value }}" class="@if($loop->odd) bg-slate-50/40 @endif">
                                 <td class="font-medium text-slate-800">{{ $type->label() }}</td>
                                 @foreach($channels as $channel)
-                                    <td class="text-center">
+                                    <td class="border-l border-slate-100 text-center">
                                         <input type="checkbox" wire:model="matrix.{{ $type->value }}.{{ $channel }}.enabled"
-                                               class="rounded border-slate-300 text-bpjs-blue-600 focus:ring-bpjs-blue-500" />
+                                               class="h-4 w-4 rounded border-slate-300 text-bpjs-blue-600 focus:ring-bpjs-blue-500" />
                                     </td>
                                     <td class="text-center">
                                         <input type="checkbox" wire:model="matrix.{{ $type->value }}.{{ $channel }}.overridable"

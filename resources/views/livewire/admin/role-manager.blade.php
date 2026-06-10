@@ -39,14 +39,29 @@
 
                 {{-- Permission matrix --}}
                 <div>
-                    <div class="eyebrow mb-2">{{ __('Matriks Izin') }}</div>
-                    <div class="space-y-4">
+                    <div class="mb-2 flex items-center justify-between">
+                        <div class="eyebrow">{{ __('Matriks Izin') }}</div>
+                        <span class="rounded-full bg-bpjs-blue-50 px-2.5 py-0.5 text-xs font-semibold text-bpjs-blue-700">
+                            {{ count($permissionIds) }} {{ __('izin dipilih') }}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                         @foreach($permissionsByModule as $module => $perms)
-                            <div class="rounded-lg border border-slate-200 p-3">
-                                <div class="mb-2 text-sm font-semibold text-slate-800">{{ ucfirst(str_replace('-', ' ', $module)) }}</div>
-                                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3 lg:grid-cols-4">
+                            @php($moduleIds = $perms->pluck('id')->all())
+                            @php($allOn = count(array_intersect($moduleIds, $permissionIds)) === count($moduleIds))
+                            <div class="rounded-xl border border-slate-200 bg-white">
+                                <button type="button" wire:click="toggleModule('{{ $module }}')"
+                                        class="flex w-full items-center justify-between rounded-t-xl border-b border-slate-100 bg-slate-50 px-3 py-2 text-left hover:bg-slate-100">
+                                    <span class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                        <input type="checkbox" @checked($allOn) tabindex="-1"
+                                               class="pointer-events-none rounded border-slate-300 text-bpjs-blue-600" />
+                                        {{ ucfirst(str_replace('-', ' ', $module)) }}
+                                    </span>
+                                    <span class="text-[11px] font-medium text-slate-400">{{ count(array_intersect($moduleIds, $permissionIds)) }}/{{ count($moduleIds) }}</span>
+                                </button>
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 p-3">
                                     @foreach($perms as $perm)
-                                        <label class="flex items-center gap-2 text-sm text-slate-600">
+                                        <label class="flex items-center gap-2 text-sm text-slate-600" title="{{ $perm->name }}">
                                             <input type="checkbox" wire:click="togglePermission({{ $perm->id }})"
                                                    @checked(in_array($perm->id, $permissionIds))
                                                    class="rounded border-slate-300 text-bpjs-blue-600 focus:ring-bpjs-blue-500" />
