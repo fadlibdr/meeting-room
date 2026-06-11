@@ -105,7 +105,7 @@
                         <td class="text-right">
                             @hasPermission('users.update')
                                 <div style="display: inline-flex; gap: 6px;">
-                                    <x-bpjs.button variant="ghost" :href="route('admin.users.edit', $user->id)" wire:navigate
+                                    <x-bpjs.button variant="ghost" :href="route('admin.users.edit', $user->hashid)" wire:navigate
                                                    class="!px-3 !py-1.5 !text-xs !rounded-lg">{{ __('Edit') }}</x-bpjs.button>
                                     <x-bpjs.button :variant="$user->is_active ? 'danger' : 'success'"
                                                    wire:click="toggleActive({{ $user->id }})"
@@ -113,11 +113,11 @@
                                                    type="button"
                                                    class="!px-3 !py-1.5 !text-xs !rounded-lg">{{ $user->is_active ? __('Nonaktifkan') : __('Aktifkan') }}</x-bpjs.button>
                                     {{-- UU PDP — data-subject actions --}}
-                                    <a href="{{ route('admin.users.data-export', $user->id) }}"
+                                    <a href="{{ route('admin.users.data-export', $user->hashid) }}"
                                        class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900"
                                        title="{{ __('Unduh data pribadi (UU PDP)') }}">{{ __('Data') }}</a>
                                     {{-- Anonymize disabled by policy (route/action kept for reversibility).
-                                    <form method="POST" action="{{ route('admin.users.anonymize', $user->id) }}"
+                                    <form method="POST" action="{{ route('admin.users.anonymize', $user->hashid) }}"
                                           onsubmit="return confirm('{{ __('Anonimkan data pribadi :name? Tindakan ini tidak dapat dibatalkan.', ['name' => $user->name]) }}')">
                                         @csrf
                                         <button type="submit"

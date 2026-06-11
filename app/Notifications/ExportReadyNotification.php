@@ -59,7 +59,7 @@ final class ExportReadyNotification extends Notification implements ShouldQueue
             ->line('Tautan unduhan berlaku hingga '.($this->export->expires_at?->setTimezone(
                 (string) config('app.display_timezone', 'Asia/Jakarta')
             )->locale('id')->isoFormat('D MMMM Y, HH:mm') ?? '-').'.')
-            ->action('Unduh Berkas', route('exports.download', $this->export->id));
+            ->action('Unduh Berkas', route('exports.download', $this->export));
     }
 
     /**
@@ -77,7 +77,7 @@ final class ExportReadyNotification extends Notification implements ShouldQueue
                 'Ekspor data reservasi (%d baris) siap diunduh.',
                 $this->export->row_count ?? 0,
             ),
-            'url' => route('exports.download', $this->export->id),
+            'url' => route('exports.download', $this->export),
         ];
     }
 }

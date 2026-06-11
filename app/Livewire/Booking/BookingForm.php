@@ -413,13 +413,13 @@ class BookingForm extends Component
         if ($this->mode === 'reschedule') {
             session()->flash('success', "Reservasi dijadwalkan ulang. Reservasi baru {$booking->booking_code} telah dibuat.");
 
-            return $this->redirect(route('bookings.show', $booking->id), navigate: true);
+            return $this->redirect(route('bookings.show', $booking), navigate: true);
         }
 
         if ($this->mode === 'edit') {
             session()->flash('success', "Reservasi {$booking->booking_code} berhasil diperbarui.");
 
-            return $this->redirect(route('bookings.show', $booking->id), navigate: true);
+            return $this->redirect(route('bookings.show', $booking), navigate: true);
         }
 
         session()->flash('success', "Booking {$booking->booking_code} berhasil dibuat.");
@@ -445,6 +445,17 @@ class BookingForm extends Component
     private function displayTimezone(): string
     {
         return (string) config('app.display_timezone', 'Asia/Jakarta');
+    }
+
+    /**
+     * Obfuscated route key for the booking being edited/rescheduled, so the
+     * "back to booking" link uses the masked id rather than the raw integer.
+     */
+    public function getBookingHashidProperty(): ?string
+    {
+        return $this->bookingId !== null
+            ? Booking::encodeHashid($this->bookingId)
+            : null;
     }
 
     public function render(): View

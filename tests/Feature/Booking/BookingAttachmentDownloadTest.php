@@ -52,7 +52,7 @@ class BookingAttachmentDownloadTest extends TestCase
         $attachment = $this->attachmentFor($booking, 'booking-attachments/agenda.pdf', 'agenda.pdf');
 
         $response = $this->actingAs($user)
-            ->get(route('bookings.attachments.download', [$booking->id, $attachment->id]));
+            ->get(route('bookings.attachments.download', [$booking, $attachment]));
 
         $response->assertDownload('agenda.pdf');
         $this->assertSame('FILE CONTENT', $response->streamedContent());
@@ -66,7 +66,7 @@ class BookingAttachmentDownloadTest extends TestCase
         $attachment = $this->attachmentFor($booking, 'booking-attachments/x.pdf', 'x.pdf');
 
         $this->actingAs($admin)
-            ->get(route('bookings.attachments.download', [$booking->id, $attachment->id]))
+            ->get(route('bookings.attachments.download', [$booking, $attachment]))
             ->assertDownload('x.pdf');
     }
 
@@ -78,7 +78,7 @@ class BookingAttachmentDownloadTest extends TestCase
         $attachment = $this->attachmentFor($booking, 'booking-attachments/y.pdf', 'y.pdf');
 
         $this->actingAs($stranger)
-            ->get(route('bookings.attachments.download', [$booking->id, $attachment->id]))
+            ->get(route('bookings.attachments.download', [$booking, $attachment]))
             ->assertForbidden();
     }
 
@@ -90,7 +90,7 @@ class BookingAttachmentDownloadTest extends TestCase
         $attachmentB = $this->attachmentFor($bookingB, 'booking-attachments/z.pdf', 'z.pdf');
 
         $this->actingAs($user)
-            ->get(route('bookings.attachments.download', [$bookingA->id, $attachmentB->id]))
+            ->get(route('bookings.attachments.download', [$bookingA, $attachmentB]))
             ->assertNotFound();
     }
 
@@ -99,7 +99,7 @@ class BookingAttachmentDownloadTest extends TestCase
         $booking = Booking::factory()->create();
         $attachment = $this->attachmentFor($booking, 'booking-attachments/g.pdf', 'g.pdf');
 
-        $this->get(route('bookings.attachments.download', [$booking->id, $attachment->id]))
+        $this->get(route('bookings.attachments.download', [$booking, $attachment]))
             ->assertRedirect(route('login'));
     }
 }

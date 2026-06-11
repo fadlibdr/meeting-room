@@ -58,7 +58,7 @@ class FacilityManagementTest extends TestCase
         $facility = RoomFacility::factory()->create();
         $admin = $this->userWithRole('ga_admin');
         $this->actingAs($admin)->get(route('admin.facilities.create'))->assertOk();
-        $this->actingAs($admin)->get(route('admin.facilities.edit', $facility->id))->assertOk();
+        $this->actingAs($admin)->get(route('admin.facilities.edit', $facility))->assertOk();
     }
 
     public function test_requester_cannot_view_create_screen(): void

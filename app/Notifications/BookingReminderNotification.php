@@ -47,7 +47,7 @@ final class BookingReminderNotification extends Notification implements ShouldQu
             ->greeting('Halo '.$name.',')
             ->line(sprintf('Pengingat: reservasi %s akan dimulai pada %s.', $this->booking->booking_code, $waktu))
             ->line('Ruang: '.($this->booking->room->name ?? '-'))
-            ->action('Lihat Reservasi', route('bookings.show', $this->booking->id));
+            ->action('Lihat Reservasi', route('bookings.show', $this->booking));
     }
 
     /**
@@ -69,7 +69,7 @@ final class BookingReminderNotification extends Notification implements ShouldQu
                 $this->booking->booking_code,
                 $start->locale('id')->isoFormat('dddd, D MMMM Y [pukul] HH:mm'),
             ),
-            'url' => route('bookings.show', $this->booking->id),
+            'url' => route('bookings.show', $this->booking),
         ];
     }
 }

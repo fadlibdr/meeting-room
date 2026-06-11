@@ -26,24 +26,25 @@ class DataSubjectController extends Controller
         return $this->jsonDownload($exporter->export($user), $exporter->filename($user));
     }
 
-    public function export(int $userId, PersonalDataExporter $exporter): Response
+    public function export(string $userId, PersonalDataExporter $exporter): Response
     {
         $this->authorizeAdmin();
-        $user = User::findOrFail($userId);
+        $user = User::findOrFail(User::decodeHashidOrFail($userId));
 
         return $this->jsonDownload($exporter->export($user), $exporter->filename($user));
     }
 
-    public function anonymize(int $userId, AnonymizeUserAction $action): RedirectResponse
+    public function anonymize(string $userId, AnonymizeUserAction $action): RedirectResponse
     {
         $this->authorizeAdmin();
         $actor = $this->currentUser();
+        $targetId = User::decodeHashidOrFail($userId);
 
-        if ($actor->id === $userId) {
+        if ($actor->id === $targetId) {
             return back()->withErrors(['anonymize' => __('Anda tidak dapat menganonimkan akun Anda sendiri.')]);
         }
 
-        $user = User::findOrFail($userId);
+        $user = User::findOrFail($targetId);
         $action->execute($user, $actor->id);
 
         return redirect()->route('admin.users.index')

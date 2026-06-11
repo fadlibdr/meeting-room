@@ -115,7 +115,7 @@ class DeleteBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Draft, $this->userWithRole('requester'));
 
         $this->actingAs($superAdmin)
-            ->delete(route('bookings.destroy', $booking->id))
+            ->delete(route('bookings.destroy', $booking))
             ->assertRedirect(route('calendar.index'));
 
         $this->assertDatabaseMissing('bookings', ['id' => $booking->id]);
@@ -127,7 +127,7 @@ class DeleteBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Submitted, $this->userWithRole('requester'));
 
         $this->actingAs($superAdmin)
-            ->delete(route('bookings.destroy', $booking->id))
+            ->delete(route('bookings.destroy', $booking))
             ->assertForbidden();
 
         $this->assertDatabaseHas('bookings', ['id' => $booking->id]);
@@ -139,7 +139,7 @@ class DeleteBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Draft, $requester);
 
         $this->actingAs($requester)
-            ->delete(route('bookings.destroy', $booking->id))
+            ->delete(route('bookings.destroy', $booking))
             ->assertForbidden();
 
         $this->assertDatabaseHas('bookings', ['id' => $booking->id]);
@@ -151,7 +151,7 @@ class DeleteBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Draft, $this->userWithRole('requester'));
 
         $this->actingAs($gaAdmin)
-            ->delete(route('bookings.destroy', $booking->id))
+            ->delete(route('bookings.destroy', $booking))
             ->assertForbidden();
     }
 
@@ -159,7 +159,7 @@ class DeleteBookingTest extends TestCase
     {
         $booking = $this->makeBooking(BookingStatus::Draft, $this->userWithRole('requester'));
 
-        $this->delete(route('bookings.destroy', $booking->id))
+        $this->delete(route('bookings.destroy', $booking))
             ->assertRedirect(route('login'));
     }
 
@@ -171,7 +171,7 @@ class DeleteBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Draft, $this->userWithRole('requester'));
 
         $this->actingAs($superAdmin)
-            ->get(route('bookings.show', $booking->id))
+            ->get(route('bookings.show', $booking))
             ->assertSee('Hapus Permanen');
     }
 
@@ -181,7 +181,7 @@ class DeleteBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Draft, $requester);
 
         $this->actingAs($requester)
-            ->get(route('bookings.show', $booking->id))
+            ->get(route('bookings.show', $booking))
             ->assertDontSee('Hapus Permanen');
     }
 
@@ -191,7 +191,7 @@ class DeleteBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Submitted, $this->userWithRole('requester'));
 
         $this->actingAs($superAdmin)
-            ->get(route('bookings.show', $booking->id))
+            ->get(route('bookings.show', $booking))
             ->assertDontSee('Hapus Permanen');
     }
 }

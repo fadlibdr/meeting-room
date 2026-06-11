@@ -49,7 +49,7 @@ class BookingCalendarDownloadTest extends TestCase
         $owner = $this->requester();
         $booking = $this->bookingFor($owner);
 
-        $response = $this->actingAs($owner)->get(route('bookings.calendar', $booking->id));
+        $response = $this->actingAs($owner)->get(route('bookings.calendar', $booking));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/calendar; charset=utf-8');
@@ -64,7 +64,7 @@ class BookingCalendarDownloadTest extends TestCase
         $booking = $this->bookingFor($owner);
 
         $this->actingAs($stranger)
-            ->get(route('bookings.calendar', $booking->id))
+            ->get(route('bookings.calendar', $booking))
             ->assertForbidden();
     }
 

@@ -51,7 +51,7 @@ final class BookingApprovedNotification extends Notification implements ShouldQu
             ->line('Subjek: '.$this->booking->subject)
             ->line('Ruang: '.($this->booking->room->name ?? '-'))
             ->line('Waktu: '.$waktu)
-            ->action('Lihat Reservasi', route('bookings.show', $this->booking->id))
+            ->action('Lihat Reservasi', route('bookings.show', $this->booking))
             ->attachData(
                 $ics->forBooking($this->booking),
                 $ics->filename($this->booking),
@@ -73,7 +73,7 @@ final class BookingApprovedNotification extends Notification implements ShouldQu
                 'Reservasi %s telah disetujui.',
                 $this->booking->booking_code,
             ),
-            'url' => route('bookings.show', $this->booking->id),
+            'url' => route('bookings.show', $this->booking),
         ];
     }
 }

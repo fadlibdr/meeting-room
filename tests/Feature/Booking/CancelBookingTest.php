@@ -143,9 +143,9 @@ class CancelBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Draft, $owner);
 
         $response = $this->actingAs($owner)
-            ->post(route('bookings.cancel', $booking->id));
+            ->post(route('bookings.cancel', $booking));
 
-        $response->assertRedirect(route('bookings.show', $booking->id));
+        $response->assertRedirect(route('bookings.show', $booking));
         $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('bookings', [
@@ -160,9 +160,9 @@ class CancelBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Submitted, $owner);
 
         $response = $this->actingAs($owner)
-            ->post(route('bookings.cancel', $booking->id));
+            ->post(route('bookings.cancel', $booking));
 
-        $response->assertRedirect(route('bookings.show', $booking->id));
+        $response->assertRedirect(route('bookings.show', $booking));
 
         $booking->refresh();
         $this->assertSame(BookingStatus::Cancelled, $booking->status);
@@ -182,11 +182,11 @@ class CancelBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Approved, $owner);
 
         $response = $this->actingAs($owner)
-            ->post(route('bookings.cancel', $booking->id), [
+            ->post(route('bookings.cancel', $booking), [
                 'cancellation_reason' => 'Rapat dibatalkan oleh penyelenggara.',
             ]);
 
-        $response->assertRedirect(route('bookings.show', $booking->id));
+        $response->assertRedirect(route('bookings.show', $booking));
         $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('bookings', [
@@ -202,10 +202,10 @@ class CancelBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Draft, $owner);
 
         $response = $this->actingAs($owner)
-            ->post(route('bookings.cancel', $booking->id));
+            ->post(route('bookings.cancel', $booking));
 
         $response->assertSessionHasNoErrors();
-        $response->assertRedirect(route('bookings.show', $booking->id));
+        $response->assertRedirect(route('bookings.show', $booking));
     }
 
     // ─── VALIDATION ──────────────────────────────────────────────────
@@ -216,7 +216,7 @@ class CancelBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Approved, $owner);
 
         $response = $this->actingAs($owner)
-            ->post(route('bookings.cancel', $booking->id));
+            ->post(route('bookings.cancel', $booking));
 
         $response->assertSessionHasErrors(['cancellation_reason']);
 
@@ -236,7 +236,7 @@ class CancelBookingTest extends TestCase
         $stranger = $this->makeRequester();
 
         $response = $this->actingAs($stranger)
-            ->post(route('bookings.cancel', $booking->id), [
+            ->post(route('bookings.cancel', $booking), [
                 'cancellation_reason' => 'Bukan booking saya.',
             ]);
 
@@ -254,7 +254,7 @@ class CancelBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Rejected, $owner);
 
         $response = $this->actingAs($owner)
-            ->post(route('bookings.cancel', $booking->id));
+            ->post(route('bookings.cancel', $booking));
 
         // BookingPolicy::cancel gates terminal statuses — authorize() fails.
         $response->assertForbidden();
@@ -270,7 +270,7 @@ class CancelBookingTest extends TestCase
         $owner = $this->makeRequester();
         $booking = $this->makeBooking(BookingStatus::Draft, $owner);
 
-        $response = $this->post(route('bookings.cancel', $booking->id));
+        $response = $this->post(route('bookings.cancel', $booking));
 
         $response->assertRedirect(route('login'));
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\RoomFacility;
 use Illuminate\View\View;
 
 class FacilityController extends Controller
@@ -17,8 +18,8 @@ class FacilityController extends Controller
         return view('admin.facilities.create');
     }
 
-    public function edit(int $facilityId): View
+    public function edit(string $facilityId): View
     {
-        return view('admin.facilities.edit', ['facilityId' => $facilityId]);
+        return view('admin.facilities.edit', ['facilityId' => RoomFacility::decodeHashidOrFail($facilityId)]);
     }
 }

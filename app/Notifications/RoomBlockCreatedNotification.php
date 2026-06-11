@@ -64,7 +64,7 @@ final class RoomBlockCreatedNotification extends Notification implements ShouldQ
             ))
             ->line('Ruang: '.($this->block->room->name ?? '-'))
             ->line('Waktu: '.$waktu)
-            ->action('Lihat Reservasi', route('bookings.show', $this->cancelledBooking->id));
+            ->action('Lihat Reservasi', route('bookings.show', $this->cancelledBooking));
     }
 
     /**
@@ -84,7 +84,7 @@ final class RoomBlockCreatedNotification extends Notification implements ShouldQ
                 $this->cancelledBooking->booking_code,
                 $this->block->block_type->label(),
             ),
-            'url' => route('bookings.show', $this->cancelledBooking->id),
+            'url' => route('bookings.show', $this->cancelledBooking),
         ];
     }
 }

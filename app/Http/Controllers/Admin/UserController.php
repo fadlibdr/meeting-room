@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -26,8 +27,8 @@ class UserController extends Controller
     /**
      * Display the form to edit an existing user.
      */
-    public function edit(int $userId): View
+    public function edit(string $userId): View
     {
-        return view('admin.users.edit', ['userId' => $userId]);
+        return view('admin.users.edit', ['userId' => User::decodeHashidOrFail($userId)]);
     }
 }

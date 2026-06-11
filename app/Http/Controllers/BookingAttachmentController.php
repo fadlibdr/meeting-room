@@ -72,7 +72,7 @@ class BookingAttachmentController extends Controller
         ]);
 
         return redirect()
-            ->route('bookings.show', $booking->id)
+            ->route('bookings.show', $booking)
             ->with('status', 'Lampiran berhasil diunggah.');
     }
 
@@ -97,7 +97,7 @@ class BookingAttachmentController extends Controller
         ]);
 
         return redirect()
-            ->route('bookings.show', $booking->id)
+            ->route('bookings.show', $booking)
             ->with('status', 'Lampiran dihapus.');
     }
 }

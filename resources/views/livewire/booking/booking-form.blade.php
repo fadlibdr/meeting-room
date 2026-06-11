@@ -1,5 +1,5 @@
 <div>
-    <a href="{{ $bookingId ? route('bookings.show', $bookingId) : route('calendar.index') }}" wire:navigate
+    <a href="{{ $this->bookingHashid ? route('bookings.show', $this->bookingHashid) : route('calendar.index') }}" wire:navigate
        class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors mb-4">
         <x-icon name="chevronLeft" :size="15" /> {{ __('Batal') }}
     </a>
@@ -231,7 +231,7 @@
 
             {{-- Actions --}}
             <div class="flex items-center justify-end gap-2.5 mt-6 pt-5" style="border-top: 1px solid var(--slate-100);">
-                <x-bpjs.button variant="ghost" :href="$bookingId ? route('bookings.show', $bookingId) : route('calendar.index')" wire:navigate>
+                <x-bpjs.button variant="ghost" :href="$this->bookingHashid ? route('bookings.show', $this->bookingHashid) : route('calendar.index')" wire:navigate>
                     {{ __('Batal') }}
                 </x-bpjs.button>
                 <button

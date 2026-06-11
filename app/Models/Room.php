@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ResourceType;
+use App\Models\Concerns\HasHashid;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class Room extends Resource
 {
+    use HasHashid;
+
     protected static function booted(): void
     {
         static::addGlobalScope('room', function (Builder $query): void {

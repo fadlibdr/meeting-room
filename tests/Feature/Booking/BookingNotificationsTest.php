@@ -350,7 +350,7 @@ class BookingNotificationsTest extends TestCase
             collect($mail->introLines)->contains(fn (string $l): bool => str_contains($l, $booking->booking_code)),
             'A mail line should reference the booking code.'
         );
-        $this->assertSame(route('bookings.show', $booking->id), $mail->actionUrl);
+        $this->assertSame(route('bookings.show', $booking), $mail->actionUrl);
     }
 
     public function test_approved_mail_renders_subject_and_action(): void
@@ -362,7 +362,7 @@ class BookingNotificationsTest extends TestCase
 
         $this->assertStringContainsString($booking->booking_code, $mail->subject);
         $this->assertStringContainsString('disetujui', strtolower(implode(' ', $mail->introLines)));
-        $this->assertSame(route('bookings.show', $booking->id), $mail->actionUrl);
+        $this->assertSame(route('bookings.show', $booking), $mail->actionUrl);
     }
 
     public function test_rejected_mail_includes_the_reason_line(): void
@@ -405,7 +405,7 @@ class BookingNotificationsTest extends TestCase
         $mail = (new BookingReminderNotification($booking))->toMail($ctx['requester']);
 
         $this->assertStringContainsString($booking->booking_code, $mail->subject);
-        $this->assertSame(route('bookings.show', $booking->id), $mail->actionUrl);
+        $this->assertSame(route('bookings.show', $booking), $mail->actionUrl);
     }
 
     public function test_room_block_mail_points_at_the_cancelled_booking(): void
@@ -417,7 +417,7 @@ class BookingNotificationsTest extends TestCase
         $mail = (new RoomBlockCreatedNotification($block, $booking))->toMail($ctx['requester']);
 
         $this->assertStringContainsString($booking->booking_code, $mail->subject);
-        $this->assertSame(route('bookings.show', $booking->id), $mail->actionUrl);
+        $this->assertSame(route('bookings.show', $booking), $mail->actionUrl);
     }
 
     // ─── PER-USER PREFERENCE (2.1.2) ─────────────────────────────────

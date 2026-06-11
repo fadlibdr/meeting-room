@@ -30,7 +30,7 @@ class ExportDownloadTest extends TestCase
         $export = $this->completedExportFor($user);
 
         $this->actingAs($user)
-            ->get(route('exports.download', $export->id))
+            ->get(route('exports.download', $export))
             ->assertOk()
             ->assertDownload($export->filename);
     }
@@ -43,7 +43,7 @@ class ExportDownloadTest extends TestCase
         $export = $this->completedExportFor($owner);
 
         $this->actingAs($stranger)
-            ->get(route('exports.download', $export->id))
+            ->get(route('exports.download', $export))
             ->assertNotFound();
     }
 
@@ -54,7 +54,7 @@ class ExportDownloadTest extends TestCase
         $export = Export::factory()->create(['user_id' => $user->id]); // pending, no file
 
         $this->actingAs($user)
-            ->get(route('exports.download', $export->id))
+            ->get(route('exports.download', $export))
             ->assertNotFound();
     }
 
@@ -69,7 +69,7 @@ class ExportDownloadTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->get(route('exports.download', $export->id))
+            ->get(route('exports.download', $export))
             ->assertNotFound();
     }
 
@@ -79,7 +79,7 @@ class ExportDownloadTest extends TestCase
         $user = User::factory()->create();
         $export = $this->completedExportFor($user);
 
-        $this->get(route('exports.download', $export->id))
+        $this->get(route('exports.download', $export))
             ->assertRedirect(route('login'));
     }
 }
