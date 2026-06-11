@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasHashid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +23,7 @@ class Unit extends Model
 {
     use BelongsToTenant;
     use HasFactory;
+    use HasHashid;
 
     protected $fillable = ['code', 'name', 'parent_id', 'is_active', 'approval_policy_id'];
 

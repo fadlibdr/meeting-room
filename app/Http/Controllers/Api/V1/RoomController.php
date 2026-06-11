@@ -30,8 +30,13 @@ class RoomController extends Controller
         return RoomResource::collection($rooms);
     }
 
-    public function availability(Request $request, Room $room, BookingConflictService $conflicts): JsonResponse
+    public function availability(Request $request, string $room, BookingConflictService $conflicts): JsonResponse
     {
+        // The v1 API is a token-authenticated machine contract and stays on
+        // integer ids (hashid masking applies to the browsable web URLs); look
+        // the room up directly rather than via hashid route-model binding.
+        $room = Room::findOrFail((int) $room);
+
         $validated = $request->validate([
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],

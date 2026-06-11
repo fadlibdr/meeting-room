@@ -92,7 +92,7 @@
                         <td class="text-right">
                             <div class="inline-flex items-center justify-end gap-3">
                                 @hasPermission('rooms.update')
-                                    <a href="{{ route('admin.rooms.edit', $room->id) }}" wire:navigate
+                                    <a href="{{ route('admin.rooms.edit', $room->hashid) }}" wire:navigate
                                        class="text-sm font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">{{ __('Edit') }}</a>
                                     @if($room->status !== \App\Enums\RoomStatus::Active)
                                         <button wire:click="activate({{ $room->id }})" wire:confirm="{{ __('Aktifkan kembali :name?', ['name' => $room->name]) }}"

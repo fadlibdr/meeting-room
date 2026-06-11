@@ -15,7 +15,7 @@
                     {{ $booking->booking_code }}
                 </div>
                 <div style="font-size: 14px; color: var(--slate-600); margin-top: 4px;">{{ $booking->subject }}</div>
-                <a href="{{ route('bookings.calendar', $booking->id) }}"
+                <a href="{{ route('bookings.calendar', $booking) }}"
                    class="inline-flex items-center gap-1.5 mt-3 text-bpjs-blue-600 hover:text-bpjs-blue-700 font-medium" style="font-size: 13px;">
                     <x-icon name="calendar" :size="15" /> {{ __('Tambah ke Kalender') }}
                 </a>
@@ -124,12 +124,12 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2" style="margin-left: 16px;">
-                                <a href="{{ route('bookings.attachments.download', [$booking->id, $attachment->id]) }}"
+                                <a href="{{ route('bookings.attachments.download', [$booking, $attachment]) }}"
                                    class="btn btn--ghost" style="padding: 6px 12px; font-size: 12.5px; border-radius: 8px;">
                                     {{ __('Unduh') }}
                                 </a>
                                 @can('manageAttachments', $booking)
-                                    <form method="POST" action="{{ route('bookings.attachments.destroy', [$booking->id, $attachment->id]) }}"
+                                    <form method="POST" action="{{ route('bookings.attachments.destroy', [$booking, $attachment]) }}"
                                           onsubmit="return confirm('{{ __('Hapus lampiran ini?') }}');">
                                         @csrf
                                         @method('DELETE')
@@ -145,7 +145,7 @@
             @endif
 
             @can('manageAttachments', $booking)
-                <form method="POST" action="{{ route('bookings.attachments.store', $booking->id) }}"
+                <form method="POST" action="{{ route('bookings.attachments.store', $booking) }}"
                       enctype="multipart/form-data" style="margin-top: 16px; border-top: 1px solid var(--slate-100); padding-top: 16px;">
                     @csrf
                     <x-bpjs.field :label="__('Unggah Lampiran')" for="attachment" :error="$errors->first('attachment')"
@@ -225,15 +225,15 @@
             <x-bpjs.card :title="__('Tindakan')" rise>
                 <div class="flex items-center gap-2 flex-wrap">
                     @can('update', $booking)
-                        <x-bpjs.button variant="ghost" icon="settings" :href="route('bookings.edit', $booking->id)">{{ __('Ubah Reservasi') }}</x-bpjs.button>
+                        <x-bpjs.button variant="ghost" icon="settings" :href="route('bookings.edit', $booking)">{{ __('Ubah Reservasi') }}</x-bpjs.button>
                     @endcan
 
                     @can('reschedule', $booking)
-                        <x-bpjs.button variant="ghost" icon="calendar" :href="route('bookings.reschedule', $booking->id)">{{ __('Jadwalkan Ulang') }}</x-bpjs.button>
+                        <x-bpjs.button variant="ghost" icon="calendar" :href="route('bookings.reschedule', $booking)">{{ __('Jadwalkan Ulang') }}</x-bpjs.button>
                     @endcan
 
                     @can('submit', $booking)
-                        <form method="POST" action="{{ route('bookings.submit', $booking->id) }}"
+                        <form method="POST" action="{{ route('bookings.submit', $booking) }}"
                               onsubmit="return confirm('{{ __('Ajukan reservasi ini untuk persetujuan?') }}');">
                             @csrf
                             <x-bpjs.button type="submit" icon="arrowRight">{{ __('Ajukan Reservasi') }}</x-bpjs.button>
@@ -257,7 +257,7 @@
                             </p>
                         @enderror
 
-                        <form method="POST" action="{{ route('bookings.cancel', $booking->id) }}"
+                        <form method="POST" action="{{ route('bookings.cancel', $booking) }}"
                               onsubmit="return confirm('{{ __('Batalkan reservasi ini? Tindakan ini tidak dapat diurungkan.') }}');">
                             @csrf
                             <x-bpjs.field
@@ -277,7 +277,7 @@
                                 <x-bpjs.button type="submit" variant="solid-danger" icon="x">{{ __('Batalkan Reservasi') }}</x-bpjs.button>
                                 @if ($booking->isRecurring())
                                     <button type="submit"
-                                            formaction="{{ route('bookings.cancel-series', $booking->id) }}"
+                                            formaction="{{ route('bookings.cancel-series', $booking) }}"
                                             onclick="return confirm('{{ __('Batalkan SEMUA jadwal dalam seri berulang ini? Alasan wajib diisi.') }}');"
                                             class="btn btn--danger">
                                         <x-icon name="x" :size="17" /> {{ __('Batalkan Seri') }}
@@ -299,7 +299,7 @@
                         <p style="margin-bottom: 10px; font-size: 12px; color: var(--slate-500);">
                             {{ __('Menghapus draf akan menghilangkannya secara permanen dan tidak dapat diurungkan.') }}
                         </p>
-                        <form method="POST" action="{{ route('bookings.destroy', $booking->id) }}"
+                        <form method="POST" action="{{ route('bookings.destroy', $booking) }}"
                               onsubmit="return confirm('{{ __('Hapus draf reservasi ini secara permanen? Tindakan ini tidak dapat diurungkan.') }}');">
                             @csrf
                             @method('DELETE')

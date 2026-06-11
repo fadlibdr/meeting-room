@@ -70,7 +70,7 @@
                         <td class="text-right">
                             <div class="inline-flex items-center justify-end gap-3">
                                 @hasPermission('users.update')
-                                    <a href="{{ route('admin.units.edit', $unit->id) }}" wire:navigate
+                                    <a href="{{ route('admin.units.edit', $unit->hashid) }}" wire:navigate
                                        class="text-sm font-semibold text-bpjs-blue-600 hover:text-bpjs-blue-700">{{ __('Edit') }}</a>
                                     <button wire:click="toggleActive({{ $unit->id }})"
                                             wire:confirm="{{ $unit->is_active ? __('Nonaktifkan :name?', ['name' => $unit->name]) : __('Aktifkan :name?', ['name' => $unit->name]) }}"

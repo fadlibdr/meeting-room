@@ -53,7 +53,7 @@ class AdminRescheduleTest extends TestCase
         $this->assertFalse($admin->hasPermission('bookings.cancel'));
 
         $this->actingAs($admin)
-            ->get(route('bookings.reschedule', $booking->id))
+            ->get(route('bookings.reschedule', $booking))
             ->assertOk();
     }
 
@@ -64,7 +64,7 @@ class AdminRescheduleTest extends TestCase
         $booking = $this->approvedBookingFor($owner);
 
         $this->actingAs($stranger)
-            ->get(route('bookings.reschedule', $booking->id))
+            ->get(route('bookings.reschedule', $booking))
             ->assertForbidden();
     }
 
@@ -74,7 +74,7 @@ class AdminRescheduleTest extends TestCase
         $booking = $this->approvedBookingFor($owner);
 
         $this->actingAs($owner)
-            ->get(route('bookings.reschedule', $booking->id))
+            ->get(route('bookings.reschedule', $booking))
             ->assertOk();
     }
 
@@ -86,7 +86,7 @@ class AdminRescheduleTest extends TestCase
         $booking->update(['status' => 'submitted']);
 
         $this->actingAs($admin)
-            ->get(route('bookings.reschedule', $booking->id))
+            ->get(route('bookings.reschedule', $booking))
             ->assertForbidden();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Unit;
 use Illuminate\View\View;
 
 class UnitController extends Controller
@@ -17,8 +18,8 @@ class UnitController extends Controller
         return view('admin.units.create');
     }
 
-    public function edit(int $unitId): View
+    public function edit(string $unitId): View
     {
-        return view('admin.units.edit', ['unitId' => $unitId]);
+        return view('admin.units.edit', ['unitId' => Unit::decodeHashidOrFail($unitId)]);
     }
 }

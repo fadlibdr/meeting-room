@@ -88,22 +88,22 @@ class DataSubjectRightsTest extends TestCase
         $admin = $this->userWithRole('super_admin');
         $target = User::factory()->create();
 
-        $this->actingAs($admin)->get(route('admin.users.data-export', $target->id))->assertOk();
-        $this->actingAs($admin)->post(route('admin.users.anonymize', $target->id))
+        $this->actingAs($admin)->get(route('admin.users.data-export', $target))->assertOk();
+        $this->actingAs($admin)->post(route('admin.users.anonymize', $target))
             ->assertRedirect(route('admin.users.index'));
         $this->assertSame('Pengguna Dianonimkan', $target->fresh()->name);
 
         $requester = $this->userWithRole('requester');
         $other = User::factory()->create();
-        $this->actingAs($requester)->get(route('admin.users.data-export', $other->id))->assertForbidden();
-        $this->actingAs($requester)->post(route('admin.users.anonymize', $other->id))->assertForbidden();
+        $this->actingAs($requester)->get(route('admin.users.data-export', $other))->assertForbidden();
+        $this->actingAs($requester)->post(route('admin.users.anonymize', $other))->assertForbidden();
     }
 
     public function test_admin_cannot_anonymize_their_own_account(): void
     {
         $admin = $this->userWithRole('super_admin');
 
-        $this->actingAs($admin)->post(route('admin.users.anonymize', $admin->id))
+        $this->actingAs($admin)->post(route('admin.users.anonymize', $admin))
             ->assertSessionHasErrors('anonymize');
         $this->assertNotSame('Pengguna Dianonimkan', $admin->fresh()->name);
     }

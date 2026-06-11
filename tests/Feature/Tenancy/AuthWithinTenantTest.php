@@ -103,7 +103,7 @@ class AuthWithinTenantTest extends TestCase
             'checked_in_at' => null,
         ]));
 
-        $url = URL::signedRoute('bookings.checkin', ['booking' => $booking->id]);
+        $url = URL::signedRoute('bookings.checkin', ['booking' => $booking->getRouteKey()]);
 
         $this->get($url)->assertOk();
         $this->assertNotNull($booking->fresh()->checked_in_at);

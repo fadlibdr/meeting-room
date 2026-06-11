@@ -24,7 +24,7 @@ final class BookingCheckInLink
         return URL::temporarySignedRoute(
             'bookings.checkin',
             $booking->ends_at,
-            ['booking' => $booking->id],
+            ['booking' => $booking->getRouteKey()],
         );
     }
 

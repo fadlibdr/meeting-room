@@ -115,7 +115,7 @@ class BookingController extends Controller
         }
 
         return redirect()
-            ->route('bookings.show', $booking->id)
+            ->route('bookings.show', $booking)
             ->with('success', "Reservasi {$booking->booking_code} berhasil dibatalkan.");
     }
 
@@ -141,7 +141,7 @@ class BookingController extends Controller
         $count = $action->execute($booking, $user, $validated['cancellation_reason']);
 
         return redirect()
-            ->route('bookings.show', $booking->id)
+            ->route('bookings.show', $booking)
             ->with('success', "Seri reservasi dibatalkan: {$count} jadwal.");
     }
 
@@ -175,7 +175,7 @@ class BookingController extends Controller
         }
 
         return redirect()
-            ->route('bookings.show', $booking->id)
+            ->route('bookings.show', $booking)
             ->with('success', "Reservasi {$booking->booking_code} berhasil diajukan.");
     }
 

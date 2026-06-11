@@ -54,7 +54,7 @@ final class BookingRejectedNotification extends Notification implements ShouldQu
             $mail->line('Alasan: '.$this->booking->rejection_reason);
         }
 
-        return $mail->action('Lihat Reservasi', route('bookings.show', $this->booking->id));
+        return $mail->action('Lihat Reservasi', route('bookings.show', $this->booking));
     }
 
     /**
@@ -72,7 +72,7 @@ final class BookingRejectedNotification extends Notification implements ShouldQu
                 $this->booking->booking_code,
             ),
             'reason' => $this->booking->rejection_reason,
-            'url' => route('bookings.show', $this->booking->id),
+            'url' => route('bookings.show', $this->booking),
         ];
     }
 }

@@ -52,10 +52,10 @@ class BookingAttachmentManageTest extends TestCase
         $booking = Booking::factory()->approved()->create(['requester_user_id' => $user->id]);
 
         $this->actingAs($user)
-            ->post(route('bookings.attachments.store', $booking->id), [
+            ->post(route('bookings.attachments.store', $booking), [
                 'attachment' => UploadedFile::fake()->create('agenda.pdf', 120, 'application/pdf'),
             ])
-            ->assertRedirect(route('bookings.show', $booking->id));
+            ->assertRedirect(route('bookings.show', $booking));
 
         $this->assertDatabaseHas('booking_attachments', [
             'booking_id' => $booking->id,
@@ -78,7 +78,7 @@ class BookingAttachmentManageTest extends TestCase
         $booking = Booking::factory()->approved()->create(['requester_user_id' => $user->id]);
 
         $this->actingAs($user)
-            ->post(route('bookings.attachments.store', $booking->id), [])
+            ->post(route('bookings.attachments.store', $booking), [])
             ->assertSessionHasErrors('attachment');
     }
 
@@ -88,7 +88,7 @@ class BookingAttachmentManageTest extends TestCase
         $booking = Booking::factory()->approved()->create(['requester_user_id' => $user->id]);
 
         $this->actingAs($user)
-            ->post(route('bookings.attachments.store', $booking->id), [
+            ->post(route('bookings.attachments.store', $booking), [
                 'attachment' => UploadedFile::fake()->create('big.pdf', 11000, 'application/pdf'),
             ])
             ->assertSessionHasErrors('attachment');
@@ -102,7 +102,7 @@ class BookingAttachmentManageTest extends TestCase
         $booking = Booking::factory()->approved()->create(['requester_user_id' => $owner->id]);
 
         $this->actingAs($stranger)
-            ->post(route('bookings.attachments.store', $booking->id), [
+            ->post(route('bookings.attachments.store', $booking), [
                 'attachment' => UploadedFile::fake()->create('x.pdf', 100, 'application/pdf'),
             ])
             ->assertForbidden();
@@ -114,7 +114,7 @@ class BookingAttachmentManageTest extends TestCase
         $booking = Booking::factory()->cancelled()->create(['requester_user_id' => $user->id]);
 
         $this->actingAs($user)
-            ->post(route('bookings.attachments.store', $booking->id), [
+            ->post(route('bookings.attachments.store', $booking), [
                 'attachment' => UploadedFile::fake()->create('x.pdf', 100, 'application/pdf'),
             ])
             ->assertForbidden();
@@ -127,8 +127,8 @@ class BookingAttachmentManageTest extends TestCase
         $attachment = $this->attachment($booking, 'booking-attachments/a.pdf', 'a.pdf');
 
         $this->actingAs($user)
-            ->delete(route('bookings.attachments.destroy', [$booking->id, $attachment->id]))
-            ->assertRedirect(route('bookings.show', $booking->id));
+            ->delete(route('bookings.attachments.destroy', [$booking, $attachment]))
+            ->assertRedirect(route('bookings.show', $booking));
 
         $this->assertDatabaseMissing('booking_attachments', ['id' => $attachment->id]);
         Storage::disk('local_private')->assertMissing('booking-attachments/a.pdf');
@@ -143,7 +143,7 @@ class BookingAttachmentManageTest extends TestCase
         $attachment = $this->attachment($booking, 'booking-attachments/b.pdf', 'b.pdf');
 
         $this->actingAs($stranger)
-            ->delete(route('bookings.attachments.destroy', [$booking->id, $attachment->id]))
+            ->delete(route('bookings.attachments.destroy', [$booking, $attachment]))
             ->assertForbidden();
         $this->assertDatabaseHas('booking_attachments', ['id' => $attachment->id]);
     }
@@ -156,7 +156,7 @@ class BookingAttachmentManageTest extends TestCase
         $attachmentB = $this->attachment($bookingB, 'booking-attachments/c.pdf', 'c.pdf');
 
         $this->actingAs($user)
-            ->delete(route('bookings.attachments.destroy', [$bookingA->id, $attachmentB->id]))
+            ->delete(route('bookings.attachments.destroy', [$bookingA, $attachmentB]))
             ->assertNotFound();
     }
 }

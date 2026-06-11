@@ -53,7 +53,7 @@ final class BookingAutoReleasedNotification extends Notification implements Shou
             ->line('Subjek: '.$this->booking->subject)
             ->line('Ruang: '.($this->booking->room->name ?? '-'))
             ->line('Waktu: '.$waktu)
-            ->action('Tinjau Reservasi', route('bookings.show', $this->booking->id));
+            ->action('Tinjau Reservasi', route('bookings.show', $this->booking));
     }
 
     /**
@@ -70,7 +70,7 @@ final class BookingAutoReleasedNotification extends Notification implements Shou
                 'Reservasi %s dilepas otomatis (no-show).',
                 $this->booking->booking_code,
             ),
-            'url' => route('bookings.show', $this->booking->id),
+            'url' => route('bookings.show', $this->booking),
         ];
     }
 }

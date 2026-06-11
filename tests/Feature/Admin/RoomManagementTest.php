@@ -76,7 +76,7 @@ class RoomManagementTest extends TestCase
         $admin = $this->userWithRole('ga_admin');
 
         $this->actingAs($admin)->get(route('admin.rooms.create'))->assertOk();
-        $this->actingAs($admin)->get(route('admin.rooms.edit', $room->id))->assertOk();
+        $this->actingAs($admin)->get(route('admin.rooms.edit', $room))->assertOk();
     }
 
     public function test_requester_cannot_view_create_screen(): void

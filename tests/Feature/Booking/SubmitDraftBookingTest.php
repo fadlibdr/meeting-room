@@ -132,8 +132,8 @@ class SubmitDraftBookingTest extends TestCase
         $draft = $this->makeBooking(BookingStatus::Draft, $owner, $this->makeRoom('unit_approver'));
 
         $this->actingAs($owner)
-            ->post(route('bookings.submit', $draft->id))
-            ->assertRedirect(route('bookings.show', $draft->id));
+            ->post(route('bookings.submit', $draft))
+            ->assertRedirect(route('bookings.show', $draft));
 
         $this->assertDatabaseHas('bookings', [
             'id' => $draft->id,
@@ -147,8 +147,8 @@ class SubmitDraftBookingTest extends TestCase
         $draft = $this->makeBooking(BookingStatus::Draft, $owner, $this->makeRoom('none'));
 
         $this->actingAs($owner)
-            ->post(route('bookings.submit', $draft->id))
-            ->assertRedirect(route('bookings.show', $draft->id));
+            ->post(route('bookings.submit', $draft))
+            ->assertRedirect(route('bookings.show', $draft));
 
         $this->assertDatabaseHas('bookings', [
             'id' => $draft->id,
@@ -163,7 +163,7 @@ class SubmitDraftBookingTest extends TestCase
         $stranger = $this->makeRequester();
 
         $this->actingAs($stranger)
-            ->post(route('bookings.submit', $draft->id))
+            ->post(route('bookings.submit', $draft))
             ->assertForbidden();
 
         $this->assertDatabaseHas('bookings', [
@@ -177,7 +177,7 @@ class SubmitDraftBookingTest extends TestCase
         $owner = $this->makeRequester();
         $draft = $this->makeBooking(BookingStatus::Draft, $owner, $this->makeRoom('none'));
 
-        $this->post(route('bookings.submit', $draft->id))
+        $this->post(route('bookings.submit', $draft))
             ->assertRedirect(route('login'));
     }
 
@@ -187,7 +187,7 @@ class SubmitDraftBookingTest extends TestCase
         $submitted = $this->makeBooking(BookingStatus::Submitted, $owner, $this->makeRoom('unit_approver'));
 
         $this->actingAs($owner)
-            ->post(route('bookings.submit', $submitted->id))
+            ->post(route('bookings.submit', $submitted))
             ->assertForbidden();
     }
 
@@ -206,9 +206,9 @@ class SubmitDraftBookingTest extends TestCase
         );
 
         $this->actingAs($owner)
-            ->from(route('bookings.show', $draft->id))
-            ->post(route('bookings.submit', $draft->id))
-            ->assertRedirect(route('bookings.show', $draft->id))
+            ->from(route('bookings.show', $draft))
+            ->post(route('bookings.submit', $draft))
+            ->assertRedirect(route('bookings.show', $draft))
             ->assertSessionHasErrors('submit');
 
         $this->assertDatabaseHas('bookings', [
@@ -225,8 +225,8 @@ class SubmitDraftBookingTest extends TestCase
         $draft = $this->makeBooking(BookingStatus::Draft, $owner, $this->makeRoom('none'));
 
         $this->actingAs($owner)
-            ->get(route('bookings.show', $draft->id))
-            ->assertSee(route('bookings.submit', $draft->id));
+            ->get(route('bookings.show', $draft))
+            ->assertSee(route('bookings.submit', $draft));
     }
 
     public function test_show_page_hides_the_submit_button_for_a_submitted_booking(): void
@@ -235,7 +235,7 @@ class SubmitDraftBookingTest extends TestCase
         $submitted = $this->makeBooking(BookingStatus::Submitted, $owner, $this->makeRoom('unit_approver'));
 
         $this->actingAs($owner)
-            ->get(route('bookings.show', $submitted->id))
-            ->assertDontSee(route('bookings.submit', $submitted->id));
+            ->get(route('bookings.show', $submitted))
+            ->assertDontSee(route('bookings.submit', $submitted));
     }
 }

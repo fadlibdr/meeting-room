@@ -176,7 +176,7 @@ class EditBookingTest extends TestCase
         Livewire::test(BookingForm::class, ['booking' => $booking])
             ->set('subject', 'Judul Diperbarui')
             ->call('submit')
-            ->assertRedirect(route('bookings.show', $booking->id));
+            ->assertRedirect(route('bookings.show', $booking));
 
         $this->assertDatabaseHas('bookings', [
             'id' => $booking->id,
@@ -195,7 +195,7 @@ class EditBookingTest extends TestCase
         Livewire::test(BookingForm::class, ['booking' => $booking])
             ->set('subject', 'Judul Diperbarui')
             ->call('submit')
-            ->assertRedirect(route('bookings.show', $booking->id));
+            ->assertRedirect(route('bookings.show', $booking));
 
         $this->assertDatabaseHas('bookings', [
             'id' => $booking->id,
@@ -248,7 +248,7 @@ class EditBookingTest extends TestCase
         $stranger = $this->makeRequester();
 
         $this->actingAs($stranger)
-            ->get(route('bookings.edit', $booking->id))
+            ->get(route('bookings.edit', $booking))
             ->assertForbidden();
     }
 
@@ -257,7 +257,7 @@ class EditBookingTest extends TestCase
         $owner = $this->makeRequester();
         $booking = $this->makeBooking(BookingStatus::Draft, $owner);
 
-        $this->get(route('bookings.edit', $booking->id))
+        $this->get(route('bookings.edit', $booking))
             ->assertRedirect(route('login'));
     }
 
@@ -269,8 +269,8 @@ class EditBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Draft, $owner);
 
         $this->actingAs($owner)
-            ->get(route('bookings.show', $booking->id))
-            ->assertSee(route('bookings.edit', $booking->id));
+            ->get(route('bookings.show', $booking))
+            ->assertSee(route('bookings.edit', $booking));
     }
 
     public function test_show_page_hides_the_edit_link_for_an_approved_booking(): void
@@ -279,7 +279,7 @@ class EditBookingTest extends TestCase
         $booking = $this->makeBooking(BookingStatus::Approved, $owner);
 
         $this->actingAs($owner)
-            ->get(route('bookings.show', $booking->id))
-            ->assertDontSee(route('bookings.edit', $booking->id));
+            ->get(route('bookings.show', $booking))
+            ->assertDontSee(route('bookings.edit', $booking));
     }
 }

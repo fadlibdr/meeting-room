@@ -148,7 +148,7 @@ class RescheduleBookingTest extends TestCase
         $booking = $this->makeApprovedBooking($owner);
 
         $this->actingAs($owner)
-            ->get(route('bookings.reschedule', $booking->id))
+            ->get(route('bookings.reschedule', $booking))
             ->assertOk();
     }
 
@@ -187,7 +187,7 @@ class RescheduleBookingTest extends TestCase
             ->where('rescheduled_from_booking_id', $booking->id)
             ->firstOrFail();
 
-        $component->assertRedirect(route('bookings.show', $newBooking->id));
+        $component->assertRedirect(route('bookings.show', $newBooking));
 
         $this->assertDatabaseHas('bookings', [
             'id' => $booking->id,
@@ -235,7 +235,7 @@ class RescheduleBookingTest extends TestCase
         $stranger = $this->makeRequester();
 
         $this->actingAs($stranger)
-            ->get(route('bookings.reschedule', $booking->id))
+            ->get(route('bookings.reschedule', $booking))
             ->assertForbidden();
     }
 
@@ -244,7 +244,7 @@ class RescheduleBookingTest extends TestCase
         $owner = $this->makeRequester();
         $booking = $this->makeApprovedBooking($owner);
 
-        $this->get(route('bookings.reschedule', $booking->id))
+        $this->get(route('bookings.reschedule', $booking))
             ->assertRedirect(route('login'));
     }
 
@@ -254,7 +254,7 @@ class RescheduleBookingTest extends TestCase
         $draft = $this->makeDraftBooking($owner);
 
         $this->actingAs($owner)
-            ->get(route('bookings.reschedule', $draft->id))
+            ->get(route('bookings.reschedule', $draft))
             ->assertForbidden();
     }
 
@@ -266,8 +266,8 @@ class RescheduleBookingTest extends TestCase
         $booking = $this->makeApprovedBooking($owner);
 
         $this->actingAs($owner)
-            ->get(route('bookings.show', $booking->id))
-            ->assertSee(route('bookings.reschedule', $booking->id));
+            ->get(route('bookings.show', $booking))
+            ->assertSee(route('bookings.reschedule', $booking));
     }
 
     public function test_show_page_hides_the_reschedule_link_for_a_draft_booking(): void
@@ -276,7 +276,7 @@ class RescheduleBookingTest extends TestCase
         $booking = $this->makeDraftBooking($owner);
 
         $this->actingAs($owner)
-            ->get(route('bookings.show', $booking->id))
-            ->assertDontSee(route('bookings.reschedule', $booking->id));
+            ->get(route('bookings.show', $booking))
+            ->assertDontSee(route('bookings.reschedule', $booking));
     }
 }

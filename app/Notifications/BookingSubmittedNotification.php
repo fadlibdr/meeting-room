@@ -49,7 +49,7 @@ final class BookingSubmittedNotification extends Notification implements ShouldQ
             ->line('Subjek: '.$this->booking->subject)
             ->line('Ruang: '.($this->booking->room->name ?? '-'))
             ->line('Waktu: '.$waktu)
-            ->action('Tinjau Reservasi', route('bookings.show', $this->booking->id));
+            ->action('Tinjau Reservasi', route('bookings.show', $this->booking));
     }
 
     /**
@@ -66,7 +66,7 @@ final class BookingSubmittedNotification extends Notification implements ShouldQ
                 'Reservasi %s menunggu persetujuan Anda.',
                 $this->booking->booking_code,
             ),
-            'url' => route('bookings.show', $this->booking->id),
+            'url' => route('bookings.show', $this->booking),
         ];
     }
 }

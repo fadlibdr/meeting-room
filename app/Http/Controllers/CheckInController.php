@@ -26,11 +26,11 @@ class CheckInController extends Controller
     /** Earliest check-in: this many minutes before the meeting starts. */
     public const LEAD_MINUTES = 30;
 
-    public function checkIn(int $booking, CheckInBookingAction $action, TenantContext $tenant): Response
+    public function checkIn(string $booking, CheckInBookingAction $action, TenantContext $tenant): Response
     {
         // The signed URL is the credential — resolve the booking across tenants
         // (it's keyed by id, not host), then pin the context for the check-in.
-        $model = Booking::query()->withoutGlobalScope('tenant')->find($booking);
+        $model = Booking::query()->withoutGlobalScope('tenant')->find(Booking::decodeHashid($booking));
         abort_if($model === null, 404);
 
         return $tenant->runFor((int) $model->tenant_id, function () use ($model, $action): Response {

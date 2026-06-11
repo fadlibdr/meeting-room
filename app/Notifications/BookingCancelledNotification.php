@@ -55,7 +55,7 @@ final class BookingCancelledNotification extends Notification implements ShouldQ
             $mail->line('Alasan: '.$this->booking->cancellation_reason);
         }
 
-        return $mail->action('Tinjau Reservasi', route('bookings.show', $this->booking->id));
+        return $mail->action('Tinjau Reservasi', route('bookings.show', $this->booking));
     }
 
     /**
@@ -73,7 +73,7 @@ final class BookingCancelledNotification extends Notification implements ShouldQ
                 $this->booking->booking_code,
             ),
             'reason' => $this->booking->cancellation_reason,
-            'url' => route('bookings.show', $this->booking->id),
+            'url' => route('bookings.show', $this->booking),
         ];
     }
 }
