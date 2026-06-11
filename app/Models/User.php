@@ -27,6 +27,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $pending_email
  * @property string|null $pending_email_token
  * @property string $password
+ * @property bool $must_change_password
  * @property string|null $job_title
  * @property int|null $approver_user_id
  * @property bool $is_active
@@ -69,6 +70,7 @@ class User extends Authenticatable
         'avatar_path',
         'telegram_chat_id',
         'email_notifications',
+        'must_change_password',
     ];
 
     /**
@@ -121,6 +123,7 @@ class User extends Authenticatable
             'locked_until' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
             'email_notifications' => 'boolean',
             'failed_login_attempts' => 'integer',
         ];

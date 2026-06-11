@@ -15,6 +15,10 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    // Default super-admin seeded by `php artisan app:fresh-install`.
+    'default_superadmin_email' => env('DEFAULT_SUPERADMIN_EMAIL', 'superadmin@bpjs.local'),
+    'default_superadmin_password' => env('DEFAULT_SUPERADMIN_PASSWORD', 'superadmin'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

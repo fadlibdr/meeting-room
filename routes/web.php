@@ -25,6 +25,7 @@ use App\Http\Controllers\RoomShowController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\TryDemoController;
+use App\Http\Middleware\ForcePasswordChange;
 use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
 use App\Livewire\Admin\NotificationSettingsManager;
@@ -45,6 +46,7 @@ use App\Livewire\NotificationPreferences;
 use App\Livewire\Support\ContactForm;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Route;
+use Livewire\Volt\Volt;
 
 Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
@@ -86,8 +88,12 @@ Route::get('bookings/{booking}/checkin', [CheckInController::class, 'checkIn'])
     ->middleware(['signed', 'throttle:20,1'])
     ->name('bookings.checkin');
 
-Route::middleware(['auth', 'user.active'])->group(function () {
+Route::middleware(['auth', 'user.active', ForcePasswordChange::class])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
+
+    // Forced password change (e.g. the seeded default superadmin's first login).
+    Volt::route('password/change-required', 'auth.force-password-change')
+        ->name('password.change-required');
 
     // Placeholders for Sprint 2/3 — will be replaced
     Route::get('bookings', BookingList::class)
