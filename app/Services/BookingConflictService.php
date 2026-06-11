@@ -180,7 +180,14 @@ final class BookingConflictService
         CarbonInterface $startsAt,
         CarbonInterface $endsAt,
     ): array {
-        $dayOfWeek = $startsAt->dayOfWeek;  // Carbon: 0=Sunday, 1=Monday, ..., 6=Saturday
+        // Operating hours are stored as display-timezone wall-clock (e.g. 08:00
+        // Asia/Jakarta), so compare against the booking time in that timezone —
+        // not the stored UTC, which would be offset.
+        $tz = (string) config('app.display_timezone', 'Asia/Jakarta');
+        $localStart = $startsAt->copy()->setTimezone($tz);
+        $localEnd = $endsAt->copy()->setTimezone($tz);
+
+        $dayOfWeek = $localStart->dayOfWeek;  // Carbon: 0=Sunday, 1=Monday, ..., 6=Saturday
 
         /** @var RoomOperatingHour|null $hours */
         $hours = RoomOperatingHour::query()
@@ -206,8 +213,8 @@ final class BookingConflictService
         }
 
         // Open/close time check — compare time-of-day only (HH:MM:SS strings)
-        $requestStartTime = $startsAt->format('H:i:s');
-        $requestEndTime = $endsAt->format('H:i:s');
+        $requestStartTime = $localStart->format('H:i:s');
+        $requestEndTime = $localEnd->format('H:i:s');
 
         if ($hours->open_time !== null && $requestStartTime < $hours->open_time) {
             return [new ConflictItem(

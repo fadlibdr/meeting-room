@@ -141,8 +141,8 @@ class BookingForm extends Component
             $this->roomId = (string) $booking->resource_id;
             $resource = $booking->resource;
             $this->resourceType = $resource instanceof Resource ? $resource->type->value : 'room';
-            $this->startsAt = $booking->starts_at->format('Y-m-d\TH:i');
-            $this->endsAt = $booking->ends_at->format('Y-m-d\TH:i');
+            $this->startsAt = $booking->starts_at->setTimezone($this->displayTimezone())->format('Y-m-d\TH:i');
+            $this->endsAt = $booking->ends_at->setTimezone($this->displayTimezone())->format('Y-m-d\TH:i');
             $this->subject = $booking->subject;
             $this->agenda = $booking->agenda;
             $this->attendeeCount = $booking->attendee_count;
@@ -276,7 +276,9 @@ class BookingForm extends Component
             'agenda' => ['nullable', 'string', 'max:5000'],
             'roomLayout' => ['nullable', Rule::in(RoomLayout::values())],
             'attendeeCount' => ['required', 'integer', 'min:1'],
-            'startsAt' => ['required', 'date', 'after:now'],
+            // The input is display-tz wall-clock; compare "after now" against the
+            // current wall-clock in that same timezone (both are parsed naively).
+            'startsAt' => ['required', 'date', 'after:'.CarbonImmutable::now($this->displayTimezone())->format('Y-m-d H:i:s')],
             'endsAt' => ['required', 'date', 'after:startsAt'],
         ];
 
@@ -426,23 +428,23 @@ class BookingForm extends Component
     }
 
     /**
-     * Convert datetime-local input ('2026-05-05T10:00') to a format
-     * SubmitBookingAction's CarbonImmutable::parse handles unambiguously.
-     *
-     * NOTE: Treats input as APP_TIMEZONE-naive. Proper user-timezone
-     * handling per Blueprint Dec-09 (@displayDateTime, user.timezone)
-     * is tracked as future work outside M1.
+     * Convert a datetime-local input ('2026-05-05T10:00') — entered as
+     * DISPLAY-timezone wall-clock — into an unambiguous UTC datetime string for
+     * storage. Without this the naive value was parsed as UTC, shifting every
+     * booking by the display-tz offset (e.g. +7h for Asia/Jakarta).
      */
     private function normalizeDatetime(string $value): string
     {
-        $normalized = str_replace('T', ' ', trim($value));
+        $local = str_replace('T', ' ', trim($value));
 
-        // Ensure seconds component is present (datetime-local omits it)
-        if (substr_count($normalized, ':') === 1) {
-            $normalized .= ':00';
-        }
+        return CarbonImmutable::parse($local, $this->displayTimezone())
+            ->utc()
+            ->format('Y-m-d H:i:s');
+    }
 
-        return $normalized;
+    private function displayTimezone(): string
+    {
+        return (string) config('app.display_timezone', 'Asia/Jakarta');
     }
 
     public function render(): View

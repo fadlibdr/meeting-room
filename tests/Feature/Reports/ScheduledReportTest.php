@@ -72,6 +72,7 @@ class ScheduledReportTest extends TestCase
     public function test_bi_feed_writes_a_csv_with_jakarta_labelled_times(): void
     {
         Storage::fake('local_private');
+        config(['app.display_timezone' => 'Asia/Jakarta']);
 
         $room = Room::factory()->create(['name' => 'Ruang Garuda']);
         Booking::factory()->approved()->create([

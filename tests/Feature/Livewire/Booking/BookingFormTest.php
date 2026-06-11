@@ -172,6 +172,42 @@ class BookingFormTest extends TestCase
         $this->assertStringContainsString('bentrok', strtolower((string) $component->get('submitError')));
     }
 
+    /**
+     * Regression: the datetime-local input is a Jakarta wall-clock value, so it
+     * must be stored as the matching UTC instant (Jakarta 10:00 → 03:00 UTC),
+     * not parsed verbatim as UTC (which produced the +7h display mismatch).
+     */
+    public function test_jakarta_wall_clock_input_is_stored_as_utc(): void
+    {
+        config(['app.display_timezone' => 'Asia/Jakarta']);
+
+        $user = $this->userWithRole('requester');
+        $room = $this->createRoomWithStandardHours();
+        $room->update(['approval_mode' => RoomApprovalMode::None]);
+
+        // User types 10:00 on the next-Monday date in the datetime-local field.
+        $monday = CarbonImmutable::parse('next monday', 'UTC')->format('Y-m-d');
+
+        Livewire::actingAs($user)
+            ->test(BookingForm::class)
+            ->set('roomId', (string) $room->id)
+            ->set('subject', 'Rapat WIB')
+            ->set('attendeeCount', 4)
+            ->set('startsAt', "{$monday}T10:00")
+            ->set('endsAt', "{$monday}T11:00")
+            ->call('submit')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('calendar.index'));
+
+        // Stored instant is the UTC equivalent of Jakarta 10:00 → 03:00 UTC.
+        $this->assertDatabaseHas('bookings', [
+            'resource_id' => $room->id,
+            'subject' => 'Rapat WIB',
+            'starts_at' => "{$monday} 03:00:00",
+            'ends_at' => "{$monday} 04:00:00",
+        ]);
+    }
+
     public function test_url_pre_fill_sets_room_id_and_starts_at(): void
     {
         $user = $this->userWithRole('requester');
