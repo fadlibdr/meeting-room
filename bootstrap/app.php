@@ -23,6 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust the local reverse proxy (nginx on this host) for X-Forwarded-*
+        // so HTTPS detection (HSTS, secure cookies) and the per-IP login throttle
+        // see the real client. Only loopback is trusted — forwarded headers from
+        // arbitrary clients are NOT honored, so the client IP can't be spoofed.
+        // Add an upstream load balancer's IP here if one is introduced.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
         $middleware->alias([
             'user.active' => EnsureUserIsActive::class,
             'permission' => EnsurePermission::class,

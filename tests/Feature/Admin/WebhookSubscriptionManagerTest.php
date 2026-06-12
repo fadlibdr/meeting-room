@@ -46,13 +46,13 @@ class WebhookSubscriptionManagerTest extends TestCase
             ->test(WebhookSubscriptionManager::class)
             ->call('newSubscription')
             ->set('name', 'Portal')
-            ->set('url', 'https://portal.test/hook')
+            ->set('url', 'https://203.0.113.10/hook')
             ->set('events', ['booking.approved', 'booking.cancelled'])
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('plainSecret', fn ($v) => is_string($v) && strlen($v) >= 40);
 
-        $this->assertDatabaseHas('webhook_subscriptions', ['name' => 'Portal', 'url' => 'https://portal.test/hook']);
+        $this->assertDatabaseHas('webhook_subscriptions', ['name' => 'Portal', 'url' => 'https://203.0.113.10/hook']);
     }
 
     public function test_requires_url_and_at_least_one_event(): void

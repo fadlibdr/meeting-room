@@ -79,10 +79,10 @@ class AdminPasswordResetTest extends TestCase
         $requester->roles()->sync([Role::where('code', 'requester')->firstOrFail()->id]);
         $target = User::factory()->create();
 
+        // A non-admin can't even mount the form now (authorized in mount()), so
+        // the reset action is unreachable — assert the mount-level block.
         Livewire::actingAs($requester)
             ->test(UserForm::class, ['user' => $target])
-            ->set('newPassword', 'whatever12')
-            ->call('resetPassword')
             ->assertForbidden();
     }
 

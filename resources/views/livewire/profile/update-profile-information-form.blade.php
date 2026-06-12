@@ -107,16 +107,19 @@ new class extends Component
         $user->avatar_path = $avatarPath;
 
         if ($emailChanged) {
+            // Store only the SHA-256 of the confirmation token; the plaintext
+            // lives solely in the emailed link, so a DB/backup leak can't yield a
+            // usable token.
             $token = \Illuminate\Support\Str::random(40);
             $user->pending_email = strtolower(trim($validated['email']));
-            $user->pending_email_token = $token;
+            $user->pending_email_token = hash('sha256', $token);
         }
 
         $user->save();
 
         if ($emailChanged) {
             \Illuminate\Support\Facades\Notification::route('mail', $user->pending_email)
-                ->notify(new \App\Notifications\EmailChangeVerificationNotification($user->pending_email_token, $user->name));
+                ->notify(new \App\Notifications\EmailChangeVerificationNotification($token, $user->name));
             $this->pendingEmail = $user->pending_email;
         }
 

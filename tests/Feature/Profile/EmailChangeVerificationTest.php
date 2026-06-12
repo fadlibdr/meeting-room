@@ -42,7 +42,8 @@ class EmailChangeVerificationTest extends TestCase
     public function test_confirming_applies_the_new_email(): void
     {
         $user = User::factory()->create(['email' => 'old@bpjs.test']);
-        $user->forceFill(['pending_email' => 'new@bpjs.test', 'pending_email_token' => 'tok'])->save();
+        // Tokens are stored hashed at rest; the link carries the plaintext.
+        $user->forceFill(['pending_email' => 'new@bpjs.test', 'pending_email_token' => hash('sha256', 'tok')])->save();
 
         $url = URL::signedRoute('email.change.verify', ['token' => 'tok']);
         $this->get($url)->assertRedirect();

@@ -10,6 +10,7 @@ use App\Models\Room;
 use App\Models\RoomFacility;
 use App\Models\Unit;
 use App\Models\User;
+use App\Support\CsvSanitizer;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -46,7 +47,12 @@ class ParameterExportController extends Controller
             fwrite($out, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
             fputcsv($out, $header);
             foreach ($rows as $row) {
-                fputcsv($out, $row);
+                // Neutralize spreadsheet formula injection in user-controlled
+                // cells (names, emails, locations, etc.).
+                fputcsv($out, array_map(
+                    static fn ($cell): string => CsvSanitizer::cell((string) ($cell ?? '')),
+                    $row,
+                ));
             }
             fclose($out);
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
