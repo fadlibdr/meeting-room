@@ -7,6 +7,7 @@ namespace App\Livewire\Admin;
 use App\Enums\WebhookEvent;
 use App\Models\User;
 use App\Models\WebhookSubscription;
+use App\Rules\PublicUrl;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -72,7 +73,7 @@ class WebhookSubscriptionManager extends Component
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:120'],
-            'url' => ['required', 'url', 'max:255'],
+            'url' => ['required', 'url', 'max:255', new PublicUrl],
             'events' => ['required', 'array', 'min:1'],
             'events.*' => [Rule::in(WebhookEvent::values())],
             'isActive' => ['boolean'],

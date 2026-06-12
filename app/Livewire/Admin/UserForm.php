@@ -14,12 +14,15 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\NotIn;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class UserForm extends Component
 {
+    #[Locked]
     public ?User $user = null;
 
+    #[Locked]
     public bool $isEditMode = false;
 
     public string $name = '';
@@ -65,7 +68,18 @@ class UserForm extends Component
 
     public function mount(?User $user = null): void
     {
-        if ($user && $user->exists) {
+        $actor = auth()->user();
+        $isEdit = $user && $user->exists;
+
+        // Livewire action methods are independently-reachable HTTP endpoints, so
+        // route middleware does NOT protect this component — authorize here and
+        // again in every mutating action below.
+        abort_unless(
+            $actor instanceof User && $actor->hasPermission($isEdit ? 'users.update' : 'users.create'),
+            403,
+        );
+
+        if ($isEdit) {
             $this->isEditMode = true;
             $this->user = $user;
             $this->name = $user->name;
@@ -129,6 +143,12 @@ class UserForm extends Component
 
     public function save(): void
     {
+        $actor = auth()->user();
+        abort_unless(
+            $actor instanceof User && $actor->hasPermission($this->isEditMode ? 'users.update' : 'users.create'),
+            403,
+        );
+
         $validated = $this->validate();
 
         DB::transaction(function () use ($validated) {

@@ -24,6 +24,7 @@ use DomainException;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -48,7 +49,12 @@ class BookingForm extends Component
     /**
      * Booking being edited (M3-C). Set by mount() when the component is
      * mounted on the bookings/{booking}/edit route. Null = create mode.
+     *
+     * #[Locked]: mount() authorizes against this id; without locking, a crafted
+     * Livewire request could swap it (or $mode) after mount to mutate another
+     * user's booking — submit() re-authorizes as defense in depth regardless.
      */
+    #[Locked]
     public ?int $bookingId = null;
 
     /**
@@ -56,6 +62,7 @@ class BookingForm extends Component
      * mode $bookingId is the SOURCE booking; submit() cancels it and
      * creates a replacement via RescheduleBookingAction.
      */
+    #[Locked]
     public string $mode = 'create';
 
     /** Pre-fillable from query string (?room_id=X). Empty string = unselected. */
@@ -352,17 +359,15 @@ class BookingForm extends Component
 
         try {
             if ($this->mode === 'reschedule') {
-                $booking = $rescheduleAction->execute(
-                    Booking::findOrFail($this->bookingId),
-                    $user,
-                    $payload,
-                );
+                $source = Booking::findOrFail($this->bookingId);
+                // Re-authorize: the bound actions are actor-agnostic and trust
+                // the caller, so the policy check must live here too.
+                $this->authorize('reschedule', $source);
+                $booking = $rescheduleAction->execute($source, $user, $payload);
             } elseif ($this->mode === 'edit') {
-                $booking = $updateAction->execute(
-                    Booking::findOrFail($this->bookingId),
-                    $user,
-                    $payload,
-                );
+                $target = Booking::findOrFail($this->bookingId);
+                $this->authorize('update', $target);
+                $booking = $updateAction->execute($target, $user, $payload);
             } elseif ($this->recurring) {
                 $until = ($this->recurrenceEnd === 'until' && $this->recurrenceUntil !== '')
                     ? CarbonImmutable::parse($this->recurrenceUntil)->endOfDay()

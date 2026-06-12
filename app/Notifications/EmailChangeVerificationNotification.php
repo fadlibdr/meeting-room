@@ -8,6 +8,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
 
 /**
@@ -33,7 +34,13 @@ final class EmailChangeVerificationNotification extends Notification implements 
 
     public function toMail(object $notifiable): MailMessage
     {
-        $url = URL::signedRoute('email.change.verify', ['token' => $this->token]);
+        // Expiring link: a confirmation link captured from the mailbox should not
+        // stay valid forever. The `signed` middleware enforces the expiry.
+        $url = URL::temporarySignedRoute(
+            'email.change.verify',
+            Carbon::now()->addHours(2),
+            ['token' => $this->token],
+        );
 
         return (new MailMessage)
             ->subject(__('Konfirmasi Perubahan Email'))

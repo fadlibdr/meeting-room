@@ -19,11 +19,26 @@ class SecurityHeadersTest extends TestCase
         $this->assertNotNull($response->headers->get('Permissions-Policy'));
     }
 
-    public function test_csp_is_report_only_not_enforcing(): void
+    public function test_csp_is_enforced_by_default(): void
     {
         $response = $this->get(route('login'));
 
-        // Report-Only present; enforcing CSP deliberately absent (would break Livewire/Alpine).
+        // Enforcing CSP present (script/style stay permissive for Livewire/Alpine,
+        // but frame-ancestors/base-uri/form-action/object-src are enforced).
+        $csp = $response->headers->get('Content-Security-Policy');
+        $this->assertNotNull($csp);
+        $this->assertStringContainsString("object-src 'none'", $csp);
+        $this->assertStringContainsString("frame-ancestors 'self'", $csp);
+        $this->assertNull($response->headers->get('Content-Security-Policy-Report-Only'));
+    }
+
+    public function test_csp_falls_back_to_report_only_when_toggle_disabled(): void
+    {
+        config(['security.csp_enforce' => false]);
+
+        $response = $this->get(route('login'));
+
+        // Kill switch: enforcing header absent, Report-Only present.
         $this->assertNotNull($response->headers->get('Content-Security-Policy-Report-Only'));
         $this->assertNull($response->headers->get('Content-Security-Policy'));
     }

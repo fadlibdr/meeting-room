@@ -17,8 +17,10 @@ class EmailChangeController extends Controller
 {
     public function verify(string $token): RedirectResponse
     {
+        // Tokens are stored hashed at rest; match on the hash of the presented
+        // plaintext from the (signed) link.
         $user = User::withoutGlobalScope('tenant')
-            ->where('pending_email_token', $token)
+            ->where('pending_email_token', hash('sha256', $token))
             ->whereNotNull('pending_email')
             ->first();
 

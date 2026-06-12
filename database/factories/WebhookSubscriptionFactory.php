@@ -19,7 +19,9 @@ class WebhookSubscriptionFactory extends Factory
     {
         return [
             'name' => 'Hook '.$this->faker->unique()->bothify('??-###'),
-            'url' => 'https://example.test/webhooks/'.$this->faker->uuid(),
+            // RFC 5737 TEST-NET (public, routable-looking) so the SSRF guard
+            // treats it as a deliverable target in tests; Http::fake intercepts.
+            'url' => 'https://203.0.113.10/webhooks/'.$this->faker->uuid(),
             'secret' => Str::random(40),
             'events' => ['booking.approved'],
             'is_active' => true,

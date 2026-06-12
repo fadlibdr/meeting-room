@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Models\WebhookDelivery;
+use App\Support\PublicUrlGuard;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -50,6 +51,19 @@ class SendWebhookJob implements ShouldQueue
         }
 
         $subscription = $delivery->subscription;
+
+        // Re-validate the target at send time: a URL that was public when saved
+        // can be re-pointed to an internal address (DNS rebinding). Reject SSRF
+        // targets here, not just at creation.
+        if (! PublicUrlGuard::isPublicUrl($subscription->url)) {
+            $delivery->forceFill([
+                'status' => 'failed',
+                'error' => 'Blocked: webhook target resolves to a non-public address.',
+            ])->save();
+
+            return;
+        }
+
         $body = (string) json_encode($delivery->payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $signature = hash_hmac('sha256', $body, $subscription->secret);
 
@@ -63,7 +77,7 @@ class SendWebhookJob implements ShouldQueue
             'X-Webhook-Event' => $delivery->event,
             'X-Webhook-Signature' => 'sha256='.$signature,
             'X-Webhook-Delivery' => (string) $delivery->id,
-        ])->timeout(10)->withBody($body, 'application/json')->post($subscription->url);
+        ])->timeout(10)->withoutRedirecting()->withBody($body, 'application/json')->post($subscription->url);
 
         $delivery->forceFill(['response_status' => $response->status()])->save();
 

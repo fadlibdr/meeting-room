@@ -41,7 +41,7 @@ class WebhookTest extends TestCase
     public function test_job_signs_the_payload_and_marks_success(): void
     {
         Http::fake(['*' => Http::response('', 200)]);
-        $subscription = WebhookSubscription::factory()->create(['secret' => 's3cr3t', 'url' => 'https://hook.test/in']);
+        $subscription = WebhookSubscription::factory()->create(['secret' => 's3cr3t', 'url' => 'https://203.0.113.10/in']);
         $delivery = WebhookDelivery::factory()->create([
             'webhook_subscription_id' => $subscription->id,
             'event' => 'booking.approved',
@@ -53,7 +53,7 @@ class WebhookTest extends TestCase
         Http::assertSent(function ($request) {
             $expected = 'sha256='.hash_hmac('sha256', $request->body(), 's3cr3t');
 
-            return $request->url() === 'https://hook.test/in'
+            return $request->url() === 'https://203.0.113.10/in'
                 && $request->hasHeader('X-Webhook-Event', 'booking.approved')
                 && hash_equals($expected, $request->header('X-Webhook-Signature')[0]);
         });
