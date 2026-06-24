@@ -151,7 +151,7 @@
                                 </a>
                                 <a href="{{ route('admin.reports.access-review') }}" wire:navigate
                                    class="nav__item @if(request()->routeIs('admin.reports.access-review')) active @endif">
-                                    <x-icon name="shield" :size="19" /> {{ __('Tinjauan Akses') }}
+                                    <x-icon name="checkCircle" :size="19" /> {{ __('Tinjauan Akses') }}
                                 </a>
                             @endhasPermission
                             @hasPermission('roles.view')
@@ -188,6 +188,11 @@
                                     <x-icon name="doc" :size="19" /> {{ __('nav.activity_log') }}
                                 </a>
                             @endhasPermission
+
+                            <a href="{{ route('api-tokens.index') }}" wire:navigate
+                               class="nav__item @if(request()->routeIs('api-tokens.*')) active @endif">
+                                <x-icon name="sparkle" :size="19" /> {{ __('Token API') }}
+                            </a>
 
                             @hasPermission('app-settings.update')
                                 <a href="{{ route('admin.webhooks.index') }}" wire:navigate
@@ -276,9 +281,6 @@
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('data.export.mine')">
                                 {{ __('Unduh Data Pribadi') }}
-                            </x-dropdown-link>
-                            <x-dropdown-link :href="route('api-tokens.index')" wire:navigate>
-                                {{ __('Token API') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('api-docs.page')">
                                 {{ __('Dokumentasi API') }}
