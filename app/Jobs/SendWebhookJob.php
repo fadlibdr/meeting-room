@@ -6,7 +6,6 @@ namespace App\Jobs;
 
 use App\Models\WebhookDelivery;
 use App\Support\PublicUrlGuard;
-use App\Support\Tenancy\TenantContext;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -40,7 +39,7 @@ class SendWebhookJob implements ShouldQueue
 
     public function handle(): void
     {
-        app(TenantContext::class)->runFor((int) $this->delivery->tenant_id, fn () => $this->deliver());
+        $this->deliver();
     }
 
     private function deliver(): void

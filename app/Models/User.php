@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\HasHashid;
 use App\Observers\UserObserver;
 use App\Services\PermissionCacheService;
@@ -52,8 +51,6 @@ use Laravel\Sanctum\HasApiTokens;
 #[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
-    use BelongsToTenant;
-
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -217,14 +214,6 @@ class User extends Authenticatable
         return $this->belongsTo(Unit::class);
     }
 
-    /**
-     * @return BelongsTo<Tenant, $this>
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
-
     public function approver(): BelongsTo
     {
         return $this->belongsTo(self::class, 'approver_user_id');
@@ -297,20 +286,5 @@ class User extends Authenticatable
     {
         // TODO Sprint 1: replace with PermissionCacheService::userHas($this, $permission)
         return app(PermissionCacheService::class)->userHas($this, $permission);
-    }
-
-    /**
-     * Stage 4 (4e) — a platform operator: super-admin of the default (platform)
-     * tenant. Only they manage tenants in the provider console.
-     */
-    public function isPlatformAdmin(): bool
-    {
-        $defaultId = Tenant::query()->where('is_default', true)->value('id');
-
-        if ($defaultId === null || (int) $this->tenant_id !== (int) $defaultId) {
-            return false;
-        }
-
-        return $this->roles()->where('code', 'super_admin')->exists();
     }
 }

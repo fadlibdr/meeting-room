@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\ResourceType;
 use App\Enums\RoomApprovalMode;
 use App\Enums\RoomStatus;
-use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -39,7 +38,6 @@ use Illuminate\Support\Facades\Storage;
  */
 class Resource extends Model
 {
-    use BelongsToTenant;
     use HasFactory;
 
     protected $table = 'resources';

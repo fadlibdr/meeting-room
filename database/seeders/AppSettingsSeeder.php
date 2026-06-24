@@ -163,15 +163,6 @@ class AppSettingsSeeder extends Seeder
 
             // --- System (Stage 3) ---
             [
-                'key' => 'system.tenancy_enabled',
-                'value' => '0',
-                'data_type' => 'boolean',
-                'label' => 'Mode Multi-Penyewa (Tenancy)',
-                'description' => 'PERINGATAN: Mengaktifkan isolasi data multi-penyewa untuk seluruh platform. Hanya aktifkan saat hendak melayani lebih dari satu organisasi. Data yang ada tetap berada di penyewa default (BPJS Kesehatan).',
-                'group' => 'system',
-                'is_editable' => true,
-            ],
-            [
                 'key' => 'system.max_booking_duration_hours',
                 'value' => (string) env('MEETING_ROOM_MAX_DURATION_HOURS', 8),
                 'data_type' => 'integer',

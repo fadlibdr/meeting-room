@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Models\Concerns\BelongsToTenant;
 use Database\Factories\ApprovalDelegationFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,8 +24,6 @@ use Illuminate\Support\Carbon;
  */
 class ApprovalDelegation extends Model
 {
-    use BelongsToTenant;
-
     /** @use HasFactory<ApprovalDelegationFactory> */
     use HasFactory;
 

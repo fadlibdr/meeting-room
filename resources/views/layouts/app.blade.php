@@ -20,8 +20,8 @@
         <title>{{ config('app.name', 'BPJS Kesehatan') }}</title>
 
         {{-- PWA --}}
-        <meta name="theme-color" content="{{ $branding['color'] ?? '#005490' }}">
-        <style>:root{ --brand-color: {{ $branding['color'] ?? '#005490' }}; }</style>
+        <meta name="theme-color" content="#005490">
+        <style>:root{ --brand-color: #005490; }</style>
         <link rel="manifest" href="/manifest.webmanifest">
         <link rel="apple-touch-icon" href="/images/pwa/icon-192.png">
         <meta name="apple-mobile-web-app-capable" content="yes">
@@ -41,11 +41,7 @@
             <aside class="sidebar">
                 <div class="sidebar__brand">
                     <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center">
-                        @if(!empty($branding['logo_url']))
-                            <img src="{{ $branding['logo_url'] }}" alt="{{ $branding['name'] ?? 'Logo' }}" style="max-height: 28px;">
-                        @else
-                            <img src="{{ asset('images/bpjs/bpjs-kesehatan-logo-white.png') }}" alt="{{ $branding['name'] ?? 'BPJS Kesehatan' }}">
-                        @endif
+                        <img src="{{ asset('images/bpjs/bpjs-kesehatan-logo-white.png') }}" alt="BPJS Kesehatan">
                     </a>
                 </div>
 
@@ -183,9 +179,9 @@
                     @endhasPermission
 
                     {{-- Group: Sistem --}}
-                    @if($u->hasPermission('activity-logs.view') || $u->hasPermission('app-settings.update') || $u->hasPermission('app-settings.view') || $u->isPlatformAdmin())
+                    @if($u->hasPermission('activity-logs.view') || $u->hasPermission('app-settings.update') || $u->hasPermission('app-settings.view'))
                         <x-nav-group group-key="system" :label="__('nav.system')"
-                                     :active="request()->routeIs('admin.logs.*') || request()->routeIs('admin.webhooks.*') || request()->routeIs('admin.settings.*') || request()->routeIs('admin.tenants.*')">
+                                     :active="request()->routeIs('admin.logs.*') || request()->routeIs('admin.webhooks.*') || request()->routeIs('admin.settings.*')">
                             @hasPermission('activity-logs.view')
                                 <a href="{{ route('admin.logs.index') }}" wire:navigate
                                    class="nav__item @if(request()->routeIs('admin.logs.*')) active @endif">
@@ -212,13 +208,6 @@
                                     <x-icon name="inbox" :size="19" /> {{ __('nav.notifications') }}
                                 </a>
                             @endhasPermission
-
-                            @if($u->isPlatformAdmin())
-                                <a href="{{ route('admin.tenants.index') }}" wire:navigate
-                                   class="nav__item @if(request()->routeIs('admin.tenants.*')) active @endif">
-                                    <x-icon name="building" :size="19" /> {{ __('nav.tenants') }}
-                                </a>
-                            @endif
                         </x-nav-group>
                     @endif
                 </nav>

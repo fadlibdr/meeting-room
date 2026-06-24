@@ -1,12 +1,8 @@
 <?php
 
-use App\Http\Middleware\ApplyTenantBranding;
 use App\Http\Middleware\CorrelationId;
 use App\Http\Middleware\EnsurePermission;
-use App\Http\Middleware\EnsurePlatformAdmin;
-use App\Http\Middleware\EnsureSignupAllowed;
 use App\Http\Middleware\EnsureUserIsActive;
-use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SessionTimeout;
 use App\Http\Middleware\SetLocale;
@@ -34,8 +30,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'user.active' => EnsureUserIsActive::class,
             'permission' => EnsurePermission::class,
-            'platform.admin' => EnsurePlatformAdmin::class,
-            'signup.allowed' => EnsureSignupAllowed::class,
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
         ]);
@@ -47,13 +41,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Compliance Release B (CC6.1 / A.8.5): idle + absolute session timeouts.
         $middleware->web(append: [SessionTimeout::class]);
-
-        // Stage 4a P2b: resolve the tenant from the host before anything else (web + api).
-        $middleware->web(prepend: [ResolveTenant::class]);
-        $middleware->api(prepend: [ResolveTenant::class]);
-
-        // Stage 4 4b: apply the resolved tenant's white-label branding (web).
-        $middleware->web(append: [ApplyTenantBranding::class]);
 
         // Cross-cutting 1.4: request/correlation id + actor in log context (web + api).
         $middleware->web(append: [CorrelationId::class]);

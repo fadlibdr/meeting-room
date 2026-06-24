@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\RoomController;
-use App\Http\Middleware\IdentifyTenantFromUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 | and the caller's own permissions/policies are enforced — the API is not a
 | bypass of the web flow.
 */
-Route::middleware(['auth:sanctum', IdentifyTenantFromUser::class, 'throttle:api'])
+Route::middleware(['auth:sanctum', 'throttle:api'])
     ->prefix('v1')
     ->name('api.v1.')
     ->group(function (): void {

@@ -9,7 +9,6 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Services\IcsGenerator;
 use App\Services\SettingsService;
-use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 
@@ -22,27 +21,25 @@ use Illuminate\Support\Carbon;
  */
 class CalendarFeedController extends Controller
 {
-    public function feed(string $token, IcsGenerator $ics, TenantContext $tenant): Response
+    public function feed(string $token, IcsGenerator $ics): Response
     {
         // Configurable policy: the external .ics feed can be disabled org-wide.
         abort_unless((bool) app(SettingsService::class)->get('security.calendar_feed_enabled', true), 404);
 
         // The token IS the credential but is stored encrypted at rest — resolve it
-        // across tenants by its lookup hash, then pin the context so the bookings
-        // query is tenant-scoped.
-        $user = User::query()->withoutGlobalScope('tenant')
-            ->where('calendar_feed_token_hash', User::hashToken($token))
+        // by its lookup hash.
+        $user = User::query()->where('calendar_feed_token_hash', User::hashToken($token))
             ->first();
 
         abort_if($user === null, 404);
 
-        $bookings = $tenant->runFor((int) $user->tenant_id, fn () => Booking::query()
+        $bookings = Booking::query()
             ->where('requester_user_id', $user->id)
             ->whereIn('status', [BookingStatus::Submitted->value, BookingStatus::Approved->value])
             ->where('ends_at', '>=', Carbon::now()->subWeek())
             ->with('resource:id,name,location')
             ->orderBy('starts_at')
-            ->get());
+            ->get();
 
         $body = $ics->forFeed($bookings, 'Reservasi BPJS — '.$user->name);
 

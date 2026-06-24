@@ -24,14 +24,12 @@ use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\RoomShowController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\TelegramWebhookController;
-use App\Http\Controllers\TryDemoController;
 use App\Http\Middleware\ForcePasswordChange;
 use App\Http\Middleware\TwoFactorGate;
 use App\Livewire\Admin\AccessReviewReport;
 use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
 use App\Livewire\Admin\NotificationSettingsManager;
-use App\Livewire\Admin\ProviderTenantManager;
 use App\Livewire\Admin\ResourceManager;
 use App\Livewire\Admin\RoleManager;
 use App\Livewire\Admin\SettingsManager;
@@ -81,9 +79,6 @@ Route::post('telegram/webhook/{secret}', TelegramWebhookController::class)
 
 // Stage 4h.1 — go-to-market pages (scaffold; 404 unless marketing.enabled).
 Route::get('product/{page?}', [MarketingController::class, 'show'])->name('marketing.show');
-
-// Stage 4h.2 — public demo / sandbox "try it" entry (404 unless demo.enabled).
-Route::get('try', TryDemoController::class)->middleware('throttle:10,1')->name('demo.try');
 
 // Stage 3 A.3 — QR self-check-in (public; the temporary signed URL is the credential).
 Route::get('bookings/{booking}/checkin', [CheckInController::class, 'checkIn'])
@@ -269,12 +264,6 @@ Route::middleware(['auth', 'user.active', ForcePasswordChange::class, TwoFactorG
         Route::get('webhooks', WebhookSubscriptionManager::class)
             ->middleware('permission:app-settings.update')
             ->name('webhooks.index');
-
-        // Stage 4 (4e) — provider console: platform tenant management (gated to
-        // platform admins inside the component).
-        Route::get('tenants', ProviderTenantManager::class)
-            ->middleware('platform.admin')
-            ->name('tenants.index');
 
         // App settings - runtime configuration editor
         Route::get('settings', SettingsManager::class)

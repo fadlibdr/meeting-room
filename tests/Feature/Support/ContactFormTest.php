@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Support;
 
 use App\Livewire\Support\ContactForm;
-use App\Models\SupportRequest;
 use App\Models\User;
 use App\Notifications\SupportRequestNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -81,21 +80,5 @@ class ContactFormTest extends TestCase
             ->set('message', 'A valid length message for testing.')
             ->call('submit')
             ->assertHasErrors(['category']);
-    }
-
-    public function test_request_is_stamped_to_the_submitter_tenant(): void
-    {
-        $user = User::factory()->create(['is_active' => true]);
-
-        Livewire::actingAs($user)
-            ->test(ContactForm::class)
-            ->set('category', 'other')
-            ->set('message', 'A valid length message for testing.')
-            ->call('submit')
-            ->assertHasNoErrors();
-
-        $req = SupportRequest::withoutGlobalScope('tenant')->latest('id')->first();
-        $this->assertNotNull($req);
-        $this->assertNotNull($req->tenant_id); // DB-default stamps the default tenant when flag off
     }
 }
