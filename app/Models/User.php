@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\HasHashid;
 use App\Observers\UserObserver;
 use App\Services\PermissionCacheService;
+use App\Services\SettingsService;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -50,6 +51,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     use BelongsToTenant;
+
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -102,6 +104,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -128,7 +132,66 @@ class User extends Authenticatable
             'must_change_password' => 'boolean',
             'email_notifications' => 'boolean',
             'failed_login_attempts' => 'integer',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Two-factor (TOTP) is fully enrolled: a secret exists and was confirmed.
+     */
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
+    }
+
+    /**
+     * Privileged = holds an administrative capability; used by the
+     * mfa_enforced_for_privileged policy.
+     */
+    public function isPrivileged(): bool
+    {
+        return $this->hasPermission('app-settings.update')
+            || $this->hasPermission('users.update')
+            || $this->hasPermission('roles.update');
+    }
+
+    /**
+     * Whether this user must enroll in 2FA before using the app, per the
+     * configurable enforcement policy (security.mfa_*).
+     */
+    public function requiresTwoFactor(): bool
+    {
+        $settings = app(SettingsService::class);
+
+        if (! (bool) $settings->get('security.mfa_enabled', true) || $this->hasTwoFactorEnabled()) {
+            return false;
+        }
+
+        if ((bool) $settings->get('security.mfa_enforced', false)) {
+            return true;
+        }
+
+        return (bool) $settings->get('security.mfa_enforced_for_privileged', false) && $this->isPrivileged();
+    }
+
+    /**
+     * Consume a one-time recovery code; returns false if it isn't valid.
+     */
+    public function useRecoveryCode(string $code): bool
+    {
+        $codes = $this->two_factor_recovery_codes ?? [];
+        $index = array_search($code, $codes, true);
+
+        if ($index === false) {
+            return false;
+        }
+
+        unset($codes[$index]);
+        $this->forceFill(['two_factor_recovery_codes' => array_values($codes)])->save();
+
+        return true;
     }
 
     public function unit(): BelongsTo

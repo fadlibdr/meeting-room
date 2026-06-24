@@ -416,6 +416,34 @@ class AppSettingsSeeder extends Seeder
                 'group' => 'security',
                 'is_editable' => true,
             ],
+            // Release C — multi-factor authentication (TOTP).
+            [
+                'key' => 'security.mfa_enabled',
+                'value' => '1',
+                'data_type' => 'boolean',
+                'label' => 'Aktifkan Autentikasi Dua Faktor (2FA)',
+                'description' => 'Izinkan pengguna mendaftarkan 2FA berbasis aplikasi authenticator (TOTP). Jika dinonaktifkan, fitur 2FA disembunyikan dan pemaksaan di bawah tidak berlaku.',
+                'group' => 'security',
+                'is_editable' => true,
+            ],
+            [
+                'key' => 'security.mfa_enforced',
+                'value' => '0',
+                'data_type' => 'boolean',
+                'label' => 'Wajibkan 2FA untuk Semua Pengguna',
+                'description' => 'Jika aktif, setiap pengguna aktif harus mendaftarkan 2FA sebelum dapat menggunakan aplikasi. Pastikan pengguna siap sebelum mengaktifkan.',
+                'group' => 'security',
+                'is_editable' => true,
+            ],
+            [
+                'key' => 'security.mfa_enforced_for_privileged',
+                'value' => '0',
+                'data_type' => 'boolean',
+                'label' => 'Wajibkan 2FA untuk Admin',
+                'description' => 'Jika aktif, pengguna dengan kewenangan administratif (kelola pengguna/peran/pengaturan) wajib mendaftarkan 2FA. Berlaku hanya bila 2FA diaktifkan. Aktifkan setelah admin sempat mendaftarkan 2FA.',
+                'group' => 'security',
+                'is_editable' => true,
+            ],
         ];
 
         foreach ($settings as $setting) {

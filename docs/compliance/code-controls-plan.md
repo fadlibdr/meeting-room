@@ -33,7 +33,7 @@ turn security off.
 | `security.session_absolute_timeout_minutes` | integer | `480` | Release B — absolute cap |
 | `security.mfa_enabled` | boolean | `1` | Release C — TOTP feature available |
 | `security.mfa_enforced` | boolean | `0` | Release C — require for all users |
-| `security.mfa_enforced_for_privileged` | boolean | `1` | Release C — require for admin roles |
+| `security.mfa_enforced_for_privileged` | boolean | `0` | Release C — require for admin roles (opt-in: enable after admins enrol, to avoid forcing on deploy) |
 | `security.feed_token_encryption` | (structural) | always on | Release D — see note |
 | `security.inactive_account_days` | integer | `90` | Release E — access-review flagging |
 | `security.dependency_scanning` | (CI) | always on | Release E — see note |

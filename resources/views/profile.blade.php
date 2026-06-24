@@ -99,6 +99,7 @@
     <div class="grid grid-cols-1 gap-[18px]">
         <livewire:profile.update-profile-information-form />
         <livewire:profile.update-password-form />
+        <livewire:profile.two-factor-form />
 
         {{-- 4f.2 — surface data-subject rights (export) + privacy policy --}}
         <x-bpjs.card :title="__('Privasi & Data Saya')">
