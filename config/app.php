@@ -15,6 +15,9 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    // Application version, shown on the About page. Bump with each release tag.
+    'version' => env('APP_VERSION', '1.84.0'),
+
     // Default super-admin seeded by `php artisan app:fresh-install`.
     'default_superadmin_email' => env('DEFAULT_SUPERADMIN_EMAIL', 'superadmin@bpjs.local'),
     'default_superadmin_password' => env('DEFAULT_SUPERADMIN_PASSWORD', 'superadmin'),
