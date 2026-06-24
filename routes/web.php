@@ -278,6 +278,9 @@ Route::middleware(['auth', 'user.active', ForcePasswordChange::class, TwoFactorG
 
     Route::view('profile', 'profile')->middleware(['auth'])->name('profile');
 
+    // About page (app info + link to release notes).
+    Route::view('about', 'about')->name('about');
+
     // Stage 3 C — personal API token management
     Route::get('api-tokens', ApiTokenManager::class)->name('api-tokens.index');
 

@@ -294,6 +294,12 @@
                                     {{ __('common.settings') }}
                                 </x-dropdown-link>
                             @endhasPermission
+                            <x-dropdown-link :href="route('about')" wire:navigate>
+                                {{ __('Tentang') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('changelog')" wire:navigate>
+                                {{ __('Catatan Rilis') }}
+                            </x-dropdown-link>
                             <div class="px-4 py-2 border-t border-slate-100">
                                 <div class="text-xs text-slate-400 mb-1.5">{{ __('common.language') }}</div>
                                 <div class="flex gap-1.5">
