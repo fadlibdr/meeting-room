@@ -26,6 +26,7 @@ use App\Http\Controllers\StatusController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\TryDemoController;
 use App\Http\Middleware\ForcePasswordChange;
+use App\Http\Middleware\TwoFactorGate;
 use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
 use App\Livewire\Admin\NotificationSettingsManager;
@@ -88,12 +89,16 @@ Route::get('bookings/{booking}/checkin', [CheckInController::class, 'checkIn'])
     ->middleware(['signed', 'throttle:20,1'])
     ->name('bookings.checkin');
 
-Route::middleware(['auth', 'user.active', ForcePasswordChange::class])->group(function () {
+Route::middleware(['auth', 'user.active', ForcePasswordChange::class, TwoFactorGate::class])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
     // Forced password change (e.g. the seeded default superadmin's first login).
     Volt::route('password/change-required', 'auth.force-password-change')
         ->name('password.change-required');
+
+    // Two-factor authentication (TOTP) — enrolment + post-login challenge.
+    Volt::route('two-factor/setup', 'auth.two-factor-setup')->name('two-factor.setup');
+    Volt::route('two-factor/challenge', 'auth.two-factor-challenge')->name('two-factor.challenge');
 
     // Placeholders for Sprint 2/3 — will be replaced
     Route::get('bookings', BookingList::class)

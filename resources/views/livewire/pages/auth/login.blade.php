@@ -1,6 +1,8 @@
 <?php
 
 use App\Livewire\Forms\LoginForm;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -19,6 +21,17 @@ new #[Layout('layouts.guest')] class extends Component
         $this->form->authenticate();
 
         Session::regenerate();
+
+        // Second factor (CC6.1 / A.8.5): if the user has TOTP enrolled, hold the
+        // session "pending" — TwoFactorGate confines them to the challenge page
+        // until they verify a code.
+        $user = Auth::user();
+        if ($user instanceof User && $user->hasTwoFactorEnabled()) {
+            Session::put('2fa.pending', true);
+            $this->redirect(route('two-factor.challenge'), navigate: true);
+
+            return;
+        }
 
         $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
     }
