@@ -37,12 +37,12 @@ class AdminPasswordResetTest extends TestCase
 
         Livewire::actingAs($this->admin())
             ->test(UserForm::class, ['user' => $target])
-            ->set('newPassword', 'BrandNew123')
+            ->set('newPassword', 'BrandNewPass123')
             ->call('resetPassword')
             ->assertHasNoErrors()
-            ->assertSet('resetResult', 'BrandNew123');
+            ->assertSet('resetResult', 'BrandNewPass123');
 
-        $this->assertTrue(Hash::check('BrandNew123', $target->fresh()->password));
+        $this->assertTrue(Hash::check('BrandNewPass123', $target->fresh()->password));
     }
 
     public function test_admin_reset_generates_a_password_when_blank(): void

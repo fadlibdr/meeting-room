@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Support\PasswordPolicy;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 use SocialiteProviders\Azure\AzureExtendSocialite;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 
@@ -38,5 +40,9 @@ class AppServiceProvider extends ServiceProvider
         // handlers in App\Listeners\SecurityEventSubscriber are auto-registered by
         // Laravel 11's listener discovery (app/Listeners is scanned), so no manual
         // registration is needed here — doing so would double-fire each event.
+
+        // Password policy (CC6.1 / A.5.17): make the configurable policy the
+        // default rule, so every Password::defaults() call site enforces it.
+        Password::defaults(fn () => PasswordPolicy::rule());
     }
 }

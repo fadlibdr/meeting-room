@@ -69,8 +69,8 @@ class PasswordResetTest extends TestCase
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
             $component = Volt::test('pages.auth.reset-password', ['token' => $notification->token])
                 ->set('email', $user->email)
-                ->set('password', 'password')
-                ->set('password_confirmation', 'password');
+                ->set('password', 'NewSecurePass123')
+                ->set('password_confirmation', 'NewSecurePass123');
 
             $component->call('resetPassword');
 
