@@ -38,12 +38,14 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $avatar_path
  * @property string|null $telegram_chat_id
  * @property string|null $telegram_link_token
+ * @property string|null $telegram_link_token_hash
  * @property bool $email_notifications
  * @property Carbon|null $last_login_at
  * @property int $failed_login_attempts
  * @property Carbon|null $locked_until
  * @property Carbon|null $email_verified_at
  * @property string|null $calendar_feed_token
+ * @property string|null $calendar_feed_token_hash
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -92,10 +94,24 @@ class User extends Authenticatable
     public function ensureTelegramLinkToken(): string
     {
         if ($this->telegram_link_token === null) {
-            $this->forceFill(['telegram_link_token' => Str::random(32)])->save();
+            $plain = Str::random(32);
+            $this->forceFill([
+                'telegram_link_token' => $plain,
+                'telegram_link_token_hash' => self::hashToken($plain),
+            ])->save();
         }
 
         return (string) $this->telegram_link_token;
+    }
+
+    /**
+     * Deterministic lookup hash for an at-rest-encrypted bearer token. The token
+     * column itself is encrypted (non-deterministic), so this indexed hash is how
+     * we resolve a presented token back to its user.
+     */
+    public static function hashToken(string $token): string
+    {
+        return hash('sha256', $token);
     }
 
     /**
@@ -135,6 +151,8 @@ class User extends Authenticatable
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
             'two_factor_confirmed_at' => 'datetime',
+            'calendar_feed_token' => 'encrypted',
+            'telegram_link_token' => 'encrypted',
         ];
     }
 
@@ -248,7 +266,7 @@ class User extends Authenticatable
     public function ensureCalendarFeedToken(): string
     {
         if ($this->calendar_feed_token === null) {
-            $this->forceFill(['calendar_feed_token' => Str::random(48)])->save();
+            return $this->regenerateCalendarFeedToken();
         }
 
         return (string) $this->calendar_feed_token;
@@ -256,9 +274,13 @@ class User extends Authenticatable
 
     public function regenerateCalendarFeedToken(): string
     {
-        $this->forceFill(['calendar_feed_token' => Str::random(48)])->save();
+        $plain = Str::random(48);
+        $this->forceFill([
+            'calendar_feed_token' => $plain,
+            'calendar_feed_token_hash' => self::hashToken($plain),
+        ])->save();
 
-        return (string) $this->calendar_feed_token;
+        return $plain;
     }
 
     public function bookingApprovals(): HasMany

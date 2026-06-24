@@ -44,7 +44,8 @@ class TelegramWebhookTest extends TestCase
 
     public function test_start_with_token_links_the_user_and_clears_token(): void
     {
-        $user = User::factory()->create(['telegram_link_token' => 'tok123', 'telegram_chat_id' => null]);
+        $user = User::factory()->create(['telegram_chat_id' => null]);
+        $user->forceFill(['telegram_link_token' => 'tok123', 'telegram_link_token_hash' => User::hashToken('tok123')])->save();
 
         $this->postJson(route('telegram.webhook', ['secret' => 'sekret']), $this->update('/start tok123', 6129))
             ->assertOk()
