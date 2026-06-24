@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\BookingStatus;
 use App\Enums\RoomApprovalMode;
 use App\Enums\RoomLayout;
-use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\HasHashid;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -51,7 +50,6 @@ use Illuminate\Support\Carbon;
  */
 class Booking extends Model
 {
-    use BelongsToTenant;
     use HasFactory;
     use HasHashid;
 

@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Notifications\ScheduledReportNotification;
 use App\Services\BookingReportService;
 use App\Services\RoomUtilizationReport;
-use App\Support\Tenancy\RunsPerTenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Notification;
@@ -23,15 +22,13 @@ use Illuminate\Support\Facades\Notification;
  */
 class SendScheduledReport extends Command
 {
-    use RunsPerTenant;
-
     protected $signature = 'reports:send {--period=weekly : weekly|monthly}';
 
     protected $description = 'Email the periodic booking/utilization report to report viewers.';
 
     public function handle(BookingReportService $reports): int
     {
-        $this->eachTenant(fn () => $this->sendForCurrentTenant($reports));
+        $this->sendForCurrentTenant($reports);
 
         return self::SUCCESS;
     }

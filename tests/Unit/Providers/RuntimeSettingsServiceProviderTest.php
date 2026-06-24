@@ -6,7 +6,6 @@ namespace Tests\Unit\Providers;
 
 use App\Providers\RuntimeSettingsServiceProvider;
 use App\Services\SettingsService;
-use App\Support\Tenancy\TenantContext;
 use Database\Seeders\AppSettingsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
@@ -19,23 +18,6 @@ class RuntimeSettingsServiceProviderTest extends TestCase
     private function reboot(): void
     {
         (new RuntimeSettingsServiceProvider($this->app))->boot();
-    }
-
-    public function test_tenancy_enabled_toggle_drives_config_and_is_read_unscoped(): void
-    {
-        $this->seed(AppSettingsSeeder::class);
-        $service = app(SettingsService::class);
-
-        config(['tenancy.enabled' => false]);
-        $service->set('system.tenancy_enabled', true);
-        $this->reboot();
-        $this->assertTrue(config('tenancy.enabled'));
-
-        // Even with a tenant context set, the platform flag resolves (unscoped).
-        app(TenantContext::class)->set(999);
-        config(['tenancy.enabled' => false]);
-        $this->reboot();
-        $this->assertTrue(config('tenancy.enabled'));
     }
 
     public function test_boolean_toggle_overrides_config_both_ways(): void

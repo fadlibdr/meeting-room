@@ -8,7 +8,6 @@ use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\User;
 use App\Notifications\BookingReminderNotification;
-use App\Support\Tenancy\RunsPerTenant;
 use Illuminate\Console\Command;
 
 /**
@@ -20,8 +19,6 @@ use Illuminate\Console\Command;
  */
 class SendBookingReminders extends Command
 {
-    use RunsPerTenant;
-
     protected $signature = 'bookings:send-reminders';
 
     protected $description = 'Send in-app reminders for approved bookings starting within the reminder window.';
@@ -30,7 +27,7 @@ class SendBookingReminders extends Command
 
     public function handle(): int
     {
-        $this->eachTenant(fn () => $this->remindForCurrentTenant());
+        $this->remindForCurrentTenant();
 
         return self::SUCCESS;
     }

@@ -20,7 +20,3 @@ Schedule::command('reports:bi-export')->dailyAt('06:00')->withoutOverlapping();
 // it only reports/audits eligible counts. An operator adds --execute here ONCE
 // legal has confirmed the per-category retention windows in config/retention.php.
 Schedule::command('data:enforce-retention')->dailyAt('02:00')->withoutOverlapping();
-
-// Stage 4h.2 — periodic demo/sandbox reset. No-op unless demo.enabled, so it is
-// safe to schedule everywhere (does nothing while the demo is gated off).
-Schedule::command('demo:reset')->hourly()->withoutOverlapping();

@@ -6,7 +6,6 @@ namespace App\Models;
 
 use App\Enums\ExportFormat;
 use App\Enums\ExportStatus;
-use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\HasHashid;
 use Database\Factories\ExportFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -36,7 +35,6 @@ use Illuminate\Support\Carbon;
  */
 class Export extends Model
 {
-    use BelongsToTenant;
     /** @use HasFactory<ExportFactory> */
     use HasFactory;
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Models\Concerns\BelongsToTenant;
 use Database\Factories\ApprovalPolicyFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,8 +19,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class ApprovalPolicy extends Model
 {
-    use BelongsToTenant;
-
     /** @use HasFactory<ApprovalPolicyFactory> */
     use HasFactory;
 

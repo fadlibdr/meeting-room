@@ -41,8 +41,7 @@ class TelegramWebhookController extends Controller
     private function handleStart(TelegramBot $bot, string $chatId, string $param): void
     {
         if ($param !== '') {
-            $user = User::withoutGlobalScope('tenant')
-                ->where('telegram_link_token_hash', User::hashToken($param))
+            $user = User::where('telegram_link_token_hash', User::hashToken($param))
                 ->first();
 
             if ($user instanceof User) {

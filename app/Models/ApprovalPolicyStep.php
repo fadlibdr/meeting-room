@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\ApprovalStepType;
-use App\Models\Concerns\BelongsToTenant;
 use Database\Factories\ApprovalPolicyStepFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,8 +22,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class ApprovalPolicyStep extends Model
 {
-    use BelongsToTenant;
-
     /** @use HasFactory<ApprovalPolicyStepFactory> */
     use HasFactory;
 

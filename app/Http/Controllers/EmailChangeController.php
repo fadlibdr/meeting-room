@@ -19,8 +19,7 @@ class EmailChangeController extends Controller
     {
         // Tokens are stored hashed at rest; match on the hash of the presented
         // plaintext from the (signed) link.
-        $user = User::withoutGlobalScope('tenant')
-            ->where('pending_email_token', hash('sha256', $token))
+        $user = User::where('pending_email_token', hash('sha256', $token))
             ->whereNotNull('pending_email')
             ->first();
 
@@ -30,8 +29,7 @@ class EmailChangeController extends Controller
         }
 
         // The pending email could have been taken by someone else meanwhile.
-        $taken = User::withoutGlobalScope('tenant')
-            ->where('email', $user->pending_email)
+        $taken = User::where('email', $user->pending_email)
             ->where('id', '!=', $user->id)
             ->exists();
 

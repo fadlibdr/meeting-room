@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,7 +24,6 @@ use Illuminate\Support\Carbon;
  */
 class ActivityLog extends Model
 {
-    use BelongsToTenant;
     use HasFactory;
 
     public $timestamps = false;

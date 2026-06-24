@@ -8,7 +8,6 @@ use App\Actions\AnonymizeUserAction;
 use App\Models\ActivityLog;
 use App\Models\User;
 use App\Services\SettingsService;
-use App\Support\Tenancy\RunsPerTenant;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -33,8 +32,6 @@ use Illuminate\Support\Carbon;
  */
 class EnforceDataRetention extends Command
 {
-    use RunsPerTenant;
-
     protected $signature = 'data:enforce-retention
                             {--execute : Actually anonymise. Without this the command only reports (dry-run).}
                             {--force-bulk : Bypass the bounded-window guard and act even on large eligible sets.}';
@@ -50,10 +47,8 @@ class EnforceDataRetention extends Command
 
         $this->line($execute ? '<comment>EXECUTE mode — data will be anonymised.</comment>' : '<info>DRY-RUN — no data will be changed. Pass --execute to act.</info>');
 
-        $this->eachTenant(function () use ($anonymizer, $execute, $forceBulk): void {
-            $this->enforceInactiveUsers($anonymizer, $execute, $forceBulk);
-            $this->enforceAuditLogRetention($execute);
-        });
+        $this->enforceInactiveUsers($anonymizer, $execute, $forceBulk);
+        $this->enforceAuditLogRetention($execute);
 
         return self::SUCCESS;
     }
