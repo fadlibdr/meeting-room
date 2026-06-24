@@ -7,6 +7,7 @@ namespace App\Livewire\Admin;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use App\Services\PermissionCacheService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
@@ -138,6 +139,15 @@ class RoleManager extends Component
 
             $role->permissions()->sync($validated['permissionIds']);
             app(PermissionCacheService::class)->forgetByRole($role->id);
+
+            app(ActivityLogger::class)->security(
+                $this->creating ? 'role.created' : 'role.updated',
+                $role,
+                [
+                    'description' => 'Peran/izin diubah melalui matriks RBAC.',
+                    'new_values' => ['code' => $role->code, 'permissions' => $validated['permissionIds']],
+                ],
+            );
         });
 
         $this->feedback = __('Peran berhasil disimpan.');
@@ -158,9 +168,15 @@ class RoleManager extends Component
         }
 
         $roleId = $role->id;
+        $roleCode = $role->code;
         $role->permissions()->detach();
         $role->delete();
         app(PermissionCacheService::class)->forgetByRole($roleId);
+
+        app(ActivityLogger::class)->security('role.deleted', null, [
+            'description' => 'Peran dihapus.',
+            'old_values' => ['id' => $roleId, 'code' => $roleCode],
+        ]);
 
         $this->feedback = __('Peran dihapus.');
     }

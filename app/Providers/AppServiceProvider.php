@@ -33,5 +33,10 @@ class AppServiceProvider extends ServiceProvider
 
         // Stage 3 F.1 — register the Entra ID (Azure AD) Socialite provider.
         Event::listen(SocialiteWasCalled::class, [AzureExtendSocialite::class, 'handle']);
+
+        // Security audit trail (SOC 2 CC7.2 / ISO 27001 A.8.15): the auth-event
+        // handlers in App\Listeners\SecurityEventSubscriber are auto-registered by
+        // Laravel 11's listener discovery (app/Listeners is scanned), so no manual
+        // registration is needed here — doing so would double-fire each event.
     }
 }
