@@ -9,6 +9,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Support\EmailDomainPolicy;
+use App\Support\PasswordPolicy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -58,7 +59,11 @@ class UserForm extends Component
         abort_unless($this->isEditMode && $this->user instanceof User, 403);
 
         $plain = $this->newPassword !== ''
-            ? $this->validate(['newPassword' => ['string', 'min:8', 'max:72']], [], ['newPassword' => 'kata sandi'])['newPassword']
+            ? $this->validate(
+                ['newPassword' => ['string', 'max:'.PasswordPolicy::MAX_LENGTH, PasswordPolicy::rule()]],
+                [],
+                ['newPassword' => 'kata sandi'],
+            )['newPassword']
             : Str::random(14);
 
         $this->user->forceFill(['password' => Hash::make($plain)])->save();

@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureSignupAllowed;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\SessionTimeout;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -43,6 +44,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SetLocale::class,
         ]);
+
+        // Compliance Release B (CC6.1 / A.8.5): idle + absolute session timeouts.
+        $middleware->web(append: [SessionTimeout::class]);
 
         // Stage 4a P2b: resolve the tenant from the host before anything else (web + api).
         $middleware->web(prepend: [ResolveTenant::class]);
