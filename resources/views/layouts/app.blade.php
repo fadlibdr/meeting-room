@@ -153,6 +153,10 @@
                                    class="nav__item @if(request()->routeIs('admin.units.*')) active @endif">
                                     <x-icon name="building" :size="19" /> {{ __('nav.units') }}
                                 </a>
+                                <a href="{{ route('admin.reports.access-review') }}" wire:navigate
+                                   class="nav__item @if(request()->routeIs('admin.reports.access-review')) active @endif">
+                                    <x-icon name="shield" :size="19" /> {{ __('Tinjauan Akses') }}
+                                </a>
                             @endhasPermission
                             @hasPermission('roles.view')
                                 <a href="{{ route('admin.roles.index') }}" wire:navigate

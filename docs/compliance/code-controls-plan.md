@@ -79,7 +79,8 @@ tokens (prod has ~none → users re-subscribe). No runtime toggle (structural).
   permissions, `last_login_at`, active/inactive (flagged past `security.inactive_account_days`),
   MFA status. CSV-exportable for quarterly access reviews.
 - **E2. Dependency vulnerability scanning** (CC7.1 / A.8.8). `composer audit` +
-  `npm audit` CI job.
+  `npm audit --audit-level=high` — already present as the `sca` job in
+  `.github/workflows/ci.yml`.
 
 ## Sequencing
 A → B → C → D → E. Each a Q-locked minor release (Pint · PHPStan L5 · tests ×3 flag-off +
