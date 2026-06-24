@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Actions\AnonymizeUserAction;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Services\SettingsService;
 use App\Support\Tenancy\RunsPerTenant;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
@@ -51,9 +52,38 @@ class EnforceDataRetention extends Command
 
         $this->eachTenant(function () use ($anonymizer, $execute, $forceBulk): void {
             $this->enforceInactiveUsers($anonymizer, $execute, $forceBulk);
+            $this->enforceAuditLogRetention($execute);
         });
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Prune security/audit logs older than security.audit_log_retention_days
+     * (SOC 2 CC7.3 retention). Dry-run unless --execute, like the rest of this
+     * command. Pruning is the only sanctioned deletion path for append-only logs.
+     */
+    private function enforceAuditLogRetention(bool $execute): void
+    {
+        $days = max(1, (int) app(SettingsService::class)->get('security.audit_log_retention_days', 365));
+        $cutoff = now()->subDays($days);
+
+        $count = ActivityLog::query()->where('created_at', '<', $cutoff)->count();
+
+        if ($count === 0) {
+            $this->line("  audit_logs: 0 record(s) past {$days}d window.");
+
+            return;
+        }
+
+        if (! $execute) {
+            $this->line("  audit_logs: {$count} record(s) WOULD be pruned (past {$days}d window).");
+
+            return;
+        }
+
+        $pruned = ActivityLog::pruneOlderThan($cutoff);
+        $this->line("  audit_logs: pruned {$pruned} record(s) past {$days}d window.");
     }
 
     private function enforceInactiveUsers(AnonymizeUserAction $anonymizer, bool $execute, bool $forceBulk): void

@@ -330,6 +330,27 @@ class AppSettingsSeeder extends Seeder
                 'group' => 'telegram',
                 'is_editable' => true,
             ],
+
+            // --- Security & Compliance (SOC 2 / ISO 27001 code controls) ---
+            // Release A — audit foundation.
+            [
+                'key' => 'security.audit_logging_enabled',
+                'value' => '1',
+                'data_type' => 'boolean',
+                'label' => 'Aktifkan Log Audit Keamanan',
+                'description' => 'Mencatat peristiwa keamanan (login berhasil/gagal, logout, penguncian akun, perubahan pengguna/peran, perubahan kata sandi & pengaturan) ke log aktivitas. PERINGATAN: menonaktifkan ini menghilangkan jejak audit yang diperlukan untuk kepatuhan SOC 2 / ISO 27001.',
+                'group' => 'security',
+                'is_editable' => true,
+            ],
+            [
+                'key' => 'security.audit_log_retention_days',
+                'value' => '365',
+                'data_type' => 'integer',
+                'label' => 'Retensi Log Audit (hari)',
+                'description' => 'Lama penyimpanan log aktivitas/audit sebelum dipangkas oleh tugas retensi (data:enforce-retention --execute). Default 365 hari. Setel lebih tinggi bila auditor mensyaratkan jendela yang lebih panjang.',
+                'group' => 'security',
+                'is_editable' => true,
+            ],
         ];
 
         foreach ($settings as $setting) {

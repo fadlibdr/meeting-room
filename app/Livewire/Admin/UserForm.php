@@ -7,6 +7,7 @@ namespace App\Livewire\Admin;
 use App\Models\Role;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use App\Support\EmailDomainPolicy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -61,6 +62,10 @@ class UserForm extends Component
             : Str::random(14);
 
         $this->user->forceFill(['password' => Hash::make($plain)])->save();
+
+        app(ActivityLogger::class)->security('user.password_reset', $this->user, [
+            'description' => 'Kata sandi pengguna direset oleh admin.',
+        ]);
 
         $this->resetResult = $plain;
         $this->newPassword = '';
@@ -185,6 +190,11 @@ class UserForm extends Component
 
         $user->roles()->sync($validated['roleIds']);
 
+        app(ActivityLogger::class)->security('user.created', $user, [
+            'description' => 'Pengguna baru dibuat.',
+            'new_values' => ['email' => $user->email, 'roles' => $validated['roleIds'], 'is_active' => $user->is_active],
+        ]);
+
         $this->user = $user;
         $this->generatedPassword = $plain;
     }
@@ -194,6 +204,12 @@ class UserForm extends Component
      */
     private function updateExistingUser(array $validated): void
     {
+        $before = [
+            'email' => $this->user->email,
+            'roles' => $this->user->roles->pluck('id')->all(),
+            'is_active' => $this->user->is_active,
+        ];
+
         $this->user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -203,6 +219,12 @@ class UserForm extends Component
         ]);
 
         $this->user->roles()->sync($validated['roleIds']);
+
+        app(ActivityLogger::class)->security('user.updated', $this->user, [
+            'description' => 'Pengguna diperbarui (termasuk peran/akses).',
+            'old_values' => $before,
+            'new_values' => ['email' => $validated['email'], 'roles' => $validated['roleIds'], 'is_active' => $validated['isActive'] ?? true],
+        ]);
     }
 
     public function render(): View

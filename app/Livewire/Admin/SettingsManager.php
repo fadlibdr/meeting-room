@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Admin;
 
 use App\Models\AppSetting;
+use App\Services\ActivityLogger;
 use App\Services\SettingsService;
 use Illuminate\Mail\Message;
 use Illuminate\Support\Collection;
@@ -85,6 +86,13 @@ class SettingsManager extends Component
 
         try {
             $service->set($setting->key, $this->editValue, auth()->id());
+
+            // Never record the raw value of a secret in the audit trail.
+            app(ActivityLogger::class)->security('settings.changed', $setting, [
+                'description' => __("Pengaturan ':key' diubah.", ['key' => $setting->key]),
+                'new_values' => ['key' => $setting->key, 'value' => $setting->data_type === 'encrypted' ? '••••••' : $this->editValue],
+            ]);
+
             $this->successMessage = __("Pengaturan ':label' berhasil diperbarui.", ['label' => $setting->label]);
             $this->editingId = null;
             $this->editValue = null;

@@ -51,6 +51,31 @@ class ActivityLogger
     }
 
     /**
+     * Log a security/audit event (SOC 2 CC7.2 / ISO 27001 A.8.15) under the
+     * "security" module. Honours the security.audit_logging_enabled kill switch:
+     * returns null (and writes nothing) when audit logging is turned off.
+     *
+     * @param  array{
+     *   description?: string,
+     *   old_values?: array<string, mixed>,
+     *   new_values?: array<string, mixed>,
+     *   context?: array<string, mixed>
+     * }  $payload
+     */
+    public function security(
+        string $event,
+        ?Model $subject = null,
+        array $payload = [],
+        ?User $actor = null
+    ): ?ActivityLog {
+        if (! (bool) app(SettingsService::class)->get('security.audit_logging_enabled', true)) {
+            return null;
+        }
+
+        return $this->log('security', $event, $subject, $payload, $actor);
+    }
+
+    /**
      * Convenience: log a user-targeted event (e.g. "users.created" for new user X).
      *
      * @param  array{
