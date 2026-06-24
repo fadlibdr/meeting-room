@@ -17,6 +17,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+        {{-- Apply the saved theme before paint to avoid a flash of the wrong theme. --}}
+        <script>(function () { try { if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {} })();</script>
+
         <title>{{ config('app.name', 'BPJS Kesehatan') }}</title>
 
         {{-- PWA --}}
@@ -255,6 +258,28 @@
 
                     <div class="spacer"></div>
 
+                    {{-- Language picker (moved from the profile dropdown). --}}
+                    <div class="flex items-center gap-1" role="group" aria-label="{{ __('common.language') }}">
+                        @foreach(config('app.available_locales', []) as $code => $label)
+                            <form method="POST" action="{{ route('locale.update', $code) }}">
+                                @csrf
+                                <button type="submit"
+                                        class="pill {{ app()->getLocale() === $code ? 'pill--blue' : 'pill--slate' }}"
+                                        style="cursor: pointer;"
+                                        @if(app()->getLocale() === $code) aria-current="true" @endif
+                                        title="{{ $label }}">{{ strtoupper($code) }}</button>
+                            </form>
+                        @endforeach
+                    </div>
+
+                    {{-- Light/dark theme toggle. --}}
+                    <button type="button" class="iconbtn theme-toggle"
+                            onclick="(function(){var d=document.documentElement.classList.toggle('dark');try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}})()"
+                            aria-label="{{ __('Ganti tema terang/gelap') }}" title="{{ __('Tema') }}">
+                        <svg class="ico-moon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                        <svg class="ico-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                    </button>
+
                     <livewire:notification-dropdown />
 
                     <x-dropdown align="right" width="56">
@@ -302,21 +327,6 @@
                             <x-dropdown-link :href="route('changelog')" wire:navigate>
                                 {{ __('Catatan Rilis') }}
                             </x-dropdown-link>
-                            <div class="px-4 py-2 border-t border-slate-100">
-                                <div class="text-xs text-slate-400 mb-1.5">{{ __('common.language') }}</div>
-                                <div class="flex gap-1.5">
-                                    @foreach(config('app.available_locales', []) as $code => $label)
-                                        <form method="POST" action="{{ route('locale.update', $code) }}">
-                                            @csrf
-                                            <button type="submit"
-                                                    class="pill {{ app()->getLocale() === $code ? 'pill--blue' : '' }}"
-                                                    style="font-size: 11px; cursor: pointer;"
-                                                    @if(app()->getLocale() === $code) aria-current="true" @endif
-                                                    title="{{ $label }}">{{ strtoupper($code) }}</button>
-                                        </form>
-                                    @endforeach
-                                </div>
-                            </div>
                             <form method="POST" action="{{ route('logout') }}" class="border-t border-slate-100">
                                 @csrf
                                 <button type="submit" class="w-full text-start">
