@@ -444,6 +444,17 @@ class AppSettingsSeeder extends Seeder
                 'group' => 'security',
                 'is_editable' => true,
             ],
+            // Release D — data-at-rest. Token encryption is structural (always on);
+            // this toggle controls whether the external .ics feed is offered.
+            [
+                'key' => 'security.calendar_feed_enabled',
+                'value' => '1',
+                'data_type' => 'boolean',
+                'label' => 'Aktifkan Langganan Kalender (.ics)',
+                'description' => 'Izinkan pengguna berlangganan kalender pribadi via URL .ics publik bertoken. Nonaktifkan untuk menutup pemaparan jadwal ke layanan eksternal. Token langganan selalu dienkripsi saat disimpan.',
+                'group' => 'security',
+                'is_editable' => true,
+            ],
         ];
 
         foreach ($settings as $setting) {

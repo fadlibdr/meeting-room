@@ -6,6 +6,7 @@ namespace App\Livewire;
 
 use App\Models\CalendarConnection;
 use App\Models\User;
+use App\Services\SettingsService;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -19,13 +20,23 @@ class CalendarSubscription extends Component
 
     public bool $rotated = false;
 
+    public bool $feedEnabled = true;
+
     public function mount(): void
     {
-        $this->feedUrl = $this->buildUrl();
+        $this->feedEnabled = (bool) app(SettingsService::class)->get('security.calendar_feed_enabled', true);
+
+        if ($this->feedEnabled) {
+            $this->feedUrl = $this->buildUrl();
+        }
     }
 
     public function regenerate(): void
     {
+        if (! $this->feedEnabled) {
+            return;
+        }
+
         $this->user()->regenerateCalendarFeedToken();
         $this->feedUrl = $this->buildUrl();
         $this->rotated = true;

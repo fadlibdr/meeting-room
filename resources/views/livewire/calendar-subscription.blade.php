@@ -1,4 +1,9 @@
 <div class="py-2" x-data="{ copied: false }">
+    @unless($feedEnabled)
+        <div class="card card--pad bpjs-rise text-sm text-slate-600">
+            {{ __('Langganan kalender (.ics) dinonaktifkan oleh administrator.') }}
+        </div>
+    @else
     @if(session('status'))
         <div class="card card--pad bpjs-rise mb-4 flex items-center gap-2.5"
              style="border-color: var(--bpjs-green-200); background: var(--bpjs-green-50);">
@@ -82,4 +87,5 @@
             </x-bpjs.button>
         </div>
     </div>
+    @endunless
 </div>

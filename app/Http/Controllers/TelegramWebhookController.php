@@ -42,13 +42,14 @@ class TelegramWebhookController extends Controller
     {
         if ($param !== '') {
             $user = User::withoutGlobalScope('tenant')
-                ->where('telegram_link_token', $param)
+                ->where('telegram_link_token_hash', User::hashToken($param))
                 ->first();
 
             if ($user instanceof User) {
                 $user->forceFill([
                     'telegram_chat_id' => $chatId,
                     'telegram_link_token' => null,
+                    'telegram_link_token_hash' => null,
                 ])->save();
 
                 $bot->sendMessage($chatId, sprintf(

@@ -8,6 +8,7 @@ use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\User;
 use App\Services\IcsGenerator;
+use App\Services\SettingsService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
@@ -23,9 +24,15 @@ class CalendarFeedController extends Controller
 {
     public function feed(string $token, IcsGenerator $ics, TenantContext $tenant): Response
     {
-        // The token is globally unique and IS the credential — resolve it across
-        // tenants, then pin the context so the bookings query is tenant-scoped.
-        $user = User::query()->withoutGlobalScope('tenant')->where('calendar_feed_token', $token)->first();
+        // Configurable policy: the external .ics feed can be disabled org-wide.
+        abort_unless((bool) app(SettingsService::class)->get('security.calendar_feed_enabled', true), 404);
+
+        // The token IS the credential but is stored encrypted at rest — resolve it
+        // across tenants by its lookup hash, then pin the context so the bookings
+        // query is tenant-scoped.
+        $user = User::query()->withoutGlobalScope('tenant')
+            ->where('calendar_feed_token_hash', User::hashToken($token))
+            ->first();
 
         abort_if($user === null, 404);
 

@@ -37,6 +37,9 @@ class AnonymizeUserAction
                 'job_title' => null,
                 'password' => Hash::make(Str::random(48)), // unusable
                 'calendar_feed_token' => null,
+                'calendar_feed_token_hash' => null,
+                'telegram_link_token' => null,
+                'telegram_link_token_hash' => null,
                 'email_notifications' => false,
                 'is_active' => false,
             ])->save();
