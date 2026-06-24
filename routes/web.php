@@ -27,6 +27,7 @@ use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\TryDemoController;
 use App\Http\Middleware\ForcePasswordChange;
 use App\Http\Middleware\TwoFactorGate;
+use App\Livewire\Admin\AccessReviewReport;
 use App\Livewire\Admin\ApprovalDelegationManager;
 use App\Livewire\Admin\ApprovalPolicyManager;
 use App\Livewire\Admin\NotificationSettingsManager;
@@ -245,6 +246,11 @@ Route::middleware(['auth', 'user.active', ForcePasswordChange::class, TwoFactorG
         Route::get('reports/utilization', UtilizationDashboard::class)
             ->middleware('permission:reports.view')
             ->name('reports.utilization');
+
+        // Compliance Release E — access-review report (CC6.2/6.3 / A.5.18).
+        Route::get('reports/access-review', AccessReviewReport::class)
+            ->middleware('permission:users.view')
+            ->name('reports.access-review');
 
         // Sprint 5 — Audit-log viewer (read-only; gated activity-logs.view)
         Route::get('logs', [ActivityLogController::class, 'index'])

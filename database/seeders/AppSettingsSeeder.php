@@ -455,6 +455,16 @@ class AppSettingsSeeder extends Seeder
                 'group' => 'security',
                 'is_editable' => true,
             ],
+            // Release E — access-review evidence.
+            [
+                'key' => 'security.inactive_account_days',
+                'value' => '90',
+                'data_type' => 'integer',
+                'label' => 'Ambang Akun Tidak Aktif (hari)',
+                'description' => 'Pada laporan tinjauan akses, akun tanpa login selama menit/hari ini ditandai "tidak aktif" untuk ditinjau/dinonaktifkan. Dipakai saat tinjauan akses berkala (mis. kuartalan).',
+                'group' => 'security',
+                'is_editable' => true,
+            ],
         ];
 
         foreach ($settings as $setting) {
