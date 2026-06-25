@@ -22,11 +22,12 @@ new #[Layout('layouts.guest')] class extends Component
 
         Session::regenerate();
 
-        // Second factor (CC6.1 / A.8.5): if the user has TOTP enrolled, hold the
-        // session "pending" — TwoFactorGate confines them to the challenge page
-        // until they verify a code.
+        // Second factor (CC6.1 / A.8.5): if 2FA is enabled and the user has TOTP
+        // enrolled, hold the session "pending" — TwoFactorGate confines them to
+        // the challenge page until they verify a code. Disabling the feature
+        // (security.mfa_enabled) stops the prompt even for enrolled users.
         $user = Auth::user();
-        if ($user instanceof User && $user->hasTwoFactorEnabled()) {
+        if ($user instanceof User && $user->twoFactorChallengeRequired()) {
             Session::put('2fa.pending', true);
             $this->redirect(route('two-factor.challenge'), navigate: true);
 

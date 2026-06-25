@@ -162,6 +162,17 @@ class User extends Authenticatable
     }
 
     /**
+     * Whether to challenge this user for a TOTP code at login — only when the
+     * 2FA feature is enabled AND they're enrolled. Disabling security.mfa_enabled
+     * turns the feature off, so enrolled users are no longer prompted.
+     */
+    public function twoFactorChallengeRequired(): bool
+    {
+        return (bool) app(SettingsService::class)->get('security.mfa_enabled', true)
+            && $this->hasTwoFactorEnabled();
+    }
+
+    /**
      * Privileged = holds an administrative capability; used by the
      * mfa_enforced_for_privileged policy.
      */
