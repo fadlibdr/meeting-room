@@ -97,6 +97,21 @@ class SecurityMfaTest extends TestCase
         $this->assertTrue(session('2fa.pending'));
     }
 
+    public function test_login_does_not_challenge_when_the_feature_is_disabled(): void
+    {
+        // Enrolled user, but the global 2FA feature is turned off → no challenge.
+        [$user] = $this->userWithMfa();
+        app(SettingsService::class)->set('security.mfa_enabled', '0');
+
+        Volt::test('pages.auth.login')
+            ->set('form.email', $user->email)
+            ->set('form.password', 'Secret-Pass123')
+            ->call('login')
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertNull(session('2fa.pending'));
+    }
+
     public function test_challenge_passes_with_a_valid_totp_code(): void
     {
         [$user, $secret] = $this->userWithMfa();
